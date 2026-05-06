@@ -9,38 +9,218 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TicketsRouteImport } from './routes/tickets'
+import { Route as SponsorsRouteImport } from './routes/sponsors'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as OrganizerRouteImport } from './routes/organizer'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as EventsRouteImport } from './routes/events'
+import { Route as CollegesRouteImport } from './routes/colleges'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OrganizerScanRouteImport } from './routes/organizer.scan'
+import { Route as OrganizerNewRouteImport } from './routes/organizer.new'
+import { Route as EventsEventIdRouteImport } from './routes/events.$eventId'
 
+const TicketsRoute = TicketsRouteImport.update({
+  id: '/tickets',
+  path: '/tickets',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SponsorsRoute = SponsorsRouteImport.update({
+  id: '/sponsors',
+  path: '/sponsors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrganizerRoute = OrganizerRouteImport.update({
+  id: '/organizer',
+  path: '/organizer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsRoute = EventsRouteImport.update({
+  id: '/events',
+  path: '/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CollegesRoute = CollegesRouteImport.update({
+  id: '/colleges',
+  path: '/colleges',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OrganizerScanRoute = OrganizerScanRouteImport.update({
+  id: '/scan',
+  path: '/scan',
+  getParentRoute: () => OrganizerRoute,
+} as any)
+const OrganizerNewRoute = OrganizerNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => OrganizerRoute,
+} as any)
+const EventsEventIdRoute = EventsEventIdRouteImport.update({
+  id: '/$eventId',
+  path: '/$eventId',
+  getParentRoute: () => EventsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/colleges': typeof CollegesRoute
+  '/events': typeof EventsRouteWithChildren
+  '/login': typeof LoginRoute
+  '/organizer': typeof OrganizerRouteWithChildren
+  '/signup': typeof SignupRoute
+  '/sponsors': typeof SponsorsRoute
+  '/tickets': typeof TicketsRoute
+  '/events/$eventId': typeof EventsEventIdRoute
+  '/organizer/new': typeof OrganizerNewRoute
+  '/organizer/scan': typeof OrganizerScanRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/colleges': typeof CollegesRoute
+  '/events': typeof EventsRouteWithChildren
+  '/login': typeof LoginRoute
+  '/organizer': typeof OrganizerRouteWithChildren
+  '/signup': typeof SignupRoute
+  '/sponsors': typeof SponsorsRoute
+  '/tickets': typeof TicketsRoute
+  '/events/$eventId': typeof EventsEventIdRoute
+  '/organizer/new': typeof OrganizerNewRoute
+  '/organizer/scan': typeof OrganizerScanRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/colleges': typeof CollegesRoute
+  '/events': typeof EventsRouteWithChildren
+  '/login': typeof LoginRoute
+  '/organizer': typeof OrganizerRouteWithChildren
+  '/signup': typeof SignupRoute
+  '/sponsors': typeof SponsorsRoute
+  '/tickets': typeof TicketsRoute
+  '/events/$eventId': typeof EventsEventIdRoute
+  '/organizer/new': typeof OrganizerNewRoute
+  '/organizer/scan': typeof OrganizerScanRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/colleges'
+    | '/events'
+    | '/login'
+    | '/organizer'
+    | '/signup'
+    | '/sponsors'
+    | '/tickets'
+    | '/events/$eventId'
+    | '/organizer/new'
+    | '/organizer/scan'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/colleges'
+    | '/events'
+    | '/login'
+    | '/organizer'
+    | '/signup'
+    | '/sponsors'
+    | '/tickets'
+    | '/events/$eventId'
+    | '/organizer/new'
+    | '/organizer/scan'
+  id:
+    | '__root__'
+    | '/'
+    | '/colleges'
+    | '/events'
+    | '/login'
+    | '/organizer'
+    | '/signup'
+    | '/sponsors'
+    | '/tickets'
+    | '/events/$eventId'
+    | '/organizer/new'
+    | '/organizer/scan'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CollegesRoute: typeof CollegesRoute
+  EventsRoute: typeof EventsRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  OrganizerRoute: typeof OrganizerRouteWithChildren
+  SignupRoute: typeof SignupRoute
+  SponsorsRoute: typeof SponsorsRoute
+  TicketsRoute: typeof TicketsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tickets': {
+      id: '/tickets'
+      path: '/tickets'
+      fullPath: '/tickets'
+      preLoaderRoute: typeof TicketsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sponsors': {
+      id: '/sponsors'
+      path: '/sponsors'
+      fullPath: '/sponsors'
+      preLoaderRoute: typeof SponsorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/organizer': {
+      id: '/organizer'
+      path: '/organizer'
+      fullPath: '/organizer'
+      preLoaderRoute: typeof OrganizerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/events': {
+      id: '/events'
+      path: '/events'
+      fullPath: '/events'
+      preLoaderRoute: typeof EventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/colleges': {
+      id: '/colleges'
+      path: '/colleges'
+      fullPath: '/colleges'
+      preLoaderRoute: typeof CollegesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +228,64 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/organizer/scan': {
+      id: '/organizer/scan'
+      path: '/scan'
+      fullPath: '/organizer/scan'
+      preLoaderRoute: typeof OrganizerScanRouteImport
+      parentRoute: typeof OrganizerRoute
+    }
+    '/organizer/new': {
+      id: '/organizer/new'
+      path: '/new'
+      fullPath: '/organizer/new'
+      preLoaderRoute: typeof OrganizerNewRouteImport
+      parentRoute: typeof OrganizerRoute
+    }
+    '/events/$eventId': {
+      id: '/events/$eventId'
+      path: '/$eventId'
+      fullPath: '/events/$eventId'
+      preLoaderRoute: typeof EventsEventIdRouteImport
+      parentRoute: typeof EventsRoute
+    }
   }
 }
 
+interface EventsRouteChildren {
+  EventsEventIdRoute: typeof EventsEventIdRoute
+}
+
+const EventsRouteChildren: EventsRouteChildren = {
+  EventsEventIdRoute: EventsEventIdRoute,
+}
+
+const EventsRouteWithChildren =
+  EventsRoute._addFileChildren(EventsRouteChildren)
+
+interface OrganizerRouteChildren {
+  OrganizerNewRoute: typeof OrganizerNewRoute
+  OrganizerScanRoute: typeof OrganizerScanRoute
+}
+
+const OrganizerRouteChildren: OrganizerRouteChildren = {
+  OrganizerNewRoute: OrganizerNewRoute,
+  OrganizerScanRoute: OrganizerScanRoute,
+}
+
+const OrganizerRouteWithChildren = OrganizerRoute._addFileChildren(
+  OrganizerRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CollegesRoute: CollegesRoute,
+  EventsRoute: EventsRouteWithChildren,
+  LoginRoute: LoginRoute,
+  OrganizerRoute: OrganizerRouteWithChildren,
+  SignupRoute: SignupRoute,
+  SponsorsRoute: SponsorsRoute,
+  TicketsRoute: TicketsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
