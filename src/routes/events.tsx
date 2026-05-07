@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { EventCard } from "@/components/event-card";
 import { Input } from "@/components/ui/input";
-import { events } from "@/lib/mock";
 import { Search } from "lucide-react";
 
 const cats = ["All", "Cultural", "Tech", "Sports", "Business", "Arts"] as const;
@@ -15,11 +16,52 @@ export const Route = createFileRoute("/events")({
 function Events() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<(typeof cats)[number]>("All");
-  const filtered = useMemo(
-    () => events.filter((e) =>
-      (cat === "All" || e.category === cat) &&
-      (e.title.toLowerCase().includes(q.toLowerCase()) || e.college.toLowerCase().includes(q.toLowerCase()))
-    ), [q, cat]);
+
+  const { data: dbEvents, isLoading } = useQuery({
+    queryKey: ["events"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .order("date", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const filtered = useMemo(() => {
+    if (!dbEvents) return [];
+    return dbEvents
+      .map(e => ({
+        id: e.id,
+        title: e.title,
+        college: e.college_name,
+        collegeId: e.college_id || "",
+        date: e.date,
+        city: e.city,
+        category: e.category as any,
+        cover: e.cover,
+        attendees: e.attendees,
+        priceFrom: e.price_from,
+        description: e.description,
+        organizer: e.organizer
+      }))
+      .filter((e) =>
+        (cat === "All" || e.category === cat) &&
+        (e.title.toLowerCase().includes(q.toLowerCase()) || e.college.toLowerCase().includes(q.toLowerCase()))
+      );
+  }, [dbEvents, q, cat]);
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-6 py-12">
+        <h1 className="font-display text-4xl font-black md:text-5xl animate-pulse bg-muted h-12 w-64 rounded" />
+        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map(i => <div key={i} className="h-64 glass rounded-2xl animate-pulse" />)}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-6 py-12">

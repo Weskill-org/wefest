@@ -1,6 +1,17 @@
 import { Link } from "@tanstack/react-router";
 import { Calendar, MapPin, Users } from "lucide-react";
-import type { Event } from "@/lib/mock";
+
+export interface Event {
+  id: string;
+  title: string;
+  college: string;
+  date: string;
+  city: string;
+  category: string;
+  cover: string;
+  attendees: number;
+  priceFrom: number;
+}
 
 export function EventCard({ event }: { event: Event }) {
   return (

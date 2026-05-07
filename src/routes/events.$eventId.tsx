@@ -1,14 +1,20 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { events } from "@/lib/mock";
-import { Calendar, MapPin, Users, ArrowLeft, Ticket as TicketIcon } from "lucide-react";
+import { Calendar, MapPin, Users, ArrowLeft, Ticket as TicketIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/events/$eventId")({
-  loader: ({ params }) => {
-    const event = events.find((e) => e.id === params.eventId);
-    if (!event) throw notFound();
+  loader: async ({ params }) => {
+    const { data: event, error } = await supabase
+      .from("events")
+      .select("*")
+      .eq("id", params.eventId)
+      .single();
+    
+    if (error || !event) throw notFound();
     return event;
   },
   head: ({ loaderData }) => ({
@@ -18,7 +24,10 @@ export const Route = createFileRoute("/events/$eventId")({
     ],
   }),
   errorComponent: ({ error }) => <div className="container py-20">{error.message}</div>,
-  notFoundComponent: () => <div className="container py-20">Event not found.</div>,
+  notFoundComponent: () => <div className="container py-20 text-center">
+    <h1 className="text-2xl font-bold">Event not found</h1>
+    <Link to="/events" className="mt-4 text-primary hover:underline inline-block">Return to events</Link>
+  </div>,
   component: EventDetail,
 });
 
@@ -31,8 +40,33 @@ const tiers = [
 function EventDetail() {
   const event = Route.useLoaderData();
   const [selected, setSelected] = useState(1);
+  const queryClient = useQueryClient();
 
-  const buy = () => toast.success(`${tiers[selected].name} added to checkout — ₹${tiers[selected].price}`);
+  const buyMutation = useMutation({
+    mutationFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Please login to book tickets");
+
+      const ticketCode = `${event.title.substring(0, 3).toUpperCase()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+      
+      const { error } = await supabase.from("tickets").insert({
+        user_id: user.id,
+        event_id: event.id,
+        tier: tiers[selected].name,
+        code: ticketCode,
+      });
+
+      if (error) throw error;
+      return { tier: tiers[selected].name, code: ticketCode };
+    },
+    onSuccess: (data) => {
+      toast.success(`Success! ${data.tier} booked. Your code: ${data.code}`);
+      queryClient.invalidateQueries({ queryKey: ["my-tickets"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to book ticket");
+    },
+  });
 
   return (
     <div>
@@ -43,7 +77,7 @@ function EventDetail() {
             <ArrowLeft className="h-4 w-4" /> All events
           </Link>
           <div className="absolute bottom-6">
-            <div className="text-sm text-white/80">{event.college}</div>
+            <div className="text-sm text-white/80">{event.college_name}</div>
             <h1 className="font-display text-5xl font-black text-white md:text-6xl">{event.title}</h1>
           </div>
         </div>
@@ -71,7 +105,7 @@ function EventDetail() {
           <h2 className="mt-12 font-display text-2xl font-bold">Organizer</h2>
           <div className="mt-4 glass rounded-2xl p-5">
             <div className="font-semibold">{event.organizer}</div>
-            <div className="text-sm text-muted-foreground">Verified by WeFest • {event.college}</div>
+            <div className="text-sm text-muted-foreground">Verified by WeFest • {event.college_name}</div>
           </div>
         </div>
 
@@ -99,8 +133,13 @@ function EventDetail() {
                 </button>
               ))}
             </div>
-            <Button onClick={buy} size="lg" className="mt-5 w-full bg-brand-gradient text-primary-foreground hover:opacity-90">
-              Checkout securely
+            <Button 
+              onClick={() => buyMutation.mutate()} 
+              disabled={buyMutation.isPending}
+              size="lg" 
+              className="mt-5 w-full bg-brand-gradient text-primary-foreground hover:opacity-90"
+            >
+              {buyMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Checkout securely"}
             </Button>
             <p className="mt-2 text-center text-[11px] text-muted-foreground">QR ticket • Instant delivery</p>
           </div>

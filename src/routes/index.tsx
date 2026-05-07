@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Calendar, ShieldCheck, Sparkles, Ticket, TrendingUp, Users2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { ArrowRight, Calendar, ShieldCheck, Sparkles, Ticket, TrendingUp, Users2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EventCard } from "@/components/event-card";
-import { events, colleges } from "@/lib/mock";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -15,7 +16,39 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
-  const featured = events.slice(0, 6);
+  const { data: events, isLoading: loadingEvents } = useQuery({
+    queryKey: ["featured-events"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("events").select("*").limit(6).order("attendees", { ascending: false });
+      if (error) throw error;
+      return data.map(e => ({
+        id: e.id,
+        title: e.title,
+        college: e.college_name,
+        collegeId: e.college_id || "",
+        date: e.date,
+        city: e.city,
+        category: e.category as any,
+        cover: e.cover,
+        attendees: e.attendees,
+        priceFrom: e.price_from,
+        description: e.description,
+        organizer: e.organizer
+      }));
+    }
+  });
+
+  const { data: colleges, isLoading: loadingColleges } = useQuery({
+    queryKey: ["featured-colleges"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("colleges").select("*").limit(4).order("fests", { ascending: false });
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const featured = events || [];
+
   return (
     <div>
       {/* HERO */}
@@ -49,18 +82,24 @@ function Home() {
           <div className="relative">
             <div className="absolute -inset-4 rounded-3xl bg-brand-gradient opacity-30 blur-3xl" />
             <div className="relative grid gap-4">
-              {featured.slice(0, 3).map((e, i) => (
-                <div key={e.id} className={`glass overflow-hidden rounded-2xl ${i === 1 ? "ml-8" : ""}`}>
-                  <div className={`flex items-center gap-4 p-4`}>
-                    <div className={`h-16 w-16 shrink-0 rounded-xl bg-gradient-to-br ${e.cover}`} />
-                    <div className="min-w-0">
-                      <div className="text-xs text-muted-foreground">{e.college}</div>
-                      <div className="truncate font-semibold">{e.title}</div>
-                      <div className="text-xs text-primary">From ₹{e.priceFrom}</div>
+              {loadingEvents ? (
+                <div className="h-48 glass rounded-2xl flex items-center justify-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : (
+                featured.slice(0, 3).map((e, i) => (
+                  <div key={e.id} className={`glass overflow-hidden rounded-2xl ${i === 1 ? "ml-8" : ""}`}>
+                    <div className={`flex items-center gap-4 p-4`}>
+                      <div className={`h-16 w-16 shrink-0 rounded-xl bg-gradient-to-br ${e.cover}`} />
+                      <div className="min-w-0">
+                        <div className="text-xs text-muted-foreground">{e.college}</div>
+                        <div className="truncate font-semibold">{e.title}</div>
+                        <div className="text-xs text-primary">From ₹{e.priceFrom}</div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -91,7 +130,11 @@ function Home() {
           <Link to="/events" className="text-sm text-primary hover:underline">View all →</Link>
         </div>
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {featured.map((e) => <EventCard key={e.id} event={e} />)}
+          {loadingEvents ? (
+            [1, 2, 3].map(i => <div key={i} className="h-64 glass rounded-2xl animate-pulse" />)
+          ) : (
+            featured.map((e) => <EventCard key={e.id} event={e} />)
+          )}
         </div>
       </section>
 
@@ -99,12 +142,16 @@ function Home() {
       <section className="container mx-auto px-6 py-24">
         <h2 className="font-display text-3xl font-bold md:text-4xl">Trusted by India's top colleges</h2>
         <div className="mt-8 grid gap-3 sm:grid-cols-2 md:grid-cols-4">
-          {colleges.map((c) => (
-            <Link key={c.id} to="/colleges" className="glass rounded-xl p-4 transition hover:border-primary/40">
-              <div className="font-semibold">{c.name}</div>
-              <div className="mt-1 text-xs text-muted-foreground">{c.city} • {c.fests} active fests</div>
-            </Link>
-          ))}
+          {loadingColleges ? (
+            [1, 2, 3, 4].map(i => <div key={i} className="h-16 glass rounded-xl animate-pulse" />)
+          ) : (
+            colleges?.map((c) => (
+              <Link key={c.id} to="/colleges" className="glass rounded-xl p-4 transition hover:border-primary/40">
+                <div className="font-semibold">{c.name}</div>
+                <div className="mt-1 text-xs text-muted-foreground">{c.city} • {c.fests} active fests</div>
+              </Link>
+            ))
+          )}
         </div>
       </section>
 

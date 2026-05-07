@@ -1,9 +1,15 @@
 
 -- Role enum
-create type public.app_role as enum ('student', 'college', 'company');
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'app_role') THEN
+    CREATE TYPE public.app_role AS ENUM ('student', 'college', 'company');
+  END IF;
+END
+$$;
 
 -- Profiles
-create table public.profiles (
+create table if not exists public.profiles (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null unique references auth.users(id) on delete cascade,
   email text,
@@ -14,19 +20,22 @@ create table public.profiles (
 
 alter table public.profiles enable row level security;
 
+drop policy if exists "Profiles viewable by authenticated" on public.profiles;
 create policy "Profiles viewable by authenticated"
 on public.profiles for select to authenticated using (true);
 
+drop policy if exists "Users update own profile" on public.profiles;
 create policy "Users update own profile"
 on public.profiles for update to authenticated
 using (auth.uid() = user_id);
 
+drop policy if exists "Users insert own profile" on public.profiles;
 create policy "Users insert own profile"
 on public.profiles for insert to authenticated
 with check (auth.uid() = user_id);
 
 -- User roles
-create table public.user_roles (
+create table if not exists public.user_roles (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   role app_role not null,
@@ -36,6 +45,7 @@ create table public.user_roles (
 
 alter table public.user_roles enable row level security;
 
+drop policy if exists "Users view own roles" on public.user_roles;
 create policy "Users view own roles"
 on public.user_roles for select to authenticated
 using (auth.uid() = user_id);
@@ -63,6 +73,7 @@ begin
 end;
 $$;
 
+drop trigger if exists trg_profiles_updated_at on public.profiles;
 create trigger trg_profiles_updated_at
 before update on public.profiles
 for each row execute function public.update_updated_at_column();
@@ -96,6 +107,7 @@ begin
 end;
 $$;
 
+drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
 after insert on auth.users
 for each row execute function public.handle_new_user();

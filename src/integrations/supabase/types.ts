@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -14,6 +14,98 @@ export type Database = {
   }
   public: {
     Tables: {
+      colleges: {
+        Row: {
+          city: string
+          created_at: string
+          domain: string
+          fests: number
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          city: string
+          created_at?: string
+          domain: string
+          fests?: number
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          city?: string
+          created_at?: string
+          domain?: string
+          fests?: number
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      events: {
+        Row: {
+          attendees: number
+          category: string
+          city: string
+          college_id: string | null
+          college_name: string
+          cover: string
+          created_at: string
+          date: string
+          description: string
+          id: string
+          organizer: string
+          organizer_user_id: string | null
+          price_from: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          attendees?: number
+          category: string
+          city: string
+          college_id?: string | null
+          college_name: string
+          cover?: string
+          created_at?: string
+          date: string
+          description?: string
+          id?: string
+          organizer?: string
+          organizer_user_id?: string | null
+          price_from?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          attendees?: number
+          category?: string
+          city?: string
+          college_id?: string | null
+          college_name?: string
+          cover?: string
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          organizer?: string
+          organizer_user_id?: string | null
+          price_from?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_college_id_fkey"
+            columns: ["college_id"]
+            isOneToOne: false
+            referencedRelation: "colleges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -40,6 +132,82 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      sponsorship_proposals: {
+        Row: {
+          amount: number
+          company_user_id: string
+          created_at: string
+          event_id: string
+          id: string
+          message: string
+          status: string
+          tier: string
+        }
+        Insert: {
+          amount?: number
+          company_user_id: string
+          created_at?: string
+          event_id: string
+          id?: string
+          message?: string
+          status?: string
+          tier: string
+        }
+        Update: {
+          amount?: number
+          company_user_id?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+          message?: string
+          status?: string
+          tier?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsorship_proposals_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tickets: {
+        Row: {
+          code: string
+          created_at: string
+          event_id: string
+          id: string
+          tier: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          event_id: string
+          id?: string
+          tier?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+          tier?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -208,3 +376,4 @@ export const Constants = {
     },
   },
 } as const
+

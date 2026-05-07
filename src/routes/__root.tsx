@@ -1,6 +1,8 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { SiteHeader, SiteFooter } from "@/components/site-header";
 import { Toaster } from "@/components/ui/sonner";
+import { queryClient } from "../router";
 
 import appCss from "../styles.css?url";
 
@@ -61,13 +63,15 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <SiteHeader />
-      <main className="flex-1">
-        <Outlet />
-      </main>
-      <SiteFooter />
-      <Toaster />
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <div className="flex min-h-screen flex-col">
+        <SiteHeader />
+        <main className="flex-1">
+          <Outlet />
+        </main>
+        <SiteFooter />
+        <Toaster />
+      </div>
+    </QueryClientProvider>
   );
 }
