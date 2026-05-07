@@ -55,12 +55,21 @@ export function SiteHeader() {
           ))}
         </nav>
         <div className="flex items-center gap-2">
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/login">Sign in</Link>
-          </Button>
-          <Button asChild size="sm" className="bg-brand-gradient text-primary-foreground hover:opacity-90">
-            <Link to="/signup">Get started</Link>
-          </Button>
+          {user ? (
+            <>
+              <span className="hidden text-xs text-muted-foreground md:inline">{user.email}</span>
+              <Button variant="ghost" size="sm" onClick={signOut}>Sign out</Button>
+            </>
+          ) : (
+            <>
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/login">Sign in</Link>
+              </Button>
+              <Button asChild size="sm" className="bg-brand-gradient text-primary-foreground hover:opacity-90">
+                <Link to="/signup">Get started</Link>
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </header>
