@@ -97,7 +97,7 @@ function OrganizerEventDashboard() {
   const { data: campaigns } = useQuery({
     queryKey: ["marketing-campaigns", event.college_id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("marketing_campaigns").select("*").eq("college_id", event.college_id);
+      const { data, error } = await supabase.from("marketing_campaigns").select("*").eq("college_id", event.college_id ?? "");
       if (error) throw error;
       return data;
     }
@@ -373,7 +373,7 @@ function OrganizerEventDashboard() {
                       <tr key={p.id}>
                         <td className="p-4 font-medium">{p.vendor_name}</td>
                         <td className="p-4 font-bold">₹{p.amount.toLocaleString()}</td>
-                        <td className="p-4 text-muted-foreground">₹{p.tax_amount.toLocaleString()} (18%)</td>
+                        <td className="p-4 text-muted-foreground">₹{(p.tax_amount ?? 0).toLocaleString()} (18%)</td>
                         <td className="p-4">
                           <span className={`inline-flex items-center rounded-full px-2 py-1 text-[10px] font-medium ${
                             p.status === 'paid' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'

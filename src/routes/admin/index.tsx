@@ -6,6 +6,7 @@ import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianG
 import { format, parseISO, subDays, eachDayOfInterval } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useRegion } from "@/contexts/RegionContext";
@@ -135,7 +136,7 @@ function AdminDashboard() {
                 <p className="text-sm text-muted-foreground">Last 14 days of ticket sales across the platform.</p>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-primary">{formatPrice(Object.values(salesByDate || {}).reduce((a: any, b: any) => a + b, 0))}</div>
+                <div className="text-2xl font-bold text-primary">{formatPrice((Object.values(salesByDate || {}) as number[]).reduce((a, b) => a + b, 0))}</div>
                 <div className="text-xs text-muted-foreground">14-day total</div>
               </div>
             </div>

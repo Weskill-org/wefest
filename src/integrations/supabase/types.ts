@@ -1154,6 +1154,7 @@ export type Database = {
           created_at: string
           event_id: string
           id: string
+          scanned_at: string | null
           tier: string
           user_id: string
         }
@@ -1162,6 +1163,7 @@ export type Database = {
           created_at?: string
           event_id: string
           id?: string
+          scanned_at?: string | null
           tier?: string
           user_id: string
         }
@@ -1170,6 +1172,7 @@ export type Database = {
           created_at?: string
           event_id?: string
           id?: string
+          scanned_at?: string | null
           tier?: string
           user_id?: string
         }

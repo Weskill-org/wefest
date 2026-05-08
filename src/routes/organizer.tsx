@@ -158,7 +158,7 @@ function Organizer() {
                       date={e.date}
                       city={e.city}
                       cover={e.cover}
-                      status={e.status || "Published"}
+                      status={(e.status || "Published") as "Completed" | "Draft" | "Published" | "Sold Out"}
                       ticketsSold={Math.floor((e.attendees || 0) * 0.15)}
                       revenue={(e.attendees || 0) * (e.price_from || 0) * 0.15}
                     />
