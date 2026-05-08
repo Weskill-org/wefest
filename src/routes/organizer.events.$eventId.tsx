@@ -97,7 +97,7 @@ function OrganizerEventDashboard() {
   const { data: campaigns } = useQuery({
     queryKey: ["marketing-campaigns", event.college_id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("marketing_campaigns").select("*").eq("college_id", event.college_id);
+      const { data, error } = await supabase.from("marketing_campaigns").select("*").eq("college_id", event.college_id ?? "");
       if (error) throw error;
       return data;
     }
