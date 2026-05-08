@@ -291,7 +291,8 @@ function Tickets() {
         <TabsContent value="memories">
           <div className="grid gap-6 sm:grid-cols-2">
             {myTickets.map((t: any) => {
-              const memory = myMemories.find((m: any) => m.event_id === t.id);
+              const memoryRow: any = myMemories.find((m: any) => m.event_id === t.id);
+              const memory = memoryRow ? { ...memoryRow, metadata: (memoryRow.metadata || {}) as any } : null;
               
               return (
                 <div key={`memory-${t.id}`} className="glass rounded-[2.5rem] p-8 border border-border/60 overflow-hidden relative group">
