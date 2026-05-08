@@ -147,7 +147,7 @@ function TalentMarketplace() {
                       </div>
                     </div>
                   </div>
-                  {a.rating > 4.5 && (
+                  {(a.rating ?? 0) > 4.5 && (
                     <div className="rounded-full bg-primary/10 p-1 text-primary">
                       <CheckCircle2 className="h-4 w-4" />
                     </div>
