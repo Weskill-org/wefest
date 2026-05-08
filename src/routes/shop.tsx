@@ -118,7 +118,7 @@ function Shop() {
         {isLoading ? (
           [1, 2, 3, 4].map(i => <div key={i} className="h-[380px] rounded-2xl bg-muted animate-pulse" />)
         ) : filtered.length > 0 ? (
-          filtered.map(p => <ProductCard key={p.id} product={p} />)
+          filtered.map(p => <ProductCard key={p.id} product={{ ...p, description: p.description ?? "", image_url: p.image_url ?? "" } as any} />)
         ) : (
           <div className="col-span-full py-20 text-center glass rounded-3xl">
             <ShoppingBag className="mx-auto h-12 w-12 text-muted-foreground opacity-20" />
