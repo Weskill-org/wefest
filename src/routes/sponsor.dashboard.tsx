@@ -101,7 +101,7 @@ function SponsorDashboard() {
     const headers = ["Student Name", "Email", "Event", "Visit Date", "Engagement Status"];
     
     // Map data to CSV rows
-    const rows = visits.map(v => [
+    const rows = (visits as any[]).map(v => [
       v.full_name || "Anonymous",
       v.email || "N/A",
       v.event_title || "General Interest",
