@@ -3,19 +3,34 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { EventCard } from "@/components/event-card";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Sparkles, CalendarRange, Filter } from "lucide-react";
+import { EventsHero } from "@/components/events/events-hero";
+import { CategoryFilter } from "@/components/events/category-filter";
+import { EmptyState } from "@/components/events/empty-state";
 
 const cats = ["All", "Cultural", "Tech", "Sports", "Business", "Arts"] as const;
 
 export const Route = createFileRoute("/events")({
-  head: () => ({ meta: [{ title: "Browse festivals — WeFest" }, { name: "description", content: "Discover college festivals across India." }] }),
+  head: () => ({ 
+    meta: [
+      { title: "Browse Festivals — WeFest" }, 
+      { name: "description", content: "Explore the best cultural, technical, and sports festivals from top colleges across India." }
+    ] 
+  }),
   component: Events,
 });
 
 function Events() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<(typeof cats)[number]>("All");
+
+  const { data: userProfile } = useQuery({
+    queryKey: ["user-profile-for-isolation"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    }
+  });
 
   const { data: dbEvents, isLoading } = useQuery({
     queryKey: ["events"],
@@ -29,9 +44,28 @@ function Events() {
     },
   });
 
+  const { data: userTickets } = useQuery({
+    queryKey: ["my-tickets-for-ai"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+      const { data } = await supabase.from("tickets").select("*, events(category)").eq("user_id", user.id);
+      return data || [];
+    }
+  });
+
   const filtered = useMemo(() => {
     if (!dbEvents) return [];
+    
+    const userCollegeId = userProfile?.user_metadata?.college_id;
+    
     return dbEvents
+      .filter(e => {
+        if (userCollegeId) {
+          return e.college_id === userCollegeId || !e.college_id;
+        }
+        return !e.college_id;
+      })
       .map(e => ({
         id: e.id,
         title: e.title,
@@ -48,51 +82,122 @@ function Events() {
       }))
       .filter((e) =>
         (cat === "All" || e.category === cat) &&
-        (e.title.toLowerCase().includes(q.toLowerCase()) || e.college.toLowerCase().includes(q.toLowerCase()))
+        (e.title.toLowerCase().includes(q.toLowerCase()) || 
+         e.college.toLowerCase().includes(q.toLowerCase()) ||
+         e.city.toLowerCase().includes(q.toLowerCase()))
       );
-  }, [dbEvents, q, cat]);
+  }, [dbEvents, q, cat, userProfile]);
+
+  const smartMatches = useMemo(() => {
+    if (!filtered || filtered.length === 0) return [];
+    
+    const userCategories = userTickets?.map((t: any) => t.events?.category).filter(Boolean) || [];
+    const categoryAffinity = userCategories.reduce((acc: any, c: string) => {
+      acc[c] = (acc[c] || 0) + 1;
+      return acc;
+    }, {});
+
+    return [...filtered].map(e => {
+      let score = 0;
+      if (e.attendees > 5000) score += 20;
+      if (e.attendees > 10000) score += 20;
+      if (categoryAffinity[e.category]) score += (categoryAffinity[e.category] * 30);
+      
+      return { ...e, aiScore: score };
+    })
+    .filter(e => e.aiScore > 0)
+    .sort((a, b) => b.aiScore - a.aiScore)
+    .slice(0, 3);
+  }, [filtered, userTickets]);
+
+  const resetFilters = () => {
+    setQ("");
+    setCat("All");
+  };
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-6 py-12">
-        <h1 className="font-display text-4xl font-black md:text-5xl animate-pulse bg-muted h-12 w-64 rounded" />
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map(i => <div key={i} className="h-64 glass rounded-2xl animate-pulse" />)}
+      <div className="min-h-screen bg-background">
+        <div className="h-[40vh] w-full animate-pulse bg-muted/20" />
+        <div className="container mx-auto px-6 py-12">
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="h-[400px] rounded-3xl bg-muted/10 animate-pulse" />
+            ))}
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-6 py-12">
-      <div className="flex flex-col gap-2">
-        <h1 className="font-display text-4xl font-black md:text-5xl">All festivals</h1>
-        <p className="text-muted-foreground">{filtered.length} fests across {new Set(filtered.map(e => e.college)).size} colleges</p>
+    <div className="min-h-screen bg-background">
+      <EventsHero searchQuery={q} setSearchQuery={setQ} />
+      
+      <div id="explore-section" className="sticky top-16 z-30 border-y border-border/40 bg-background/60 py-4 backdrop-blur-xl">
+        <CategoryFilter 
+          categories={cats} 
+          activeCategory={cat} 
+          setActiveCategory={setCat} 
+        />
       </div>
 
-      <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="relative max-w-md flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search fest or college…" className="pl-9" />
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {cats.map((c) => (
-            <button
-              key={c}
-              onClick={() => setCat(c)}
-              className={`rounded-full border px-3 py-1.5 text-xs transition ${
-                cat === c ? "border-transparent bg-brand-gradient text-primary-foreground" : "border-border/60 text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
-      </div>
+      <div className="container mx-auto px-6 py-12">
+        {/* Smart Matches Section */}
+        {q === "" && cat === "All" && smartMatches.length > 0 && (
+          <section className="mb-20">
+            <div className="mb-8 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold tracking-tight text-foreground">Smart Matches For You</h2>
+                  <p className="text-sm text-muted-foreground">Personalized festival recommendations based on your interests.</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="relative">
+              <div className="absolute -inset-6 bg-brand-gradient opacity-5 rounded-[40px] blur-3xl -z-10" />
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {smartMatches.map((e) => <EventCard key={`ai-${e.id}`} event={e} />)}
+              </div>
+            </div>
+          </section>
+        )}
 
-      <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((e) => <EventCard key={e.id} event={e} />)}
+        {/* Main Listing Section */}
+        <section>
+          <div className="mb-10 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+            <div>
+              <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-primary mb-2">
+                <CalendarRange className="h-4 w-4" />
+                <span>Upcoming Festivals</span>
+              </div>
+              <h2 className="text-3xl font-black tracking-tight text-foreground md:text-4xl">
+                {cat === "All" ? "Explore Everything" : `${cat} Festivals`}
+              </h2>
+            </div>
+            
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <Filter className="h-4 w-4" />
+              <span className="font-medium">
+                Showing {filtered.length} fests
+              </span>
+            </div>
+          </div>
+
+          {filtered.length > 0 ? (
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+              {filtered.map((e) => <EventCard key={e.id} event={e} />)}
+            </div>
+          ) : (
+            <EmptyState onReset={resetFilters} />
+          )}
+        </section>
       </div>
     </div>
   );
 }
+

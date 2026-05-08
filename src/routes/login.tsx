@@ -6,13 +6,23 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
+type LoginSearch = {
+  redirect?: string;
+};
+
 export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>): LoginSearch => {
+    return {
+      redirect: search.redirect as string | undefined,
+    };
+  },
   head: () => ({ meta: [{ title: "Sign in — WeFest" }, { name: "description", content: "Sign in to WeFest with email and password or a magic link." }] }),
   component: Login,
 });
 
 function Login() {
   const navigate = useNavigate();
+  const search = Route.useSearch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -20,14 +30,35 @@ function Login() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
+    const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password });
+    
     if (error) {
+      setLoading(false);
       toast.error(error.message);
       return;
     }
+
+    // Fetch the user's role to determine redirect
+    const { data: roleData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", authData.user?.id)
+      .maybeSingle();
+
+    setLoading(false);
     toast.success("Welcome back");
-    navigate({ to: "/events" });
+
+    const role = roleData?.role || "student";
+    
+    if (search.redirect) {
+      navigate({ to: search.redirect });
+    } else if (role === "company") {
+      navigate({ to: "/sponsor/dashboard" });
+    } else if (role === "college") {
+      navigate({ to: "/organizer" });
+    } else {
+      navigate({ to: "/tickets" });
+    }
   };
 
   const sendMagicLink = async () => {
@@ -36,9 +67,10 @@ function Login() {
       return;
     }
     setLoading(true);
+    const redirectUrl = search.redirect ? `${window.location.origin}${search.redirect}` : `${window.location.origin}/`;
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/` },
+      options: { emailRedirectTo: redirectUrl },
     });
     setLoading(false);
     if (error) toast.error(error.message);
@@ -70,10 +102,11 @@ function Login() {
             Email me a magic link
           </Button>
           <p className="text-center text-xs text-muted-foreground">
-            New here? <Link to="/signup" className="text-primary hover:underline">Create an account</Link>
+            New here? <Link to="/signup" search={{ redirect: search.redirect }} className="text-primary hover:underline">Create an account</Link>
           </p>
         </div>
       </form>
     </div>
   );
 }
+

@@ -2,8 +2,22 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, Users2, Building2, Loader2 } from "lucide-react";
+import { TrendingUp, Users2, Building2, Loader2, Sparkles, CheckCircle2, IndianRupee } from "lucide-react";
 import { toast } from "sonner";
+import { useMemo, useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/sponsors")({
   head: () => ({ meta: [{ title: "Sponsor a fest — WeFest" }, { name: "description", content: "Discover and sponsor India's biggest college festivals." }] }),
@@ -18,6 +32,12 @@ const sponsorshipTiers = [
 ];
 
 function Sponsors() {
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [tier, setTier] = useState("Gold");
+  const [amount, setAmount] = useState("");
+  const [message, setMessage] = useState("");
+
   const { data: events, isLoading } = useQuery({
     queryKey: ["sponsorship-events"],
     queryFn: async () => {
@@ -31,16 +51,16 @@ function Sponsors() {
   });
 
   const proposalMutation = useMutation({
-    mutationFn: async ({ eventId, eventTitle }: { eventId: string; eventTitle: string }) => {
+    mutationFn: async ({ eventId, eventTitle, tier, amount, message }: { eventId: string; eventTitle: string; tier: string; amount: number; message: string }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Please login to send proposals");
 
       const { error } = await supabase.from("sponsorship_proposals").insert({
         company_user_id: user.id,
         event_id: eventId,
-        tier: "Gold", // Defaulting to Gold for now in this simple UI
-        amount: 600000,
-        message: `We are interested in sponsoring ${eventTitle}!`,
+        tier: tier,
+        amount: amount,
+        message: message,
       });
 
       if (error) throw error;
@@ -48,11 +68,45 @@ function Sponsors() {
     },
     onSuccess: (title) => {
       toast.success(`Proposal sent to ${title}`);
+      setIsDialogOpen(false);
+      setSelectedEvent(null);
+      setMessage("");
+      setAmount("");
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to send proposal");
     }
   });
+
+  const handleSendProposal = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedEvent || !amount) return;
+    proposalMutation.mutate({
+      eventId: selectedEvent.id,
+      eventTitle: selectedEvent.title,
+      tier,
+      amount: parseInt(amount),
+      message
+    });
+  };
+
+  const scoredEvents = useMemo(() => {
+    if (!events) return [];
+    return [...events]
+      .map(e => {
+        // Heuristic: Sponsor AI Match Score
+        // Higher attendees = better base score
+        let score = 65; 
+        if (e.attendees > 2000) score += 10;
+        if (e.attendees > 5000) score += 10;
+        if (e.attendees > 10000) score += 12;
+        // Mock demographic fit modifier
+        score += (e.title.length % 5);
+        
+        return { ...e, aiScore: Math.min(score, 99) };
+      })
+      .sort((a, b) => b.aiScore - a.aiScore);
+  }, [events]);
 
   return (
     <div className="container mx-auto px-6 py-12">
@@ -84,34 +138,122 @@ function Sponsors() {
         ))}
       </div>
 
-      <h2 className="mt-14 font-display text-2xl font-bold">Open for sponsorship</h2>
+      <h2 className="mt-14 font-display text-2xl font-bold flex items-center gap-2">
+        <Sparkles className="h-5 w-5 text-primary" /> AI Smart Matches
+      </h2>
       <div className="mt-4 grid gap-4">
         {isLoading ? (
           [1, 2, 3].map(i => <div key={i} className="h-24 glass rounded-2xl animate-pulse" />)
         ) : (
-          events?.map((e) => (
-            <div key={e.id} className="glass flex flex-col gap-4 rounded-2xl p-5 md:flex-row md:items-center md:justify-between">
+          scoredEvents?.map((e) => (
+            <div key={e.id} className="glass flex flex-col gap-4 rounded-2xl p-5 md:flex-row md:items-center md:justify-between relative overflow-hidden transition hover:border-primary/40">
+              {e.aiScore > 90 && (
+                <div className="absolute top-0 right-0 rounded-bl-xl bg-emerald-500/10 px-3 py-1 text-[10px] font-bold text-emerald-500 flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3" /> HIGH MATCH
+                </div>
+              )}
               <div className="flex items-center gap-4">
-                <div className={`h-14 w-14 rounded-xl bg-gradient-to-br ${e.cover}`} />
+                <div className={`h-14 w-14 rounded-xl bg-gradient-to-br ${e.cover} relative`}>
+                  <div className="absolute -bottom-2 -right-2 bg-background rounded-full p-0.5 border shadow-sm">
+                    <div className="bg-primary text-primary-foreground text-[9px] font-bold h-6 w-6 flex items-center justify-center rounded-full">
+                      {e.aiScore}%
+                    </div>
+                  </div>
+                </div>
                 <div>
                   <div className="font-semibold">{e.title}</div>
                   <div className="text-xs text-muted-foreground">{e.college_name} • {e.city} • {(e.attendees / 1000).toFixed(0)}k expected</div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary">{e.category}</span>
+              <div className="flex items-center gap-3 mt-2 md:mt-0">
+                <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">{e.category}</span>
                 <Button 
-                  onClick={() => proposalMutation.mutate({ eventId: e.id, eventTitle: e.title })} 
-                  disabled={proposalMutation.isPending}
-                  className="bg-brand-gradient text-primary-foreground hover:opacity-90"
+                  onClick={() => {
+                    setSelectedEvent(e);
+                    const defaultTier = sponsorshipTiers.find(t => t.name === "Gold")!;
+                    setTier("Gold");
+                    setAmount(defaultTier.price.toString());
+                    setMessage(`We are interested in sponsoring ${e.title} as a Gold partner.`);
+                    setIsDialogOpen(true);
+                  }} 
+                  className="bg-brand-gradient text-primary-foreground shadow-glow hover:opacity-90"
                 >
-                  {proposalMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send proposal"}
+                  Create proposal
                 </Button>
               </div>
             </div>
           ))
         )}
       </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-[500px] glass border-border/60">
+          <form onSubmit={handleSendProposal}>
+            <DialogHeader>
+              <DialogTitle className="font-display text-2xl">Sponsor {selectedEvent?.title}</DialogTitle>
+              <DialogDescription>
+                Send a custom sponsorship proposal directly to the college organizers.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="grid gap-6 py-6">
+              <div className="grid gap-2">
+                <Label htmlFor="tier">Sponsorship Tier</Label>
+                <Select value={tier} onValueChange={(val) => {
+                  setTier(val);
+                  const found = sponsorshipTiers.find(t => t.name === val);
+                  if (found) setAmount(found.price.toString());
+                }}>
+                  <SelectTrigger id="tier" className="bg-background/50 border-border/60">
+                    <SelectValue placeholder="Select a tier" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sponsorshipTiers.map(t => (
+                      <SelectItem key={t.name} value={t.name}>{t.name} (from ₹{(t.price / 100000).toFixed(1)}L)</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="amount">Offer Amount (₹)</Label>
+                <div className="relative">
+                  <IndianRupee className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    id="amount" 
+                    type="number" 
+                    min="10000"
+                    required
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="pl-9 bg-background/50 border-border/60" 
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="message">Message to Organizer</Label>
+                <Textarea 
+                  id="message" 
+                  required
+                  rows={4}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  className="bg-background/50 border-border/60 resize-none" 
+                  placeholder="Introduce your brand and expectations..."
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+              <Button type="submit" disabled={proposalMutation.isPending} className="bg-brand-gradient text-primary-foreground">
+                {proposalMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send Proposal"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

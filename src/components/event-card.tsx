@@ -1,5 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { Calendar, MapPin, Users } from "lucide-react";
+import { Calendar, MapPin, Users, ChevronRight, BadgeCheck } from "lucide-react";
+import { useRegion } from "@/contexts/RegionContext";
+import { Button } from "./ui/button";
 
 export interface Event {
   id: string;
@@ -11,33 +13,91 @@ export interface Event {
   cover: string;
   attendees: number;
   priceFrom: number;
+  description?: string;
+  isVerified?: boolean;
 }
 
 export function EventCard({ event }: { event: Event }) {
+  const { formatPrice } = useRegion();
+
   return (
     <Link
       to="/events/$eventId"
       params={{ eventId: event.id }}
-      className="group block overflow-hidden rounded-2xl border border-border/60 bg-card-gradient transition-all hover:border-primary/50 hover:shadow-glow"
+      className="group relative flex flex-col overflow-hidden rounded-3xl border border-border/50 bg-muted/30 backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-primary/40 hover:shadow-[0_20px_50px_rgba(var(--brand-primary-rgb),0.1)]"
     >
-      <div className={`relative h-44 bg-gradient-to-br ${event.cover}`}>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        <span className="absolute left-3 top-3 rounded-full border border-white/20 bg-black/30 px-2.5 py-1 text-xs backdrop-blur">
-          {event.category}
-        </span>
-        <span className="absolute right-3 top-3 rounded-full bg-brand-gradient px-2.5 py-1 text-xs font-medium text-primary-foreground">
-          ₹{event.priceFrom}+
-        </span>
-        <div className="absolute bottom-3 left-3 right-3">
-          <div className="text-xs text-white/80">{event.college}</div>
-          <div className="text-lg font-bold leading-tight text-white">{event.title}</div>
+      {/* Glow effect on hover */}
+      <div className="absolute -inset-px rounded-3xl bg-brand-gradient opacity-0 transition-opacity duration-500 group-hover:opacity-10" />
+
+      {/* Image Section */}
+      <div className={`relative h-52 w-full overflow-hidden`}>
+        <div className={`absolute inset-0 bg-gradient-to-br transition-transform duration-700 group-hover:scale-110 ${event.cover}`} />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
+        
+        {/* Category Badge */}
+        <div className="absolute left-4 top-4">
+          <span className="rounded-full border border-white/10 bg-black/40 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-md">
+            {event.category}
+          </span>
+        </div>
+
+        {/* Price Tag */}
+        <div className="absolute right-4 top-4">
+          <span className="rounded-xl bg-brand-gradient px-3 py-1.5 text-xs font-bold text-primary-foreground shadow-glow">
+            {event.priceFrom === 0 ? "Free" : `${formatPrice(event.priceFrom)}+`}
+          </span>
+        </div>
+
+        {/* College & Verification */}
+        <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-white/90">
+            <span className="truncate max-w-[150px]">{event.college}</span>
+            {event.isVerified !== false && <BadgeCheck className="h-3.5 w-3.5 text-blue-400 fill-blue-400/20" />}
+          </div>
         </div>
       </div>
-      <div className="flex items-center justify-between gap-3 px-4 py-3 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" />{new Date(event.date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</span>
-        <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" />{event.city}</span>
-        <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" />{(event.attendees / 1000).toFixed(0)}k</span>
+
+      {/* Content Section */}
+      <div className="flex flex-1 flex-col p-5">
+        <h3 className="text-xl font-bold leading-tight text-foreground transition-colors group-hover:text-primary">
+          {event.title}
+        </h3>
+        
+        {event.description && (
+          <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
+            {event.description}
+          </p>
+        )}
+
+        <div className="mt-auto pt-5">
+          <div className="mb-4 grid grid-cols-2 gap-y-2 text-[11px] font-medium text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Calendar className="h-3.5 w-3.5" />
+              </div>
+              {new Date(event.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <MapPin className="h-3.5 w-3.5" />
+              </div>
+              {event.city}
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Users className="h-3.5 w-3.5" />
+              </div>
+              {(event.attendees / 1000).toFixed(0)}k+ Attending
+            </div>
+          </div>
+
+          <Button variant="outline" className="w-full justify-between rounded-xl border-border/50 bg-background/50 text-xs font-bold transition-all group-hover:border-primary/50 group-hover:bg-primary/10">
+            View Details
+            <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </Button>
+        </div>
       </div>
     </Link>
   );
 }
+

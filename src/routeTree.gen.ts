@@ -10,20 +10,41 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TicketsRouteImport } from './routes/tickets'
+import { Route as TalentRouteImport } from './routes/talent'
 import { Route as SponsorsRouteImport } from './routes/sponsors'
+import { Route as SocialRouteImport } from './routes/social'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as ShopRouteImport } from './routes/shop'
 import { Route as OrganizerRouteImport } from './routes/organizer'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as CollegesRouteImport } from './routes/colleges'
+import { Route as AmbassadorsRouteImport } from './routes/ambassadors'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as SponsorScanRouteImport } from './routes/sponsor.scan'
+import { Route as SponsorPricingRouteImport } from './routes/sponsor.pricing'
+import { Route as SponsorDashboardRouteImport } from './routes/sponsor.dashboard'
 import { Route as OrganizerScanRouteImport } from './routes/organizer.scan'
 import { Route as OrganizerNewRouteImport } from './routes/organizer.new'
 import { Route as EventsEventIdRouteImport } from './routes/events.$eventId'
+import { Route as AdminUsersRouteImport } from './routes/admin/users'
+import { Route as AdminIntegrationsRouteImport } from './routes/admin.integrations'
+import { Route as AdminEventsRouteImport } from './routes/admin/events'
+import { Route as AdminCitiesRouteImport } from './routes/admin.cities'
+import { Route as AdminBroadcastsRouteImport } from './routes/admin/broadcasts'
+import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
+import { Route as OrganizerEventsEventIdRouteImport } from './routes/organizer.events.$eventId'
 
 const TicketsRoute = TicketsRouteImport.update({
   id: '/tickets',
   path: '/tickets',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TalentRoute = TalentRouteImport.update({
+  id: '/talent',
+  path: '/talent',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SponsorsRoute = SponsorsRouteImport.update({
@@ -31,9 +52,19 @@ const SponsorsRoute = SponsorsRouteImport.update({
   path: '/sponsors',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SocialRoute = SocialRouteImport.update({
+  id: '/social',
+  path: '/social',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShopRoute = ShopRouteImport.update({
+  id: '/shop',
+  path: '/shop',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrganizerRoute = OrganizerRouteImport.update({
@@ -56,9 +87,39 @@ const CollegesRoute = CollegesRouteImport.update({
   path: '/colleges',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AmbassadorsRoute = AmbassadorsRouteImport.update({
+  id: '/ambassadors',
+  path: '/ambassadors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const SponsorScanRoute = SponsorScanRouteImport.update({
+  id: '/sponsor/scan',
+  path: '/sponsor/scan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SponsorPricingRoute = SponsorPricingRouteImport.update({
+  id: '/sponsor/pricing',
+  path: '/sponsor/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SponsorDashboardRoute = SponsorDashboardRouteImport.update({
+  id: '/sponsor/dashboard',
+  path: '/sponsor/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrganizerScanRoute = OrganizerScanRouteImport.update({
@@ -76,98 +137,235 @@ const EventsEventIdRoute = EventsEventIdRouteImport.update({
   path: '/$eventId',
   getParentRoute: () => EventsRoute,
 } as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminIntegrationsRoute = AdminIntegrationsRouteImport.update({
+  id: '/integrations',
+  path: '/integrations',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminEventsRoute = AdminEventsRouteImport.update({
+  id: '/events',
+  path: '/events',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCitiesRoute = AdminCitiesRouteImport.update({
+  id: '/cities',
+  path: '/cities',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminBroadcastsRoute = AdminBroadcastsRouteImport.update({
+  id: '/broadcasts',
+  path: '/broadcasts',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AdminRoute,
+} as any)
+const OrganizerEventsEventIdRoute = OrganizerEventsEventIdRouteImport.update({
+  id: '/events/$eventId',
+  path: '/events/$eventId',
+  getParentRoute: () => OrganizerRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/ambassadors': typeof AmbassadorsRoute
   '/colleges': typeof CollegesRoute
   '/events': typeof EventsRouteWithChildren
   '/login': typeof LoginRoute
   '/organizer': typeof OrganizerRouteWithChildren
+  '/shop': typeof ShopRoute
   '/signup': typeof SignupRoute
+  '/social': typeof SocialRoute
   '/sponsors': typeof SponsorsRoute
+  '/talent': typeof TalentRoute
   '/tickets': typeof TicketsRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/broadcasts': typeof AdminBroadcastsRoute
+  '/admin/cities': typeof AdminCitiesRoute
+  '/admin/events': typeof AdminEventsRoute
+  '/admin/integrations': typeof AdminIntegrationsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/events/$eventId': typeof EventsEventIdRoute
   '/organizer/new': typeof OrganizerNewRoute
   '/organizer/scan': typeof OrganizerScanRoute
+  '/sponsor/dashboard': typeof SponsorDashboardRoute
+  '/sponsor/pricing': typeof SponsorPricingRoute
+  '/sponsor/scan': typeof SponsorScanRoute
+  '/admin/': typeof AdminIndexRoute
+  '/organizer/events/$eventId': typeof OrganizerEventsEventIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ambassadors': typeof AmbassadorsRoute
   '/colleges': typeof CollegesRoute
   '/events': typeof EventsRouteWithChildren
   '/login': typeof LoginRoute
   '/organizer': typeof OrganizerRouteWithChildren
+  '/shop': typeof ShopRoute
   '/signup': typeof SignupRoute
+  '/social': typeof SocialRoute
   '/sponsors': typeof SponsorsRoute
+  '/talent': typeof TalentRoute
   '/tickets': typeof TicketsRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/broadcasts': typeof AdminBroadcastsRoute
+  '/admin/cities': typeof AdminCitiesRoute
+  '/admin/events': typeof AdminEventsRoute
+  '/admin/integrations': typeof AdminIntegrationsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/events/$eventId': typeof EventsEventIdRoute
   '/organizer/new': typeof OrganizerNewRoute
   '/organizer/scan': typeof OrganizerScanRoute
+  '/sponsor/dashboard': typeof SponsorDashboardRoute
+  '/sponsor/pricing': typeof SponsorPricingRoute
+  '/sponsor/scan': typeof SponsorScanRoute
+  '/admin': typeof AdminIndexRoute
+  '/organizer/events/$eventId': typeof OrganizerEventsEventIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/ambassadors': typeof AmbassadorsRoute
   '/colleges': typeof CollegesRoute
   '/events': typeof EventsRouteWithChildren
   '/login': typeof LoginRoute
   '/organizer': typeof OrganizerRouteWithChildren
+  '/shop': typeof ShopRoute
   '/signup': typeof SignupRoute
+  '/social': typeof SocialRoute
   '/sponsors': typeof SponsorsRoute
+  '/talent': typeof TalentRoute
   '/tickets': typeof TicketsRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/broadcasts': typeof AdminBroadcastsRoute
+  '/admin/cities': typeof AdminCitiesRoute
+  '/admin/events': typeof AdminEventsRoute
+  '/admin/integrations': typeof AdminIntegrationsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/events/$eventId': typeof EventsEventIdRoute
   '/organizer/new': typeof OrganizerNewRoute
   '/organizer/scan': typeof OrganizerScanRoute
+  '/sponsor/dashboard': typeof SponsorDashboardRoute
+  '/sponsor/pricing': typeof SponsorPricingRoute
+  '/sponsor/scan': typeof SponsorScanRoute
+  '/admin/': typeof AdminIndexRoute
+  '/organizer/events/$eventId': typeof OrganizerEventsEventIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
+    | '/ambassadors'
     | '/colleges'
     | '/events'
     | '/login'
     | '/organizer'
+    | '/shop'
     | '/signup'
+    | '/social'
     | '/sponsors'
+    | '/talent'
     | '/tickets'
+    | '/admin/analytics'
+    | '/admin/broadcasts'
+    | '/admin/cities'
+    | '/admin/events'
+    | '/admin/integrations'
+    | '/admin/users'
     | '/events/$eventId'
     | '/organizer/new'
     | '/organizer/scan'
+    | '/sponsor/dashboard'
+    | '/sponsor/pricing'
+    | '/sponsor/scan'
+    | '/admin/'
+    | '/organizer/events/$eventId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ambassadors'
     | '/colleges'
     | '/events'
     | '/login'
     | '/organizer'
+    | '/shop'
     | '/signup'
+    | '/social'
     | '/sponsors'
+    | '/talent'
     | '/tickets'
+    | '/admin/analytics'
+    | '/admin/broadcasts'
+    | '/admin/cities'
+    | '/admin/events'
+    | '/admin/integrations'
+    | '/admin/users'
     | '/events/$eventId'
     | '/organizer/new'
     | '/organizer/scan'
+    | '/sponsor/dashboard'
+    | '/sponsor/pricing'
+    | '/sponsor/scan'
+    | '/admin'
+    | '/organizer/events/$eventId'
   id:
     | '__root__'
     | '/'
+    | '/admin'
+    | '/ambassadors'
     | '/colleges'
     | '/events'
     | '/login'
     | '/organizer'
+    | '/shop'
     | '/signup'
+    | '/social'
     | '/sponsors'
+    | '/talent'
     | '/tickets'
+    | '/admin/analytics'
+    | '/admin/broadcasts'
+    | '/admin/cities'
+    | '/admin/events'
+    | '/admin/integrations'
+    | '/admin/users'
     | '/events/$eventId'
     | '/organizer/new'
     | '/organizer/scan'
+    | '/sponsor/dashboard'
+    | '/sponsor/pricing'
+    | '/sponsor/scan'
+    | '/admin/'
+    | '/organizer/events/$eventId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
+  AmbassadorsRoute: typeof AmbassadorsRoute
   CollegesRoute: typeof CollegesRoute
   EventsRoute: typeof EventsRouteWithChildren
   LoginRoute: typeof LoginRoute
   OrganizerRoute: typeof OrganizerRouteWithChildren
+  ShopRoute: typeof ShopRoute
   SignupRoute: typeof SignupRoute
+  SocialRoute: typeof SocialRoute
   SponsorsRoute: typeof SponsorsRoute
+  TalentRoute: typeof TalentRoute
   TicketsRoute: typeof TicketsRoute
+  SponsorDashboardRoute: typeof SponsorDashboardRoute
+  SponsorPricingRoute: typeof SponsorPricingRoute
+  SponsorScanRoute: typeof SponsorScanRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -179,6 +377,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TicketsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/talent': {
+      id: '/talent'
+      path: '/talent'
+      fullPath: '/talent'
+      preLoaderRoute: typeof TalentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sponsors': {
       id: '/sponsors'
       path: '/sponsors'
@@ -186,11 +391,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SponsorsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/social': {
+      id: '/social'
+      path: '/social'
+      fullPath: '/social'
+      preLoaderRoute: typeof SocialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shop': {
+      id: '/shop'
+      path: '/shop'
+      fullPath: '/shop'
+      preLoaderRoute: typeof ShopRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/organizer': {
@@ -221,11 +440,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CollegesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ambassadors': {
+      id: '/ambassadors'
+      path: '/ambassadors'
+      fullPath: '/ambassadors'
+      preLoaderRoute: typeof AmbassadorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/sponsor/scan': {
+      id: '/sponsor/scan'
+      path: '/sponsor/scan'
+      fullPath: '/sponsor/scan'
+      preLoaderRoute: typeof SponsorScanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sponsor/pricing': {
+      id: '/sponsor/pricing'
+      path: '/sponsor/pricing'
+      fullPath: '/sponsor/pricing'
+      preLoaderRoute: typeof SponsorPricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sponsor/dashboard': {
+      id: '/sponsor/dashboard'
+      path: '/sponsor/dashboard'
+      fullPath: '/sponsor/dashboard'
+      preLoaderRoute: typeof SponsorDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/organizer/scan': {
@@ -249,8 +510,79 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventsEventIdRouteImport
       parentRoute: typeof EventsRoute
     }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/integrations': {
+      id: '/admin/integrations'
+      path: '/integrations'
+      fullPath: '/admin/integrations'
+      preLoaderRoute: typeof AdminIntegrationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/events': {
+      id: '/admin/events'
+      path: '/events'
+      fullPath: '/admin/events'
+      preLoaderRoute: typeof AdminEventsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/cities': {
+      id: '/admin/cities'
+      path: '/cities'
+      fullPath: '/admin/cities'
+      preLoaderRoute: typeof AdminCitiesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/broadcasts': {
+      id: '/admin/broadcasts'
+      path: '/broadcasts'
+      fullPath: '/admin/broadcasts'
+      preLoaderRoute: typeof AdminBroadcastsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/analytics': {
+      id: '/admin/analytics'
+      path: '/analytics'
+      fullPath: '/admin/analytics'
+      preLoaderRoute: typeof AdminAnalyticsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/organizer/events/$eventId': {
+      id: '/organizer/events/$eventId'
+      path: '/events/$eventId'
+      fullPath: '/organizer/events/$eventId'
+      preLoaderRoute: typeof OrganizerEventsEventIdRouteImport
+      parentRoute: typeof OrganizerRoute
+    }
   }
 }
+
+interface AdminRouteChildren {
+  AdminAnalyticsRoute: typeof AdminAnalyticsRoute
+  AdminBroadcastsRoute: typeof AdminBroadcastsRoute
+  AdminCitiesRoute: typeof AdminCitiesRoute
+  AdminEventsRoute: typeof AdminEventsRoute
+  AdminIntegrationsRoute: typeof AdminIntegrationsRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAnalyticsRoute: AdminAnalyticsRoute,
+  AdminBroadcastsRoute: AdminBroadcastsRoute,
+  AdminCitiesRoute: AdminCitiesRoute,
+  AdminEventsRoute: AdminEventsRoute,
+  AdminIntegrationsRoute: AdminIntegrationsRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface EventsRouteChildren {
   EventsEventIdRoute: typeof EventsEventIdRoute
@@ -266,11 +598,13 @@ const EventsRouteWithChildren =
 interface OrganizerRouteChildren {
   OrganizerNewRoute: typeof OrganizerNewRoute
   OrganizerScanRoute: typeof OrganizerScanRoute
+  OrganizerEventsEventIdRoute: typeof OrganizerEventsEventIdRoute
 }
 
 const OrganizerRouteChildren: OrganizerRouteChildren = {
   OrganizerNewRoute: OrganizerNewRoute,
   OrganizerScanRoute: OrganizerScanRoute,
+  OrganizerEventsEventIdRoute: OrganizerEventsEventIdRoute,
 }
 
 const OrganizerRouteWithChildren = OrganizerRoute._addFileChildren(
@@ -279,13 +613,21 @@ const OrganizerRouteWithChildren = OrganizerRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
+  AmbassadorsRoute: AmbassadorsRoute,
   CollegesRoute: CollegesRoute,
   EventsRoute: EventsRouteWithChildren,
   LoginRoute: LoginRoute,
   OrganizerRoute: OrganizerRouteWithChildren,
+  ShopRoute: ShopRoute,
   SignupRoute: SignupRoute,
+  SocialRoute: SocialRoute,
   SponsorsRoute: SponsorsRoute,
+  TalentRoute: TalentRoute,
   TicketsRoute: TicketsRoute,
+  SponsorDashboardRoute: SponsorDashboardRoute,
+  SponsorPricingRoute: SponsorPricingRoute,
+  SponsorScanRoute: SponsorScanRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

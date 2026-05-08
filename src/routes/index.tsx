@@ -1,9 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowRight, Calendar, ShieldCheck, Sparkles, Ticket, TrendingUp, Users2, Loader2 } from "lucide-react";
+import { ArrowRight, Calendar, ShieldCheck, Sparkles, Ticket, TrendingUp, Users2, Loader2, Quote, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EventCard } from "@/components/event-card";
+import { AdBanner } from "@/components/ad-banner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -12,6 +13,26 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Discover, ticket and sponsor India's biggest college festivals on one identity-verified platform." },
     ],
   }),
+  beforeLoad: async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+      
+      const role = roleData?.role || "student";
+      
+      if (role === "company") {
+        throw redirect({ to: "/sponsor/dashboard" });
+      } else if (role === "college") {
+        throw redirect({ to: "/organizer" });
+      } else {
+        throw redirect({ to: "/tickets" });
+      }
+    }
+  },
   component: Home,
 });
 
@@ -42,6 +63,24 @@ function Home() {
     queryKey: ["featured-colleges"],
     queryFn: async () => {
       const { data, error } = await supabase.from("colleges").select("*").limit(4).order("fests", { ascending: false });
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const { data: testimonials } = useQuery({
+    queryKey: ["featured-testimonials"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("testimonials").select("*").eq("is_featured", true).limit(3);
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const { data: partners } = useQuery({
+    queryKey: ["partner-brands"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("partner_brands").select("*").eq("is_active", true).limit(6);
       if (error) throw error;
       return data;
     }
@@ -123,6 +162,16 @@ function Home() {
         </div>
       </section>
 
+      {/* AD BANNER */}
+      <section className="container mx-auto px-6">
+        <AdBanner 
+          title="Boost your fest to 100k+ students" 
+          description="Get featured on the homepage, email newsletters and college community feeds across India. Verified reach for maximum ROI."
+          ctaText="Promote now"
+          type="premium"
+        />
+      </section>
+
       {/* FEATURED FESTS */}
       <section className="container mx-auto px-6 py-12">
         <div className="flex items-end justify-between">
@@ -138,10 +187,70 @@ function Home() {
         </div>
       </section>
 
+      {/* PARTNER BRANDS */}
+      <section className="container mx-auto px-6 py-12 border-y border-border/40">
+        <div className="flex flex-col items-center justify-center text-center">
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-8">Trusted by global brands for campus outreach</p>
+          <div className="flex flex-wrap justify-center gap-12 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-500">
+            {partners?.map(p => (
+              <div key={p.id} className="text-xl font-black italic tracking-tighter text-foreground/80">{p.name}</div>
+            )) || (
+              <div className="flex gap-12">
+                {["Red Bull", "Adobe", "Reliance Jio", "Zomato", "OnePlus"].map(n => (
+                  <div key={n} className="text-xl font-black italic tracking-tighter text-foreground/80">{n}</div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* TESTIMONIALS (SUCCESS STORIES) */}
+      <section className="container mx-auto px-6 py-24">
+        <div className="text-center mb-16">
+          <h2 className="font-display text-3xl font-bold md:text-5xl">Success stories from the <span className="text-gradient">network</span></h2>
+          <p className="mt-4 text-muted-foreground">Hear from the organizers and sponsors who powered their fests with WeFest.</p>
+        </div>
+        <div className="grid gap-8 md:grid-cols-3">
+          {(testimonials || [
+            { name: "Arjun Mehta", role: "Fest Coordinator", organization: "IIT Bombay", content: "WeFest transformed Mood Indigo. Handling 100k+ registrations without a single server hiccup was a dream come true." },
+            { name: "Sara Khan", role: "Marketing Head", organization: "Red Bull India", content: "The real-time ROI tracking and verified student leads make WeFest our go-to for campus activations." },
+            { name: "Dr. Ramesh Iyer", role: "Dean of Student Affairs", organization: "BITS Pilani", content: "Digital transparency in budgeting and sponsorship is exactly what college administrations needed." }
+          ]).map((t, i) => (
+            <div key={i} className="glass rounded-[2rem] p-8 relative">
+              <Quote className="absolute top-6 right-8 h-10 w-10 text-primary/10" />
+              <div className="flex items-center gap-1 text-amber-400 mb-4">
+                {[1, 2, 3, 4, 5].map(s => <Star key={s} className="h-3.5 w-3.5 fill-current" />)}
+              </div>
+              <p className="text-lg italic leading-relaxed text-foreground/90">"{t.content}"</p>
+              <div className="mt-8 flex items-center gap-4">
+                <div className="h-12 w-12 rounded-full bg-brand-gradient p-0.5">
+                  <div className="h-full w-full rounded-full bg-background flex items-center justify-center text-xs font-bold">
+                    {t.name.slice(0, 1)}
+                  </div>
+                </div>
+                <div>
+                  <div className="font-bold">{t.name}</div>
+                  <div className="text-xs text-muted-foreground">{t.role}, {t.organization}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* COLLEGES */}
       <section className="container mx-auto px-6 py-24">
-        <h2 className="font-display text-3xl font-bold md:text-4xl">Trusted by India's top colleges</h2>
-        <div className="mt-8 grid gap-3 sm:grid-cols-2 md:grid-cols-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+          <div>
+            <h2 className="font-display text-3xl font-bold md:text-4xl">Trusted by India's top colleges</h2>
+            <p className="mt-2 text-muted-foreground">From Tier-1 engineering colleges to premier management institutes.</p>
+          </div>
+          <Button asChild variant="outline">
+            <Link to="/colleges">See all colleges</Link>
+          </Button>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
           {loadingColleges ? (
             [1, 2, 3, 4].map(i => <div key={i} className="h-16 glass rounded-xl animate-pulse" />)
           ) : (

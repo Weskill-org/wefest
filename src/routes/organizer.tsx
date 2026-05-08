@@ -1,11 +1,53 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, Ticket, IndianRupee, Users, Plus, ScanLine, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { 
+  TrendingUp, 
+  Ticket, 
+  IndianRupee, 
+  Users, 
+  CheckCircle2, 
+  Loader2,
+  ArrowRight
+} from "lucide-react";
+import { toast } from "sonner";
+import { OrganizerHeader } from "@/components/organizer/organizer-header";
+import { DashboardStatTile } from "@/components/organizer/dashboard-stat-tile";
+import { OrganizerEventCard } from "@/components/organizer/organizer-event-card";
+import { OrganizerEmptyState } from "@/components/organizer/organizer-empty-state";
+import { RecentActivity } from "@/components/organizer/recent-activity";
+import { QuickActions } from "@/components/organizer/quick-actions";
+import { PerformanceSnapshot } from "@/components/organizer/performance-snapshot";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/organizer")({
-  head: () => ({ meta: [{ title: "Organizer suite — WeFest" }, { name: "description", content: "Run your college festival end-to-end." }] }),
+  head: () => ({ 
+    meta: [
+      { title: "Organizer Dashboard — WeFest" }, 
+      { name: "description", content: "Professional event management suite for college festivals." }
+    ] 
+  }),
+  beforeLoad: async ({ location }) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      throw redirect({
+        to: '/login',
+        search: { redirect: location.href },
+      });
+    }
+    const { data: roleData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", session.user.id)
+      .maybeSingle();
+      
+    if (roleData?.role !== "college") {
+      throw redirect({ to: '/' });
+    }
+  },
   component: Organizer,
 });
 
@@ -46,113 +88,189 @@ function Organizer() {
   });
 
   if (loadingUser || loadingEvents) {
-    return (
-      <div className="container mx-auto px-6 py-20 flex justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <OrganizerSkeleton />;
   }
 
-  if (!userData) {
-    return (
-      <div className="container mx-auto px-6 py-20 text-center">
-        <h1 className="text-2xl font-bold">Organizer Login Required</h1>
-        <p className="mt-2 text-muted-foreground">Please login to access the organizer suite.</p>
-        <Button asChild className="mt-4"><Link to="/login">Login</Link></Button>
-      </div>
-    );
-  }
-
-  const totalAttendees = myEvents?.reduce((acc, e) => acc + e.attendees, 0) || 0;
-  const totalRevenue = myEvents?.reduce((acc, e) => acc + (e.attendees * e.price_from * 0.15), 0) || 0; // Simple calc for demo
-  const sponsorPipeline = proposals?.reduce((acc, p) => acc + p.amount, 0) || 0;
+  const totalAttendees = myEvents?.reduce((acc, e) => acc + (e.attendees || 0), 0) || 0;
+  const totalRevenue = myEvents?.reduce((acc, e) => acc + ((e.attendees || 0) * (e.price_from || 0) * 0.15), 0) || 0;
+  const sponsorPipeline = proposals?.reduce((acc, p) => acc + (p.amount || 0), 0) || 0;
+  const totalTickets = Math.floor(totalAttendees * 0.15);
 
   return (
-    <div className="container mx-auto px-6 py-12">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <div className="text-sm font-semibold text-primary">Organizer suite</div>
-          <h1 className="font-display text-4xl font-black md:text-5xl">
-            {userData.user_metadata?.full_name || userData.email?.split("@")[0] || "Organizer"}
-          </h1>
-          <p className="text-muted-foreground">Verified organizer</p>
-        </div>
-        <div className="flex gap-2">
-          <Button asChild variant="outline"><Link to="/organizer/scan"><ScanLine className="h-4 w-4" /> Scan tickets</Link></Button>
-          <Button asChild className="bg-brand-gradient text-primary-foreground hover:opacity-90">
-            <Link to="/organizer/new"><Plus className="h-4 w-4" /> Create event</Link>
-          </Button>
-        </div>
-      </div>
+    <div className="min-h-screen bg-background pb-20 pt-10">
+      <div className="container mx-auto px-6">
+        <OrganizerHeader 
+          name={userData?.user_metadata?.full_name || userData?.email?.split("@")[0] || "Organizer"} 
+          isVerified={true}
+        />
 
-      <div className="mt-8 grid gap-4 md:grid-cols-4">
-        <Stat icon={IndianRupee} label="Revenue (est.)" value={`₹${(totalRevenue / 100000).toFixed(1)}L`} delta="+100%" />
-        <Stat icon={Ticket} label="Tickets sold" value={`${(totalAttendees * 0.15).toFixed(0)}`} delta="+100%" />
-        <Stat icon={Users} label="Total attendees" value={totalAttendees.toLocaleString()} delta="+100%" />
-        <Stat icon={TrendingUp} label="Sponsor pipeline" value={`₹${(sponsorPipeline / 100000).toFixed(1)}L`} delta="+100%" />
-      </div>
+        {/* Quick Stats Grid */}
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-12">
+          <DashboardStatTile 
+            icon={IndianRupee} 
+            label="Revenue (est.)" 
+            value={`₹${(totalRevenue / 100000).toFixed(2)}L`} 
+            delta="100%" 
+            href="/organizer" 
+          />
+          <DashboardStatTile 
+            icon={Ticket} 
+            label="Tickets Sold" 
+            value={totalTickets.toLocaleString()} 
+            delta="100%" 
+            href="/organizer" 
+          />
+          <DashboardStatTile 
+            icon={Users} 
+            label="Total Attendees" 
+            value={totalAttendees.toLocaleString()} 
+            delta="100%" 
+            href="/organizer" 
+          />
+          <DashboardStatTile 
+            icon={TrendingUp} 
+            label="Sponsor Pipeline" 
+            value={`₹${(sponsorPipeline / 100000).toFixed(2)}L`} 
+            delta="100%" 
+            href="/organizer" 
+          />
+        </div>
 
-      <h2 className="mt-12 font-display text-2xl font-bold">Your events</h2>
-      <div className="mt-4 grid gap-4">
-        {myEvents && myEvents.length > 0 ? (
-          myEvents.map((e) => (
-            <div key={e.id} className="glass flex items-center justify-between rounded-2xl p-5">
-              <div className="flex items-center gap-4">
-                <div className={`h-14 w-14 rounded-xl bg-gradient-to-br ${e.cover}`} />
-                <div>
-                  <div className="font-semibold">{e.title}</div>
-                  <div className="text-xs text-muted-foreground">{new Date(e.date).toDateString()} • {e.city}</div>
+        <div className="grid gap-10 lg:grid-cols-3">
+          {/* Main Content Column */}
+          <div className="lg:col-span-2 space-y-12">
+            {/* Events Section */}
+            <section>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="font-display text-3xl font-black tracking-tight">Your Events</h2>
+                <Button variant="ghost" className="text-primary font-bold hover:bg-primary/10">
+                  View All Events <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+              
+              <div className="space-y-4">
+                {myEvents && myEvents.length > 0 ? (
+                  myEvents.map((e) => (
+                    <OrganizerEventCard 
+                      key={e.id}
+                      id={e.id}
+                      title={e.title}
+                      date={e.date}
+                      city={e.city}
+                      cover={e.cover}
+                      status={e.status || "Published"}
+                      ticketsSold={Math.floor((e.attendees || 0) * 0.15)}
+                      revenue={(e.attendees || 0) * (e.price_from || 0) * 0.15}
+                    />
+                  ))
+                ) : (
+                  <OrganizerEmptyState />
+                )}
+              </div>
+            </section>
+
+            {/* Performance & Financials */}
+            <div className="grid gap-8 md:grid-cols-1">
+              <PerformanceSnapshot />
+              
+              <section className="rounded-[2.5rem] border border-border/50 bg-muted/20 p-10">
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                    <IndianRupee className="h-6 w-6" />
+                  </div>
+                  <h2 className="font-display text-2xl font-bold tracking-tight">Financial Settlements</h2>
                 </div>
-              </div>
-              <div className="hidden gap-8 text-sm md:flex">
-                <Mini label="Reach" value={`${(e.attendees / 1000).toFixed(0)}k`} />
-                <Mini label="Category" value={e.category} />
-                <Mini label="Proposals" value={proposals?.filter(p => p.event_id === e.id).length.toString() || "0"} />
-              </div>
-              <Button asChild variant="outline" size="sm"><Link to="/events/$eventId" params={{ eventId: e.id }}>Manage</Link></Button>
+
+                <div className="grid gap-8 md:grid-cols-2">
+                  <div className="rounded-3xl bg-brand-gradient/5 border border-primary/20 p-8">
+                    <div className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em]">Available for Payout</div>
+                    <div className="mt-4 text-5xl font-black tracking-tighter">₹{(totalRevenue * 0.85 / 100000).toFixed(2)}L</div>
+                    <p className="mt-4 text-[11px] leading-relaxed text-muted-foreground">
+                      Funds are typically settled within 48 hours of request. Includes deduction of 10% platform fee and 5% tax withholding.
+                    </p>
+                    <Button 
+                      className="mt-8 w-full h-14 bg-brand-gradient text-white rounded-2xl font-black uppercase tracking-widest shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-all"
+                      onClick={() => toast.success("Settlement Requested", { description: "Your payout is being processed." })}
+                    >
+                      Request Settlement
+                    </Button>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Recent Ledger</div>
+                      <Badge variant="outline" className="bg-muted border-border/50 text-[10px]">View History</Badge>
+                    </div>
+                    
+                    {[
+                      { id: "#4592", date: "May 02, 2026", amount: "1.24L", status: "Completed" },
+                      { id: "#4501", date: "April 15, 2026", amount: "0.85L", status: "Completed" },
+                    ].map((settlement, i) => (
+                      <div key={settlement.id} className={cn(
+                        "flex items-center justify-between p-5 rounded-2xl border border-border/40 bg-muted/30 transition-all hover:bg-muted/50",
+                        i > 0 && "opacity-60"
+                      )}>
+                        <div className="flex items-center gap-4">
+                          <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                            <CheckCircle2 className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <div className="font-bold text-sm">Settlement {settlement.id}</div>
+                            <div className="text-[10px] text-muted-foreground font-medium">{settlement.date}</div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-black text-lg">₹{settlement.amount}</div>
+                          <div className="text-[9px] font-bold text-emerald-500 uppercase tracking-tighter">{settlement.status}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
             </div>
-          ))
-        ) : (
-          <div className="glass rounded-2xl p-12 text-center">
-            <p className="text-muted-foreground">You haven't created any events yet.</p>
-            <Button asChild className="mt-4" variant="outline"><Link to="/organizer/new">Create your first event</Link></Button>
           </div>
-        )}
-      </div>
 
-      <h2 className="mt-12 font-display text-2xl font-bold">Recent activity</h2>
-      <div className="mt-4 glass divide-y divide-border/60 rounded-2xl">
-        {proposals && proposals.length > 0 ? (
-          proposals.slice(0, 4).map((p) => (
-            <div key={p.id} className="flex items-center justify-between p-4 text-sm">
-              <div>
-                <div className="font-medium">New sponsorship proposal received</div>
-                <div className="text-xs text-muted-foreground">{p.tier} tier • ₹{(p.amount / 100000).toFixed(1)}L</div>
-              </div>
-              <div className="text-xs text-muted-foreground">{new Date(p.created_at).toLocaleDateString()}</div>
-            </div>
-          ))
-        ) : (
-          <div className="p-4 text-center text-sm text-muted-foreground">No recent activity</div>
-        )}
+          {/* Sidebar Column */}
+          <div className="space-y-8">
+            <QuickActions />
+            <RecentActivity />
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-function Stat({ icon: Icon, label, value, delta }: { icon: React.ComponentType<{ className?: string }>; label: string; value: string; delta: string }) {
+function OrganizerSkeleton() {
   return (
-    <div className="glass rounded-2xl p-5">
-      <div className="flex items-center justify-between">
-        <Icon className="h-4 w-4 text-primary" />
-        <span className="text-xs text-emerald-400">{delta}</span>
+    <div className="container mx-auto px-6 py-12 space-y-12">
+      <div className="flex items-center gap-6">
+        <Skeleton className="h-16 w-16 rounded-full" />
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-4 w-96" />
+        </div>
       </div>
-      <div className="mt-3 text-2xl font-bold">{value}</div>
-      <div className="text-xs text-muted-foreground">{label}</div>
+
+      <div className="grid gap-6 md:grid-cols-4">
+        {[1, 2, 3, 4].map(i => (
+          <Skeleton key={i} className="h-32 rounded-3xl" />
+        ))}
+      </div>
+
+      <div className="grid gap-10 lg:grid-cols-3">
+        <div className="lg:col-span-2 space-y-10">
+          <Skeleton className="h-10 w-48" />
+          {[1, 2, 3].map(i => (
+            <Skeleton key={i} className="h-28 rounded-3xl" />
+          ))}
+        </div>
+        <div className="space-y-8">
+          <Skeleton className="h-64 rounded-3xl" />
+          <Skeleton className="h-96 rounded-3xl" />
+        </div>
+      </div>
     </div>
   );
-}
-
-function Mini({ label, value }: { label: string; value: string }) {
-  return <div><div className="font-semibold">{value}</div><div className="text-[11px] text-muted-foreground">{label}</div></div>;
 }

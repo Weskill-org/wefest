@@ -3,6 +3,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { SiteHeader, SiteFooter } from "@/components/site-header";
 import { Toaster } from "@/components/ui/sonner";
 import { queryClient } from "../router";
+import { RegionProvider } from "@/contexts/RegionContext";
 
 import appCss from "../styles.css?url";
 
@@ -64,14 +65,46 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="flex min-h-screen flex-col">
-        <SiteHeader />
-        <main className="flex-1">
-          <Outlet />
-        </main>
-        <SiteFooter />
-        <Toaster />
-      </div>
+      <RegionProvider>
+        <div className="flex min-h-screen flex-col">
+          <GlobalBroadcasts />
+          <SiteHeader />
+          <main className="flex-1">
+            <Outlet />
+          </main>
+          <SiteFooter />
+          <Toaster />
+        </div>
+      </RegionProvider>
     </QueryClientProvider>
+  );
+}
+
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { AlertTriangle, Info } from "lucide-react";
+
+function GlobalBroadcasts() {
+  const { data: broadcasts } = useQuery({
+    queryKey: ["global-broadcasts"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("broadcast_messages").select("*").eq("active", true).order("created_at", { ascending: false });
+      if (error && error.code !== "42P01") throw error; // Ignore if table missing initially
+      return data || [];
+    },
+    refetchInterval: 60000 // Refetch every minute
+  });
+
+  if (!broadcasts || broadcasts.length === 0) return null;
+
+  return (
+    <div className="w-full">
+      {broadcasts.map(b => (
+        <div key={b.id} className={`w-full flex items-center justify-center gap-2 py-2 px-4 text-xs font-semibold text-white ${b.severity === 'emergency' ? 'bg-red-600' : b.severity === 'warning' ? 'bg-amber-600' : 'bg-blue-600'}`}>
+          {b.severity === 'emergency' || b.severity === 'warning' ? <AlertTriangle className="h-3.5 w-3.5" /> : <Info className="h-3.5 w-3.5" />}
+          {b.message}
+        </div>
+      ))}
+    </div>
   );
 }

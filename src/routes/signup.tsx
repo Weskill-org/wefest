@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +9,16 @@ import { ShieldCheck, GraduationCap, Building2, Briefcase } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
+type SignupSearch = {
+  redirect?: string;
+};
+
 export const Route = createFileRoute("/signup")({
+  validateSearch: (search: Record<string, unknown>): SignupSearch => {
+    return {
+      redirect: search.redirect as string | undefined,
+    };
+  },
   head: () => ({ meta: [{ title: "Sign up — WeFest" }, { name: "description", content: "Create your WeFest account as a Student, College, or Company." }] }),
   component: Signup,
 });
@@ -17,21 +27,37 @@ type Role = "student" | "college" | "company";
 
 function Signup() {
   const navigate = useNavigate();
+  const search = Route.useSearch();
   const [role, setRole] = useState<Role>("student");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [collegeId, setCollegeId] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const { data: colleges } = useQuery({
+    queryKey: ["colleges-signup"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("colleges").select("id, name").order("name");
+      if (error) throw error;
+      return data;
+    }
+  });
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (role === "student" && !collegeId) {
+      toast.error("Please select your college");
+      return;
+    }
     setLoading(true);
+    const redirectUrl = search.redirect ? `${window.location.origin}${search.redirect}` : `${window.location.origin}/`;
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/`,
-        data: { full_name: name, role },
+        emailRedirectTo: redirectUrl,
+        data: { full_name: name, role, college_id: collegeId },
       },
     });
     setLoading(false);
@@ -40,7 +66,7 @@ function Signup() {
       return;
     }
     toast.success("Account created! Check your email to confirm.");
-    navigate({ to: "/login" });
+    navigate({ to: "/login", search: { redirect: search.redirect } });
   };
 
   const sendMagicLink = async () => {
@@ -49,10 +75,11 @@ function Signup() {
       return;
     }
     setLoading(true);
+    const redirectUrl = search.redirect ? `${window.location.origin}${search.redirect}` : `${window.location.origin}/`;
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/`,
+        emailRedirectTo: redirectUrl,
         data: { full_name: name, role },
       },
     });
@@ -110,6 +137,23 @@ function Signup() {
                 <Label htmlFor="email">Email</Label>
                 <Input id="email" required type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@domain.com" />
               </div>
+              {role === "student" && (
+                <div className="grid gap-1.5">
+                  <Label htmlFor="college">Your College</Label>
+                  <select 
+                    id="college"
+                    required
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    value={collegeId}
+                    onChange={(e) => setCollegeId(e.target.value)}
+                  >
+                    <option value="">Select your college</option>
+                    {colleges?.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="grid gap-1.5">
                 <Label htmlFor="password">Password</Label>
                 <Input id="password" required type="password" minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
@@ -125,7 +169,7 @@ function Signup() {
                 Email me a magic link
               </Button>
               <p className="text-center text-xs text-muted-foreground">
-                Already have an account? <Link to="/login" className="text-primary hover:underline">Sign in</Link>
+                Already have an account? <Link to="/login" search={{ redirect: search.redirect }} className="text-primary hover:underline">Sign in</Link>
               </p>
             </div>
           </form>
