@@ -3,8 +3,16 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   TrendingUp, Users, IndianRupee, School, Globe, 
-  ArrowUpRight, Download, Filter, Loader2, PieChart
+  ArrowUpRight, Download, Filter, Loader2, PieChart, Sparkles
 } from "lucide-react";
+
+const revenueData = [
+  { name: "Jan", value: 80000 },
+  { name: "Feb", value: 120000 },
+  { name: "Mar", value: 190000 },
+  { name: "Apr", value: 240000 },
+  { name: "May", value: 310000 },
+];
 import { Button } from "@/components/ui/button";
 import { 
   Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, 
