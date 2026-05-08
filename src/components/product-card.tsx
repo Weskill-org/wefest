@@ -1,6 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { ShoppingBag, Star } from "lucide-react";
+import { ShoppingBag, Star, Loader2 } from "lucide-react";
 import { useRegion } from "@/contexts/RegionContext";
+import { useMutation } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export interface Product {
   id: string;
