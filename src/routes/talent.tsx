@@ -163,7 +163,7 @@ function TalentMarketplace() {
                     <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Starting from</div>
                     <div className="text-lg font-black text-primary flex items-center gap-1">
                       <IndianRupee className="h-4 w-4" />
-                      {(a.base_price / 1000).toFixed(0)}k
+                      {((a.base_price ?? 0) / 1000).toFixed(0)}k
                     </div>
                   </div>
                   <Button className="bg-brand-gradient text-white rounded-full px-6 shadow-glow">
