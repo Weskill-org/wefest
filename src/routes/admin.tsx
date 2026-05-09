@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, Link, redirect } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, LayoutDashboard, CalendarCheck, Users, Megaphone, TrendingUp, Share2, MapPin } from "lucide-react";
+import { Loader2, LayoutDashboard, CalendarCheck, Users, Megaphone, TrendingUp, Share2, MapPin, Building2, ShieldCheck, ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
@@ -19,21 +19,24 @@ export const Route = createFileRoute("/admin")({
 
 const adminLinks = [
   { to: "/admin", icon: LayoutDashboard, label: "Overview", exact: true },
+  { to: "/admin/approvals", icon: ClipboardCheck, label: "Approvals" },
   { to: "/admin/events", icon: CalendarCheck, label: "Events" },
-  { to: "/admin/analytics", icon: TrendingUp, label: "Analytics" },
-  { to: "/admin/users", icon: Users, label: "Users" },
   { to: "/admin/colleges", icon: Share2, label: "Colleges" },
+  { to: "/admin/companies", icon: Building2, label: "Companies" },
+  { to: "/admin/users", icon: Users, label: "Users" },
+  { to: "/admin/admins", icon: ShieldCheck, label: "Admin Team" },
+  { to: "/admin/analytics", icon: TrendingUp, label: "Analytics" },
   { to: "/admin/integrations", icon: Share2, label: "Integrations" },
   { to: "/admin/cities", icon: MapPin, label: "Cities" },
   { to: "/admin/broadcasts", icon: Megaphone, label: "Broadcasts" },
-];
+] as Array<{ to: any; icon: any; label: string; exact?: boolean }>;
 
 function AdminLayout() {
   const { data: adminData, isLoading } = useQuery({
     queryKey: ["check-admin"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
+      if (!user) return null;
       const { data, error } = await supabase
         .from("admin_users")
         .select("id, rank")

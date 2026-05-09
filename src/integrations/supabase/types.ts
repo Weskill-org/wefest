@@ -425,6 +425,48 @@ export type Database = {
         }
         Relationships: []
       }
+      company_profiles: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          company_name: string
+          created_at: string
+          id: string
+          industry: string | null
+          rejection_reason: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          website_url: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          company_name: string
+          created_at?: string
+          id?: string
+          industry?: string | null
+          rejection_reason?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          website_url?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          company_name?: string
+          created_at?: string
+          id?: string
+          industry?: string | null
+          rejection_reason?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
       competition_votes: {
         Row: {
           candidate_name: string
@@ -1530,6 +1572,7 @@ export type Database = {
         Args: { _college_id: string; _user_id: string }
         Returns: boolean
       }
+      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       log_activity: {
         Args: {
           _description: string
