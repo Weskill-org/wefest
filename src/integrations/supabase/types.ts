@@ -18,16 +18,19 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          rank: Database["public"]["Enums"]["admin_rank"]
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          rank?: Database["public"]["Enums"]["admin_rank"]
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          rank?: Database["public"]["Enums"]["admin_rank"]
           user_id?: string
         }
         Relationships: []
@@ -338,36 +341,87 @@ export type Database = {
         }
         Relationships: []
       }
+      college_members: {
+        Row: {
+          college_id: string | null
+          created_at: string
+          id: string
+          is_approved: boolean
+          role: Database["public"]["Enums"]["college_internal_role"]
+          user_id: string | null
+        }
+        Insert: {
+          college_id?: string | null
+          created_at?: string
+          id?: string
+          is_approved?: boolean
+          role?: Database["public"]["Enums"]["college_internal_role"]
+          user_id?: string | null
+        }
+        Update: {
+          college_id?: string | null
+          created_at?: string
+          id?: string
+          is_approved?: boolean
+          role?: Database["public"]["Enums"]["college_internal_role"]
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "college_members_college_id_fkey"
+            columns: ["college_id"]
+            isOneToOne: false
+            referencedRelation: "colleges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "college_members_college_id_fkey"
+            columns: ["college_id"]
+            isOneToOne: false
+            referencedRelation: "institutional_analytics"
+            referencedColumns: ["college_id"]
+          },
+        ]
+      }
       colleges: {
         Row: {
-          city: string
+          approved_by: string | null
+          city: string | null
           created_at: string
-          domain: string
+          domain: string | null
           fests: number
           id: string
           metadata: Json | null
           name: string
-          slug: string
+          rejection_reason: string | null
+          slug: string | null
+          status: Database["public"]["Enums"]["college_status"]
         }
         Insert: {
-          city: string
+          approved_by?: string | null
+          city?: string | null
           created_at?: string
-          domain: string
+          domain?: string | null
           fests?: number
           id?: string
           metadata?: Json | null
           name: string
-          slug: string
+          rejection_reason?: string | null
+          slug?: string | null
+          status?: Database["public"]["Enums"]["college_status"]
         }
         Update: {
-          city?: string
+          approved_by?: string | null
+          city?: string | null
           created_at?: string
-          domain?: string
+          domain?: string | null
           fests?: number
           id?: string
           metadata?: Json | null
           name?: string
-          slug?: string
+          rejection_reason?: string | null
+          slug?: string | null
+          status?: Database["public"]["Enums"]["college_status"]
         }
         Relationships: []
       }
@@ -925,6 +979,47 @@ export type Database = {
         }
         Relationships: []
       }
+      recent_activity: {
+        Row: {
+          created_at: string
+          description: string
+          event_id: string | null
+          id: string
+          metadata: Json | null
+          title: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          event_id?: string | null
+          id?: string
+          metadata?: Json | null
+          title: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          event_id?: string | null
+          id?: string
+          metadata?: Json | null
+          title?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recent_activity_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sponsor_booth_visits: {
         Row: {
           booth_coords_x: number | null
@@ -1431,9 +1526,27 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_college_admin: {
+        Args: { _college_id: string; _user_id: string }
+        Returns: boolean
+      }
+      log_activity: {
+        Args: {
+          _description: string
+          _event_id?: string
+          _metadata?: Json
+          _title: string
+          _type: string
+          _user_id?: string
+        }
+        Returns: string
+      }
     }
     Enums: {
+      admin_rank: "Moderator" | "Organizer" | "Admin" | "Superadmin"
       app_role: "student" | "college" | "company"
+      college_internal_role: "admin" | "coordinator" | "ticket_poc" | "member"
+      college_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1561,7 +1674,10 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      admin_rank: ["Moderator", "Organizer", "Admin", "Superadmin"],
       app_role: ["student", "college", "company"],
+      college_internal_role: ["admin", "coordinator", "ticket_poc", "member"],
+      college_status: ["pending", "approved", "rejected"],
     },
   },
 } as const
