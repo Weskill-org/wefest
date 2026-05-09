@@ -19,14 +19,17 @@ export const Route = createFileRoute("/admin")({
 
 const adminLinks = [
   { to: "/admin", icon: LayoutDashboard, label: "Overview", exact: true },
+  { to: "/admin/approvals", icon: ClipboardCheck, label: "Approvals" },
   { to: "/admin/events", icon: CalendarCheck, label: "Events" },
-  { to: "/admin/analytics", icon: TrendingUp, label: "Analytics" },
-  { to: "/admin/users", icon: Users, label: "Users" },
   { to: "/admin/colleges", icon: Share2, label: "Colleges" },
+  { to: "/admin/companies", icon: Building2, label: "Companies" },
+  { to: "/admin/users", icon: Users, label: "Users" },
+  { to: "/admin/admins", icon: ShieldCheck, label: "Admin Team" },
+  { to: "/admin/analytics", icon: TrendingUp, label: "Analytics" },
   { to: "/admin/integrations", icon: Share2, label: "Integrations" },
   { to: "/admin/cities", icon: MapPin, label: "Cities" },
   { to: "/admin/broadcasts", icon: Megaphone, label: "Broadcasts" },
-];
+] as const;
 
 function AdminLayout() {
   const { data: adminData, isLoading } = useQuery({

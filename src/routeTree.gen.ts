@@ -50,6 +50,7 @@ import { Route as AdminCitiesRouteImport } from './routes/admin.cities'
 import { Route as AdminBroadcastsRouteImport } from './routes/admin/broadcasts'
 import { Route as AdminApprovalsRouteImport } from './routes/admin.approvals'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
+import { Route as AdminAdminsRouteImport } from './routes/admin.admins'
 import { Route as OrganizerEventsIndexRouteImport } from './routes/organizer.events.index'
 import { Route as OrganizerEventsEventIdRouteImport } from './routes/organizer.events.$eventId'
 import { Route as OrganizerEventsEventIdEditRouteImport } from './routes/organizer.events.$eventId.edit'
@@ -259,6 +260,11 @@ const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAdminsRoute = AdminAdminsRouteImport.update({
+  id: '/admins',
+  path: '/admins',
+  getParentRoute: () => AdminRoute,
+} as any)
 const OrganizerEventsIndexRoute = OrganizerEventsIndexRouteImport.update({
   id: '/events/',
   path: '/events/',
@@ -296,6 +302,7 @@ export interface FileRoutesByFullPath {
   '/talent': typeof TalentRoute
   '/terms': typeof TermsRoute
   '/tickets': typeof TicketsRoute
+  '/admin/admins': typeof AdminAdminsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/approvals': typeof AdminApprovalsRoute
   '/admin/broadcasts': typeof AdminBroadcastsRoute
@@ -339,6 +346,7 @@ export interface FileRoutesByTo {
   '/talent': typeof TalentRoute
   '/terms': typeof TermsRoute
   '/tickets': typeof TicketsRoute
+  '/admin/admins': typeof AdminAdminsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/approvals': typeof AdminApprovalsRoute
   '/admin/broadcasts': typeof AdminBroadcastsRoute
@@ -386,6 +394,7 @@ export interface FileRoutesById {
   '/talent': typeof TalentRoute
   '/terms': typeof TermsRoute
   '/tickets': typeof TicketsRoute
+  '/admin/admins': typeof AdminAdminsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/approvals': typeof AdminApprovalsRoute
   '/admin/broadcasts': typeof AdminBroadcastsRoute
@@ -434,6 +443,7 @@ export interface FileRouteTypes {
     | '/talent'
     | '/terms'
     | '/tickets'
+    | '/admin/admins'
     | '/admin/analytics'
     | '/admin/approvals'
     | '/admin/broadcasts'
@@ -477,6 +487,7 @@ export interface FileRouteTypes {
     | '/talent'
     | '/terms'
     | '/tickets'
+    | '/admin/admins'
     | '/admin/analytics'
     | '/admin/approvals'
     | '/admin/broadcasts'
@@ -523,6 +534,7 @@ export interface FileRouteTypes {
     | '/talent'
     | '/terms'
     | '/tickets'
+    | '/admin/admins'
     | '/admin/analytics'
     | '/admin/approvals'
     | '/admin/broadcasts'
@@ -864,6 +876,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAnalyticsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/admins': {
+      id: '/admin/admins'
+      path: '/admins'
+      fullPath: '/admin/admins'
+      preLoaderRoute: typeof AdminAdminsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/organizer/events/': {
       id: '/organizer/events/'
       path: '/events'
@@ -889,6 +908,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminAdminsRoute: typeof AdminAdminsRoute
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminApprovalsRoute: typeof AdminApprovalsRoute
   AdminBroadcastsRoute: typeof AdminBroadcastsRoute
@@ -902,6 +922,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAdminsRoute: AdminAdminsRoute,
   AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminApprovalsRoute: AdminApprovalsRoute,
   AdminBroadcastsRoute: AdminBroadcastsRoute,
