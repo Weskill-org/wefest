@@ -44,6 +44,7 @@ import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminIntegrationsRouteImport } from './routes/admin.integrations'
 import { Route as AdminEventsRouteImport } from './routes/admin/events'
+import { Route as AdminCompaniesRouteImport } from './routes/admin.companies'
 import { Route as AdminCollegesRouteImport } from './routes/admin.colleges'
 import { Route as AdminCitiesRouteImport } from './routes/admin.cities'
 import { Route as AdminBroadcastsRouteImport } from './routes/admin/broadcasts'
@@ -227,6 +228,11 @@ const AdminEventsRoute = AdminEventsRouteImport.update({
   path: '/events',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCompaniesRoute = AdminCompaniesRouteImport.update({
+  id: '/companies',
+  path: '/companies',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCollegesRoute = AdminCollegesRouteImport.update({
   id: '/colleges',
   path: '/colleges',
@@ -288,6 +294,7 @@ export interface FileRoutesByFullPath {
   '/admin/broadcasts': typeof AdminBroadcastsRoute
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/colleges': typeof AdminCollegesRoute
+  '/admin/companies': typeof AdminCompaniesRoute
   '/admin/events': typeof AdminEventsRoute
   '/admin/integrations': typeof AdminIntegrationsRoute
   '/admin/users': typeof AdminUsersRoute
@@ -329,6 +336,7 @@ export interface FileRoutesByTo {
   '/admin/broadcasts': typeof AdminBroadcastsRoute
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/colleges': typeof AdminCollegesRoute
+  '/admin/companies': typeof AdminCompaniesRoute
   '/admin/events': typeof AdminEventsRoute
   '/admin/integrations': typeof AdminIntegrationsRoute
   '/admin/users': typeof AdminUsersRoute
@@ -374,6 +382,7 @@ export interface FileRoutesById {
   '/admin/broadcasts': typeof AdminBroadcastsRoute
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/colleges': typeof AdminCollegesRoute
+  '/admin/companies': typeof AdminCompaniesRoute
   '/admin/events': typeof AdminEventsRoute
   '/admin/integrations': typeof AdminIntegrationsRoute
   '/admin/users': typeof AdminUsersRoute
@@ -420,6 +429,7 @@ export interface FileRouteTypes {
     | '/admin/broadcasts'
     | '/admin/cities'
     | '/admin/colleges'
+    | '/admin/companies'
     | '/admin/events'
     | '/admin/integrations'
     | '/admin/users'
@@ -461,6 +471,7 @@ export interface FileRouteTypes {
     | '/admin/broadcasts'
     | '/admin/cities'
     | '/admin/colleges'
+    | '/admin/companies'
     | '/admin/events'
     | '/admin/integrations'
     | '/admin/users'
@@ -505,6 +516,7 @@ export interface FileRouteTypes {
     | '/admin/broadcasts'
     | '/admin/cities'
     | '/admin/colleges'
+    | '/admin/companies'
     | '/admin/events'
     | '/admin/integrations'
     | '/admin/users'
@@ -798,6 +810,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminEventsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/companies': {
+      id: '/admin/companies'
+      path: '/companies'
+      fullPath: '/admin/companies'
+      preLoaderRoute: typeof AdminCompaniesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/colleges': {
       id: '/admin/colleges'
       path: '/colleges'
@@ -855,6 +874,7 @@ interface AdminRouteChildren {
   AdminBroadcastsRoute: typeof AdminBroadcastsRoute
   AdminCitiesRoute: typeof AdminCitiesRoute
   AdminCollegesRoute: typeof AdminCollegesRoute
+  AdminCompaniesRoute: typeof AdminCompaniesRoute
   AdminEventsRoute: typeof AdminEventsRoute
   AdminIntegrationsRoute: typeof AdminIntegrationsRoute
   AdminUsersRoute: typeof AdminUsersRoute
@@ -866,6 +886,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminBroadcastsRoute: AdminBroadcastsRoute,
   AdminCitiesRoute: AdminCitiesRoute,
   AdminCollegesRoute: AdminCollegesRoute,
+  AdminCompaniesRoute: AdminCompaniesRoute,
   AdminEventsRoute: AdminEventsRoute,
   AdminIntegrationsRoute: AdminIntegrationsRoute,
   AdminUsersRoute: AdminUsersRoute,
