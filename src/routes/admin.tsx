@@ -33,7 +33,7 @@ function AdminLayout() {
     queryKey: ["check-admin"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
+      if (!user) return null;
       const { data, error } = await supabase
         .from("admin_users")
         .select("id, rank")
