@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, Link, redirect } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, LayoutDashboard, CalendarCheck, Users, Megaphone, TrendingUp, Share2, MapPin } from "lucide-react";
+import { Loader2, LayoutDashboard, CalendarCheck, Users, Megaphone, TrendingUp, Share2, MapPin, Building2, ShieldCheck, ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
