@@ -29,7 +29,7 @@ const adminLinks = [
   { to: "/admin/integrations", icon: Share2, label: "Integrations" },
   { to: "/admin/cities", icon: MapPin, label: "Cities" },
   { to: "/admin/broadcasts", icon: Megaphone, label: "Broadcasts" },
-] as const;
+] as Array<{ to: any; icon: any; label: string; exact?: boolean }>;
 
 function AdminLayout() {
   const { data: adminData, isLoading } = useQuery({
