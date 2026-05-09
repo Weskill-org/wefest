@@ -48,6 +48,7 @@ import { Route as AdminCompaniesRouteImport } from './routes/admin.companies'
 import { Route as AdminCollegesRouteImport } from './routes/admin.colleges'
 import { Route as AdminCitiesRouteImport } from './routes/admin.cities'
 import { Route as AdminBroadcastsRouteImport } from './routes/admin/broadcasts'
+import { Route as AdminApprovalsRouteImport } from './routes/admin.approvals'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as OrganizerEventsIndexRouteImport } from './routes/organizer.events.index'
 import { Route as OrganizerEventsEventIdRouteImport } from './routes/organizer.events.$eventId'
@@ -248,6 +249,11 @@ const AdminBroadcastsRoute = AdminBroadcastsRouteImport.update({
   path: '/broadcasts',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminApprovalsRoute = AdminApprovalsRouteImport.update({
+  id: '/approvals',
+  path: '/approvals',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
@@ -291,6 +297,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/tickets': typeof TicketsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/approvals': typeof AdminApprovalsRoute
   '/admin/broadcasts': typeof AdminBroadcastsRoute
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/colleges': typeof AdminCollegesRoute
@@ -333,6 +340,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/tickets': typeof TicketsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/approvals': typeof AdminApprovalsRoute
   '/admin/broadcasts': typeof AdminBroadcastsRoute
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/colleges': typeof AdminCollegesRoute
@@ -379,6 +387,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/tickets': typeof TicketsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/approvals': typeof AdminApprovalsRoute
   '/admin/broadcasts': typeof AdminBroadcastsRoute
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/colleges': typeof AdminCollegesRoute
@@ -426,6 +435,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/tickets'
     | '/admin/analytics'
+    | '/admin/approvals'
     | '/admin/broadcasts'
     | '/admin/cities'
     | '/admin/colleges'
@@ -468,6 +478,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/tickets'
     | '/admin/analytics'
+    | '/admin/approvals'
     | '/admin/broadcasts'
     | '/admin/cities'
     | '/admin/colleges'
@@ -513,6 +524,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/tickets'
     | '/admin/analytics'
+    | '/admin/approvals'
     | '/admin/broadcasts'
     | '/admin/cities'
     | '/admin/colleges'
@@ -838,6 +850,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBroadcastsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/approvals': {
+      id: '/admin/approvals'
+      path: '/approvals'
+      fullPath: '/admin/approvals'
+      preLoaderRoute: typeof AdminApprovalsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/analytics': {
       id: '/admin/analytics'
       path: '/analytics'
@@ -871,6 +890,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
+  AdminApprovalsRoute: typeof AdminApprovalsRoute
   AdminBroadcastsRoute: typeof AdminBroadcastsRoute
   AdminCitiesRoute: typeof AdminCitiesRoute
   AdminCollegesRoute: typeof AdminCollegesRoute
@@ -883,6 +903,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAnalyticsRoute: AdminAnalyticsRoute,
+  AdminApprovalsRoute: AdminApprovalsRoute,
   AdminBroadcastsRoute: AdminBroadcastsRoute,
   AdminCitiesRoute: AdminCitiesRoute,
   AdminCollegesRoute: AdminCollegesRoute,
