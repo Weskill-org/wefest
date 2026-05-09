@@ -38,19 +38,45 @@ function Login() {
       return;
     }
 
+    const uid = authData.user?.id;
+
+    // Block blacklisted users
+    if (uid) {
+      const { data: banned } = await supabase
+        .from("blacklisted_users")
+        .select("id, reason")
+        .eq("user_id", uid)
+        .maybeSingle();
+      if (banned) {
+        await supabase.auth.signOut();
+        setLoading(false);
+        toast.error(`Your account has been suspended. ${banned.reason ? `Reason: ${banned.reason}` : ""}`);
+        return;
+      }
+    }
+
+    // Check if admin first — admins always go to the portal
+    const { data: adminRow } = await supabase
+      .from("admin_users")
+      .select("id")
+      .eq("user_id", uid!)
+      .maybeSingle();
+
     // Fetch the user's role to determine redirect
     const { data: roleData } = await supabase
       .from("user_roles")
       .select("role")
-      .eq("user_id", authData.user?.id)
+      .eq("user_id", uid)
       .maybeSingle();
 
     setLoading(false);
     toast.success("Welcome back");
 
     const role = roleData?.role || "student";
-    
-    if (search.redirect) {
+
+    if (adminRow) {
+      navigate({ to: "/admin" });
+    } else if (search.redirect) {
       navigate({ to: search.redirect });
     } else if (role === "company") {
       navigate({ to: "/sponsor/dashboard" });
