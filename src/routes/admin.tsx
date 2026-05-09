@@ -6,6 +6,9 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
   beforeLoad: async () => {
+    // Skip redirect on server to prevent redirect-on-refresh bug
+    if (typeof window === 'undefined') return;
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       throw redirect({ to: "/login" });
@@ -19,29 +22,33 @@ const adminLinks = [
   { to: "/admin/events", icon: CalendarCheck, label: "Events" },
   { to: "/admin/analytics", icon: TrendingUp, label: "Analytics" },
   { to: "/admin/users", icon: Users, label: "Users" },
+  { to: "/admin/colleges", icon: Share2, label: "Colleges" },
   { to: "/admin/integrations", icon: Share2, label: "Integrations" },
   { to: "/admin/cities", icon: MapPin, label: "Cities" },
   { to: "/admin/broadcasts", icon: Megaphone, label: "Broadcasts" },
 ];
 
 function AdminLayout() {
-  const { data: isAdmin, isLoading } = useQuery({
+  const { data: adminData, isLoading } = useQuery({
     queryKey: ["check-admin"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
       const { data, error } = await supabase
         .from("admin_users")
-        .select("id")
+        .select("id, rank")
         .eq("user_id", user.id)
         .single();
       
       if (error && error.code !== "PGRST116") { // Ignore no rows error
         console.error("Error checking admin status:", error);
       }
-      return !!data;
+      return data;
     }
   });
+
+  const isAdmin = !!adminData;
+  const adminRank = adminData?.rank;
 
   if (isLoading) {
     return (
@@ -70,6 +77,11 @@ function AdminLayout() {
           <div className="mb-6 px-3">
             <div className="text-xs font-semibold text-primary uppercase tracking-wider">Control Panel</div>
             <div className="font-display text-xl font-bold mt-1">Admin Hub</div>
+            {adminRank && (
+              <div className="mt-2 inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary uppercase tracking-wider">
+                {adminRank}
+              </div>
+            )}
           </div>
           <nav className="flex flex-col gap-1">
             {adminLinks.map((link) => (

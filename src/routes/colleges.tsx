@@ -71,10 +71,11 @@ function CollegesPage() {
 
       <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {colleges?.map((c) => (
-          <div 
+          <Link 
             key={c.id} 
-            className="glass rounded-2xl p-6 transition hover:border-primary/40 cursor-pointer"
-            onClick={() => setSelectedCollege(c)}
+            to="/colleges/$collegeSlug"
+            params={{ collegeSlug: c.slug }}
+            className="glass rounded-2xl p-6 transition hover:border-primary/40 cursor-pointer block"
           >
             <div className="flex items-start justify-between">
               <div>
@@ -88,7 +89,7 @@ function CollegesPage() {
                 Click to view {c.events.length} upcoming {c.events.length === 1 ? 'event' : 'events'}
               </div>
             )}
-          </div>
+          </Link>
         ))}
       </div>
 

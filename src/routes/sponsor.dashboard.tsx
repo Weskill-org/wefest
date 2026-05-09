@@ -14,6 +14,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 export const Route = createFileRoute("/sponsor/dashboard")({
   head: () => ({ meta: [{ title: "Sponsor Dashboard — WeFest" }] }),
   beforeLoad: async ({ location }) => {
+    // Skip redirect on server to prevent redirect-on-refresh bug
+    if (typeof window === 'undefined') return;
+
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) {
       throw redirect({

@@ -1,27 +1,12 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Outlet, redirect, Link, useMatchRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { Clock, LayoutDashboard, CalendarPlus, CalendarRange, ScanLine, Users, BadgeCheck, Menu, X, LogOut, ChevronLeft, ChevronRight, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { 
-  TrendingUp, 
-  Ticket, 
-  IndianRupee, 
-  Users, 
-  CheckCircle2, 
-  Loader2,
-  ArrowRight
-} from "lucide-react";
-import { toast } from "sonner";
-import { OrganizerHeader } from "@/components/organizer/organizer-header";
-import { DashboardStatTile } from "@/components/organizer/dashboard-stat-tile";
-import { OrganizerEventCard } from "@/components/organizer/organizer-event-card";
-import { OrganizerEmptyState } from "@/components/organizer/organizer-empty-state";
-import { RecentActivity } from "@/components/organizer/recent-activity";
-import { QuickActions } from "@/components/organizer/quick-actions";
-import { PerformanceSnapshot } from "@/components/organizer/performance-snapshot";
-import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { toast } from "sonner";
+import { useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/organizer")({
   head: () => ({ 
@@ -31,6 +16,9 @@ export const Route = createFileRoute("/organizer")({
     ] 
   }),
   beforeLoad: async ({ location }) => {
+    // Skip redirect on server to prevent redirect-on-refresh bug
+    if (typeof window === 'undefined') return;
+
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) {
       throw redirect({
@@ -38,6 +26,8 @@ export const Route = createFileRoute("/organizer")({
         search: { redirect: location.href },
       });
     }
+    
+    // Fetch role from user_roles table
     const { data: roleData } = await supabase
       .from("user_roles")
       .select("role")
@@ -47,230 +37,223 @@ export const Route = createFileRoute("/organizer")({
     if (roleData?.role !== "college") {
       throw redirect({ to: '/' });
     }
+
+    // Fetch college membership
+    const { data: membership } = await supabase
+      .from("college_members")
+      .select(`
+        *,
+        colleges (name, status)
+      `)
+      .eq("user_id", session.user.id)
+      .maybeSingle();
+
+    return {
+      user: session.user,
+      membership
+    };
   },
-  component: Organizer,
+  component: OrganizerLayout,
 });
 
-function Organizer() {
-  const { data: userData, isLoading: loadingUser } = useQuery({
-    queryKey: ["current-user"],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      return user;
-    }
-  });
+const sidebarLinks = [
+  { to: "/organizer", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/organizer/events", label: "Events", icon: CalendarRange },
+  { to: "/organizer/new", label: "Create Event", icon: CalendarPlus },
+  { to: "/organizer/scan", label: "Scan Tickets", icon: ScanLine },
+  { to: "/organizer/team", label: "Team", icon: Users },
+];
 
-  const { data: myEvents, isLoading: loadingEvents } = useQuery({
-    queryKey: ["my-events", userData?.id],
-    enabled: !!userData?.id,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("events")
-        .select("*")
-        .eq("organizer_user_id", userData!.id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    }
-  });
+function OrganizerLayout() {
+  const ctx = Route.useRouteContext();
+  const membership = ctx.membership as any;
+  const user = ctx.user as any;
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const navigate = useNavigate();
+  const matchRoute = useMatchRoute();
 
-  const { data: proposals, isLoading: loadingProposals } = useQuery({
-    queryKey: ["event-proposals", myEvents?.map(e => e.id)],
-    enabled: !!myEvents && myEvents.length > 0,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("sponsorship_proposals")
-        .select("*")
-        .in("event_id", myEvents!.map(e => e.id));
-      if (error) throw error;
-      return data;
-    }
-  });
-
-  if (loadingUser || loadingEvents) {
-    return <OrganizerSkeleton />;
+  if (membership && !membership.is_approved) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background p-6 text-center">
+        <div className="h-20 w-20 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 mb-6">
+          <Clock className="h-10 w-10" />
+        </div>
+        <h1 className="text-3xl font-black tracking-tight mb-3">Membership Pending</h1>
+        <p className="text-muted-foreground max-w-md mx-auto">
+          Your request to join <strong>{membership.colleges?.name}</strong> is currently pending approval from the College Admin.
+        </p>
+        <Button variant="ghost" className="mt-8 text-primary font-bold" asChild>
+          <Link to="/">Back to Home</Link>
+        </Button>
+      </div>
+    );
   }
 
-  const totalAttendees = myEvents?.reduce((acc, e) => acc + (e.attendees || 0), 0) || 0;
-  const totalRevenue = myEvents?.reduce((acc, e) => acc + ((e.attendees || 0) * (e.price_from || 0) * 0.15), 0) || 0;
-  const sponsorPipeline = proposals?.reduce((acc, p) => acc + (p.amount || 0), 0) || 0;
-  const totalTickets = Math.floor(totalAttendees * 0.15);
+  const collegeName = membership?.colleges?.name || user?.user_metadata?.full_name || "Organizer";
+  const isVerified = membership?.colleges?.status === "approved";
+  const initials = collegeName.substring(0, 2).toUpperCase();
 
-  return (
-    <div className="min-h-screen bg-background pb-20 pt-10">
-      <div className="container mx-auto px-6">
-        <OrganizerHeader 
-          name={userData?.user_metadata?.full_name || userData?.email?.split("@")[0] || "Organizer"} 
-          isVerified={true}
-        />
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    toast.success("Signed out");
+    navigate({ to: "/" });
+  };
 
-        {/* Quick Stats Grid */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-12">
-          <DashboardStatTile 
-            icon={IndianRupee} 
-            label="Revenue (est.)" 
-            value={`₹${(totalRevenue / 100000).toFixed(2)}L`} 
-            delta="100%" 
-            href="/organizer" 
-          />
-          <DashboardStatTile 
-            icon={Ticket} 
-            label="Tickets Sold" 
-            value={totalTickets.toLocaleString()} 
-            delta="100%" 
-            href="/organizer" 
-          />
-          <DashboardStatTile 
-            icon={Users} 
-            label="Total Attendees" 
-            value={totalAttendees.toLocaleString()} 
-            delta="100%" 
-            href="/organizer" 
-          />
-          <DashboardStatTile 
-            icon={TrendingUp} 
-            label="Sponsor Pipeline" 
-            value={`₹${(sponsorPipeline / 100000).toFixed(2)}L`} 
-            delta="100%" 
-            href="/organizer" 
-          />
+  const SidebarContent = () => (
+    <div className="flex h-full flex-col">
+      {/* Header */}
+      <div className={cn("flex items-center gap-3 px-5 pt-6 pb-4", collapsed && "justify-center px-3")}>
+        <div className="h-10 w-10 shrink-0 rounded-xl bg-brand-gradient flex items-center justify-center text-white font-black text-sm shadow-glow">
+          {initials}
         </div>
-
-        <div className="grid gap-10 lg:grid-cols-3">
-          {/* Main Content Column */}
-          <div className="lg:col-span-2 space-y-12">
-            {/* Events Section */}
-            <section>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="font-display text-3xl font-black tracking-tight">Your Events</h2>
-                <Button variant="ghost" className="text-primary font-bold hover:bg-primary/10">
-                  View All Events <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
-              
-              <div className="space-y-4">
-                {myEvents && myEvents.length > 0 ? (
-                  myEvents.map((e) => (
-                    <OrganizerEventCard 
-                      key={e.id}
-                      id={e.id}
-                      title={e.title}
-                      date={e.date}
-                      city={e.city}
-                      cover={e.cover}
-                      status={(e.status || "Published") as "Completed" | "Draft" | "Published" | "Sold Out"}
-                      ticketsSold={Math.floor((e.attendees || 0) * 0.15)}
-                      revenue={(e.attendees || 0) * (e.price_from || 0) * 0.15}
-                    />
-                  ))
-                ) : (
-                  <OrganizerEmptyState />
-                )}
-              </div>
-            </section>
-
-            {/* Performance & Financials */}
-            <div className="grid gap-8 md:grid-cols-1">
-              <PerformanceSnapshot />
-              
-              <section className="rounded-[2.5rem] border border-border/50 bg-muted/20 p-10">
-                <div className="flex items-center gap-3 mb-8">
-                  <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                    <IndianRupee className="h-6 w-6" />
-                  </div>
-                  <h2 className="font-display text-2xl font-bold tracking-tight">Financial Settlements</h2>
-                </div>
-
-                <div className="grid gap-8 md:grid-cols-2">
-                  <div className="rounded-3xl bg-brand-gradient/5 border border-primary/20 p-8">
-                    <div className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em]">Available for Payout</div>
-                    <div className="mt-4 text-5xl font-black tracking-tighter">₹{(totalRevenue * 0.85 / 100000).toFixed(2)}L</div>
-                    <p className="mt-4 text-[11px] leading-relaxed text-muted-foreground">
-                      Funds are typically settled within 48 hours of request. Includes deduction of 10% platform fee and 5% tax withholding.
-                    </p>
-                    <Button 
-                      className="mt-8 w-full h-14 bg-brand-gradient text-white rounded-2xl font-black uppercase tracking-widest shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-all"
-                      onClick={() => toast.success("Settlement Requested", { description: "Your payout is being processed." })}
-                    >
-                      Request Settlement
-                    </Button>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Recent Ledger</div>
-                      <Badge variant="outline" className="bg-muted border-border/50 text-[10px]">View History</Badge>
-                    </div>
-                    
-                    {[
-                      { id: "#4592", date: "May 02, 2026", amount: "1.24L", status: "Completed" },
-                      { id: "#4501", date: "April 15, 2026", amount: "0.85L", status: "Completed" },
-                    ].map((settlement, i) => (
-                      <div key={settlement.id} className={cn(
-                        "flex items-center justify-between p-5 rounded-2xl border border-border/40 bg-muted/30 transition-all hover:bg-muted/50",
-                        i > 0 && "opacity-60"
-                      )}>
-                        <div className="flex items-center gap-4">
-                          <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                            <CheckCircle2 className="h-5 w-5" />
-                          </div>
-                          <div>
-                            <div className="font-bold text-sm">Settlement {settlement.id}</div>
-                            <div className="text-[10px] text-muted-foreground font-medium">{settlement.date}</div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-black text-lg">₹{settlement.amount}</div>
-                          <div className="text-[9px] font-bold text-emerald-500 uppercase tracking-tighter">{settlement.status}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </section>
+        {!collapsed && (
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm font-bold truncate">Organizer</span>
+              {isVerified && <BadgeCheck className="h-4 w-4 text-blue-500 fill-blue-500/10 shrink-0" />}
             </div>
+            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">{collegeName}</span>
           </div>
+        )}
+      </div>
 
-          {/* Sidebar Column */}
-          <div className="space-y-8">
-            <QuickActions />
-            <RecentActivity />
-          </div>
+      {/* Divider */}
+      <div className="mx-4 h-px bg-border/50 my-2" />
+
+      {/* Navigation */}
+      <nav className="flex-1 px-3 py-4 space-y-1">
+        {sidebarLinks.map((link) => {
+          const isActive = link.exact
+            ? matchRoute({ to: link.to, fuzzy: false })
+            : matchRoute({ to: link.to, fuzzy: true });
+
+          return (
+            <Link
+              key={link.to}
+              to={link.to}
+              onClick={() => setMobileOpen(false)}
+              className={cn(
+                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                collapsed && "justify-center px-2",
+                isActive
+                  ? "bg-primary/10 text-primary font-bold"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+              )}
+            >
+              <link.icon className={cn("h-[18px] w-[18px] shrink-0", isActive && "text-primary")} />
+              {!collapsed && <span>{link.label}</span>}
+              {isActive && !collapsed && (
+                <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Settings Link */}
+      <div className={cn("px-3 pb-2", collapsed && "px-2")}>
+        <Link
+          to="/organizer/settings"
+          onClick={() => setMobileOpen(false)}
+          className={cn(
+            "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
+            collapsed && "justify-center px-2",
+            matchRoute({ to: "/organizer/settings", fuzzy: false })
+              ? "bg-primary/10 text-primary font-bold"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+          )}
+        >
+          <Settings className={cn("h-[18px] w-[18px] shrink-0", matchRoute({ to: "/organizer/settings", fuzzy: false }) && "text-primary")} />
+          {!collapsed && <span>Settings</span>}
+          {matchRoute({ to: "/organizer/settings", fuzzy: false }) && !collapsed && (
+            <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
+          )}
+        </Link>
+      </div>
+
+      {/* Footer */}
+      <div className={cn("border-t border-border/50 p-4", collapsed && "p-3")}>
+        <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
+          <Avatar className="h-8 w-8 shrink-0">
+            <AvatarFallback className="bg-muted text-xs font-bold">
+              {(user?.user_metadata?.full_name || user?.email || "U").substring(0, 1).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          {!collapsed && (
+            <div className="min-w-0 flex-1">
+              <div className="text-xs font-bold truncate">{user?.user_metadata?.full_name || user?.email}</div>
+              <button onClick={signOut} className="text-[10px] text-muted-foreground hover:text-destructive font-medium flex items-center gap-1 mt-0.5">
+                <LogOut className="h-3 w-3" /> Sign out
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
-}
 
-function OrganizerSkeleton() {
   return (
-    <div className="container mx-auto px-6 py-12 space-y-12">
-      <div className="flex items-center gap-6">
-        <Skeleton className="h-16 w-16 rounded-full" />
-        <div className="space-y-2">
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-4 w-96" />
-        </div>
-      </div>
+    <div className="min-h-screen bg-background flex">
+      {/* Desktop Sidebar */}
+      <aside className={cn(
+        "hidden lg:flex flex-col fixed inset-y-0 left-0 z-40 border-r border-border/50 bg-background/80 backdrop-blur-xl transition-all duration-300",
+        collapsed ? "w-[72px]" : "w-[260px]"
+      )}>
+        <SidebarContent />
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="absolute -right-3 top-20 h-6 w-6 rounded-full border border-border/60 bg-background flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+        >
+          {collapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+        </button>
+      </aside>
 
-      <div className="grid gap-6 md:grid-cols-4">
-        {[1, 2, 3, 4].map(i => (
-          <Skeleton key={i} className="h-32 rounded-3xl" />
-        ))}
-      </div>
+      {/* Mobile Overlay */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+          <aside className="absolute inset-y-0 left-0 w-[280px] border-r border-border/50 bg-background shadow-2xl">
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="absolute top-5 right-4 h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/40"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <SidebarContent />
+          </aside>
+        </div>
+      )}
 
-      <div className="grid gap-10 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-10">
-          <Skeleton className="h-10 w-48" />
-          {[1, 2, 3].map(i => (
-            <Skeleton key={i} className="h-28 rounded-3xl" />
-          ))}
+      {/* Main Content */}
+      <main className={cn(
+        "flex-1 min-h-screen transition-all duration-300",
+        collapsed ? "lg:ml-[72px]" : "lg:ml-[260px]"
+      )}>
+        {/* Mobile Top Bar */}
+        <div className="sticky top-0 z-30 flex items-center gap-3 border-b border-border/50 bg-background/80 backdrop-blur-xl px-4 py-3 lg:hidden">
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/40"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="h-8 w-8 rounded-lg bg-brand-gradient flex items-center justify-center text-white text-[10px] font-black shrink-0">
+              {initials}
+            </div>
+            <div className="min-w-0 flex flex-col">
+              <div className="flex items-center gap-1">
+                <span className="text-sm font-bold truncate">Organizer</span>
+                {isVerified && <BadgeCheck className="h-4 w-4 text-blue-500 fill-blue-500/10 shrink-0" />}
+              </div>
+              <span className="text-[10px] text-muted-foreground font-medium truncate">{collegeName}</span>
+            </div>
+          </div>
         </div>
-        <div className="space-y-8">
-          <Skeleton className="h-64 rounded-3xl" />
-          <Skeleton className="h-96 rounded-3xl" />
-        </div>
-      </div>
+
+        <Outlet />
+      </main>
     </div>
   );
 }

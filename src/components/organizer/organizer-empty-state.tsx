@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Plus, HelpCircle, CalendarOff } from "lucide-react";
+import { Plus, CalendarOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function OrganizerEmptyState() {
@@ -28,13 +28,6 @@ export function OrganizerEmptyState() {
             <Plus className="mr-2 h-6 w-6" />
             Create First Event
           </Link>
-        </Button>
-        <Button 
-          variant="outline" 
-          className="h-14 rounded-2xl border-border/50 bg-background/50 px-8 text-lg font-bold hover:bg-muted"
-        >
-          <HelpCircle className="mr-2 h-6 w-6 text-primary" />
-          Learn How It Works
         </Button>
       </div>
     </div>

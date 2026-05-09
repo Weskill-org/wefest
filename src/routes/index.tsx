@@ -14,6 +14,9 @@ export const Route = createFileRoute("/")({
     ],
   }),
   beforeLoad: async () => {
+    // Skip auth check on server to prevent flash of wrong content on refresh
+    if (typeof window === 'undefined') return;
+
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
       const { data: roleData } = await supabase

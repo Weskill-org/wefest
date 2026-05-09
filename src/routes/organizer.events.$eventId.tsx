@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect, Outlet, useMatchRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,19 +10,25 @@ import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, PieChart, 
 import { format, parseISO, subDays, eachDayOfInterval } from "date-fns";
 
 export const Route = createFileRoute("/organizer/events/$eventId")({
-  loader: async ({ params }) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Unauthorized");
-
-    const { data: event, error } = await supabase
-      .from("events")
-      .select("*")
-      .eq("id", params.eventId)
-      .eq("organizer_user_id", user.id)
-      .single();
+  loader: async ({ params, context }) => {
+    // Access membership from parent context
+    const { membership } = context as any;
     
-    if (error || !event) throw notFound();
-    return event;
+    let query = supabase
+       .from("events")
+       .select("*")
+       .eq("id", params.eventId);
+    
+    if (membership?.college_id) {
+      query = query.or(`organizer_user_id.eq.${(context as any).user.id},college_id.eq.${membership.college_id}`);
+    } else {
+      query = query.eq("organizer_user_id", (context as any).user.id);
+    }
+
+    const { data: event, error } = await query.maybeSingle();
+     
+     if (error || !event) throw notFound();
+     return event;
   },
   component: OrganizerEventDashboard,
 });
@@ -30,6 +36,14 @@ export const Route = createFileRoute("/organizer/events/$eventId")({
 function OrganizerEventDashboard() {
   const event = Route.useLoaderData();
   const queryClient = useQueryClient();
+  const matchRoute = useMatchRoute();
+  
+  // Only show the dashboard if we are at the base event URL
+  const isBaseRoute = !!matchRoute({ to: "/organizer/events/$eventId", fuzzy: false });
+
+  if (!isBaseRoute) {
+    return <Outlet />;
+  }
 
   const { data: volunteers, isLoading: loadingVols } = useQuery({
     queryKey: ["volunteers", event.id],
@@ -141,23 +155,19 @@ function OrganizerEventDashboard() {
   const activeProposals = proposals?.filter(p => p.status === "accepted") || [];
 
   return (
-    <div className="container mx-auto px-6 py-12">
-      <Link to="/organizer" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="h-4 w-4" /> Back to Organizer Suite
-      </Link>
-
-      <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+    <div className="px-6 py-8 lg:px-10 lg:py-10">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
         <div>
-          <h1 className="font-display text-4xl font-black">{event.title}</h1>
-          <div className="text-sm text-muted-foreground mt-1">Manage analytics, volunteers, and operations</div>
+          <h1 className="font-display text-2xl font-black tracking-tight lg:text-3xl">{event.title}</h1>
+          <div className="text-sm text-muted-foreground mt-1">Analytics, volunteers, and operations management</div>
         </div>
-        <Button asChild variant="outline">
-          <Link to="/events/$eventId" params={{ eventId: event.id }}>View public page</Link>
+        <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-bold">
+          <Link to="/events/$eventId" params={{ eventId: event.id }}>View Public Page</Link>
         </Button>
       </div>
 
-      <Tabs defaultValue="analytics" className="mt-10">
-        <TabsList className="mb-6">
+      <Tabs defaultValue="analytics" className="">
+        <TabsList className="mb-6 flex-wrap h-auto gap-1 bg-muted/30 p-1 rounded-xl border border-border/40">
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="finance">Finance</TabsTrigger>
           <TabsTrigger value="marketing">Marketing</TabsTrigger>

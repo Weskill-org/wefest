@@ -60,6 +60,20 @@ function EventDetail() {
     }
   });
 
+  const { data: studentProfile } = useQuery({
+    queryKey: ["student-profile", currentUser?.id],
+    enabled: !!currentUser?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("student_profiles")
+        .select("college_id")
+        .eq("id", currentUser!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    }
+  });
+
   const { data: hasTicket } = useQuery({
     queryKey: ["has-ticket", event.id],
     enabled: !!currentUser?.id,
@@ -68,6 +82,8 @@ function EventDetail() {
       return (data?.length || 0) > 0;
     }
   });
+
+  const isEligible = !event.college_id || (studentProfile?.college_id === event.college_id);
 
   const { data: chatMessages } = useQuery({
     queryKey: ["event-chat", event.id],
@@ -170,6 +186,11 @@ function EventDetail() {
     mutationFn: async () => {
       if (!currentUser) throw new Error("Please login to book tickets");
 
+      // Institutional Restriction Check
+      if (event.college_id && studentProfile?.college_id !== event.college_id) {
+        throw new Error(`This event is exclusive to students of ${event.college_name}.`);
+      }
+
       const ticketCode = `${event.title.substring(0, 3).toUpperCase()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
       
       const { error } = await supabase.from("tickets").insert({
@@ -204,8 +225,15 @@ function EventDetail() {
             Back to Explore
           </Link>
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-md px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white mb-4 border border-white/10">
-              <Sparkles className="h-3 w-3 text-amber-400" /> Premium Fest Experience
+            <div className="flex gap-2 mb-4">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-md px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white border border-white/10">
+                <Sparkles className="h-3 w-3 text-amber-400" /> Premium Fest Experience
+              </div>
+              {event.college_id && (
+                <div className="inline-flex items-center gap-2 rounded-full bg-indigo-500/20 backdrop-blur-md px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-indigo-200 border border-indigo-500/20">
+                  <UserCheck className="h-3 w-3" /> Institutional Event
+                </div>
+              )}
             </div>
             <div className="text-sm font-bold text-white/60 uppercase tracking-tighter mb-2">{event.college_name} Presents</div>
             <h1 className="font-display text-6xl font-black text-white md:text-8xl tracking-tight leading-[0.9]">{event.title}</h1>
@@ -431,13 +459,21 @@ function EventDetail() {
                 </button>
               ))}
             </div>
+            {!isEligible && !hasTicket && (
+              <div className="mt-6 rounded-2xl bg-destructive/10 p-4 border border-destructive/20">
+                <p className="text-xs text-destructive font-bold text-center leading-tight">
+                  Exclusive to students of {event.college_name}.<br/>
+                  <span className="opacity-70 font-medium">Verify your profile to gain access.</span>
+                </p>
+              </div>
+            )}
             <Button 
               onClick={() => buyMutation.mutate()} 
-              disabled={buyMutation.isPending || hasTicket}
+              disabled={buyMutation.isPending || hasTicket || !isEligible}
               size="lg" 
               className="mt-8 h-16 w-full rounded-2xl bg-brand-gradient text-white font-bold text-lg shadow-glow hover:opacity-90 disabled:opacity-50"
             >
-              {buyMutation.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : hasTicket ? "Ticket Booked ✅" : "Get Pass Now"}
+              {buyMutation.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : hasTicket ? "Ticket Booked ✅" : !isEligible ? "Restricted Access" : "Get Pass Now"}
             </Button>
             <p className="mt-4 text-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
               Instant QR • Secured via WeFest Escrow

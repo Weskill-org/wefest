@@ -12,9 +12,11 @@ const marketingNav = [
   { to: "/events", label: "Events" },
   { to: "/colleges", label: "Colleges" },
   { to: "/sponsors", label: "Sponsors" },
+  { to: "/blog", label: "Blog" },
 ];
 
 const studentNav = [
+  { to: "/dashboard", label: "Dashboard" },
   { to: "/events", label: "Explore Fests" },
   { to: "/tickets", label: "My Tickets" },
   { to: "/shop", label: "Shop" },
@@ -194,14 +196,14 @@ export function SiteFooter() {
             { label: "Organizer Suite", to: "/organizer" },
             { label: "Sponsorship Hub", to: "/sponsors" },
             { label: "Digital Collectibles", to: "/social" },
-            { label: "Merch Store", to: "/shop" }
+            { label: "The Campus Pulse (Blog)", to: "/blog" }
           ]} />
           
           <FooterCol title="Legal" items={[
-            { label: "Terms of Service", to: "#" },
-            { label: "Privacy Policy", to: "#" },
-            { label: "Refund Policy", to: "#" },
-            { label: "Cookie Policy", to: "#" }
+            { label: "Terms of Service", to: "/terms" },
+            { label: "Privacy Policy", to: "/privacy" },
+            { label: "Refund Policy", to: "/refund" },
+            { label: "Cookie Policy", to: "/cookie-policy" }
           ]} />
         </div>
         

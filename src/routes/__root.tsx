@@ -1,4 +1,4 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouterState } from "@tanstack/react-router";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { SiteHeader, SiteFooter } from "@/components/site-header";
 import { Toaster } from "@/components/ui/sonner";
@@ -63,16 +63,20 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  const routerState = useRouterState();
+  const pathname = routerState.location.pathname;
+  const isOrganizerRoute = pathname.startsWith("/organizer");
+
   return (
     <QueryClientProvider client={queryClient}>
       <RegionProvider>
         <div className="flex min-h-screen flex-col">
           <GlobalBroadcasts />
-          <SiteHeader />
+          {!isOrganizerRoute && <SiteHeader />}
           <main className="flex-1">
             <Outlet />
           </main>
-          <SiteFooter />
+          {!isOrganizerRoute && <SiteFooter />}
           <Toaster />
         </div>
       </RegionProvider>
