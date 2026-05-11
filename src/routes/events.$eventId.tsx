@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/events/$eventId")({
+  beforeLoad: async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw redirect({
+        to: "/signup",
+      });
+    }
+  },
   loader: async ({ params }) => {
     const { data: event, error } = await supabase
       .from("events")
@@ -286,82 +294,98 @@ function EventDetail() {
 
               <TabsContent value="community" className="mt-8">
                 {!hasTicket ? (
-                  <div className="p-12 text-center glass rounded-[3rem] border-dashed border-2 border-primary/20">
-                    <TicketIcon className="mx-auto h-12 w-12 text-primary opacity-30" />
-                    <h3 className="mt-4 text-xl font-bold">Unlock Community Hub</h3>
-                    <p className="mt-2 text-muted-foreground max-w-sm mx-auto">Purchase any pass to join the real-time chat, vote for your favorite performers, and engage with other students.</p>
+                  <div className="p-16 text-center glass rounded-[3rem] border-dashed border-2 border-primary/20 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-brand-gradient opacity-[0.02] group-hover:opacity-[0.05] transition-opacity duration-700" />
+                    <div className="h-24 w-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-500">
+                      <TicketIcon className="h-10 w-10 text-primary" />
+                    </div>
+                    <h3 className="text-3xl font-display font-black">Unlock Community Hub</h3>
+                    <p className="mt-4 text-muted-foreground max-w-md mx-auto text-lg leading-relaxed">Purchase any pass to join the real-time chat, vote for your favorite performers, and engage with other students.</p>
                   </div>
                 ) : (
                   <div className="grid gap-8 md:grid-cols-2">
                     {/* Live Chat */}
-                    <div className="flex flex-col h-[500px] glass rounded-[2.5rem] overflow-hidden border border-border/60">
-                      <div className="p-6 border-b border-border/40 flex items-center justify-between bg-primary/5">
-                        <div className="font-bold flex items-center gap-2">
-                          <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                          Live Crowd Chat
+                    <div className="flex flex-col h-[550px] glass rounded-[3rem] overflow-hidden border border-border/60 relative">
+                      <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none opacity-50 z-0" />
+                      <div className="p-6 border-b border-white/5 flex items-center justify-between bg-black/10 dark:bg-white/5 backdrop-blur-md relative z-10">
+                        <div className="font-bold flex items-center gap-3">
+                          <div className="h-3 w-3 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
+                          <span className="text-lg">Live Crowd Chat</span>
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-primary">Real-time</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20">Real-time</span>
                       </div>
-                      <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-4">
+                      <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 relative z-10 scrollbar-hide">
+                        {chatMessages?.length === 0 && (
+                          <div className="flex h-full flex-col items-center justify-center text-center opacity-50">
+                            <MessageSquare className="h-12 w-12 mb-4" />
+                            <p className="font-medium">Be the first to say something!</p>
+                          </div>
+                        )}
                         {chatMessages?.map((msg) => (
-                          <div key={msg.id} className={`flex flex-col ${msg.user_id === currentUser?.id ? 'items-end' : 'items-start'}`}>
-                            <div className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm ${
+                          <div key={msg.id} className={`flex flex-col ${msg.user_id === currentUser?.id ? 'items-end' : 'items-start'} animate-in slide-in-from-bottom-2 fade-in duration-300`}>
+                            <div className={`max-w-[80%] rounded-[1.5rem] px-5 py-3 text-sm shadow-sm ${
                               msg.user_id === currentUser?.id 
-                                ? 'bg-brand-gradient text-white rounded-tr-none' 
-                                : 'bg-muted text-foreground rounded-tl-none'
+                                ? 'bg-brand-gradient text-white rounded-tr-none shadow-primary/20' 
+                                : 'bg-background/80 backdrop-blur-md text-foreground rounded-tl-none border border-border/60'
                             }`}>
                               {msg.message}
                             </div>
-                            <span className="text-[9px] text-muted-foreground mt-1">
+                            <span className="text-[10px] text-muted-foreground mt-1.5 font-medium px-1">
                               {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           </div>
                         ))}
                       </div>
-                      <div className="p-4 border-t border-border/40 bg-muted/30">
-                        <div className="flex gap-2">
+                      <div className="p-4 border-t border-white/5 bg-black/10 dark:bg-white/5 backdrop-blur-md relative z-10">
+                        <div className="flex gap-3">
                           <Input 
                             placeholder="Type a message..." 
                             value={chatMsg}
                             onChange={(e) => setChatMsg(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && sendChatMutation.mutate()}
-                            className="bg-background/50 border-border/60 rounded-xl"
+                            className="bg-background/60 backdrop-blur-md border-border/60 rounded-[1.5rem] h-12 px-5 focus:ring-2 focus:ring-primary/30 transition-all"
                           />
                           <Button 
                             size="icon" 
                             onClick={() => sendChatMutation.mutate()}
-                            disabled={sendChatMutation.isPending}
-                            className="rounded-xl bg-brand-gradient"
+                            disabled={sendChatMutation.isPending || !chatMsg.trim()}
+                            className="rounded-[1.2rem] h-12 w-12 bg-brand-gradient shadow-glow hover:scale-105 transition-transform"
                           >
-                            <Send className="h-4 w-4" />
+                            <Send className="h-5 w-5" />
                           </Button>
                         </div>
                       </div>
                     </div>
 
                     {/* Live Voting */}
-                    <div className="glass rounded-[2.5rem] p-8 border border-border/60">
-                      <div className="flex items-center gap-2 font-bold text-lg mb-8">
-                        <Trophy className="h-5 w-5 text-amber-400" /> Competition Polls
+                    <div className="glass rounded-[3rem] p-10 border border-border/60 relative overflow-hidden">
+                      <div className="absolute top-0 right-0 h-40 w-40 bg-amber-400/10 blur-3xl rounded-full" />
+                      <div className="flex items-center gap-3 font-bold text-2xl mb-10 relative z-10">
+                        <div className="h-10 w-10 bg-amber-400/20 rounded-xl flex items-center justify-center">
+                          <Trophy className="h-5 w-5 text-amber-400" /> 
+                        </div>
+                        Competition Polls
                       </div>
-                      <div className="space-y-6">
+                      <div className="space-y-8 relative z-10">
                         {candidates.map((c) => {
                           const count = voteStats[c] || 0;
                           const total = Object.values(voteStats).reduce((a: any, b: any) => a + b, 0) as number || 1;
                           const percent = Math.round((count / total) * 100);
 
                           return (
-                            <div key={c} className="space-y-2">
-                              <div className="flex items-center justify-between text-sm">
-                                <span className="font-bold">{c}</span>
-                                <span className="text-muted-foreground">{count} votes ({percent}%)</span>
+                            <div key={c} className="space-y-3">
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-lg">{c}</span>
+                                <span className="text-sm font-medium text-muted-foreground bg-background/50 px-3 py-1 rounded-full border border-border/60 shadow-sm">{count} votes ({percent}%)</span>
                               </div>
-                              <div className="relative h-10 w-full rounded-xl bg-muted overflow-hidden group cursor-pointer border border-border/40" onClick={() => voteMutation.mutate(c)}>
+                              <div className="relative h-14 w-full rounded-[1.5rem] bg-black/5 dark:bg-white/5 overflow-hidden group cursor-pointer border border-border/60 hover:border-primary/40 transition-colors" onClick={() => voteMutation.mutate(c)}>
                                 <div 
-                                  className="absolute inset-y-0 left-0 bg-brand-gradient opacity-20 transition-all duration-500" 
-                                  style={{ width: `${percent}%` }}
-                                />
-                                <div className="absolute inset-0 flex items-center justify-center font-bold text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                                  className="absolute inset-y-0 left-0 bg-brand-gradient transition-all duration-1000 ease-out" 
+                                  style={{ width: `${Math.max(percent, 2)}%` }}
+                                >
+                                  <div className="absolute inset-0 bg-white/20 w-full h-full animate-[shimmer_2s_infinite] -skew-x-12" style={{backgroundImage: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)'}} />
+                                </div>
+                                <div className="absolute inset-0 flex items-center justify-center font-bold text-sm text-foreground/80 opacity-0 group-hover:opacity-100 transition-opacity bg-background/20 backdrop-blur-[2px]">
                                   Click to Vote
                                 </div>
                               </div>
@@ -369,13 +393,17 @@ function EventDetail() {
                           );
                         })}
                       </div>
-                      <div className="mt-10 p-6 rounded-2xl bg-primary/5 border border-primary/10">
-                        <h4 className="text-xs font-black uppercase tracking-widest text-primary mb-2">Crowd Pulse</h4>
+                      <div className="mt-12 p-8 rounded-[2rem] bg-primary/5 border border-primary/10 relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">Crowd Pulse</h4>
+                          <span className="text-sm text-foreground font-medium flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-primary animate-pulse" /> Live voting active
+                          </span>
+                        </div>
                         <div className="flex items-center gap-2">
-                          <div className="flex -space-x-2">
-                            {[1, 2, 3, 4].map(i => <div key={i} className="h-6 w-6 rounded-full bg-muted border-2 border-background" />)}
+                          <div className="flex -space-x-3">
+                            {[1, 2, 3, 4].map(i => <div key={i} className="h-10 w-10 rounded-full bg-muted border-2 border-background shadow-sm" />)}
                           </div>
-                          <span className="text-xs text-muted-foreground font-medium">84 students voting live</span>
                         </div>
                       </div>
                     </div>

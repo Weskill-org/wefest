@@ -14,8 +14,8 @@ export const Route = createFileRoute("/organizer/events/")({
 });
 
 function OrganizerEventsList() {
-  const ctx = Route.useRouteContext();
-  const membership = ctx.membership as any;
+  const ctx = Route.useRouteContext() as any;
+  const membership = ctx.membership;
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: userData } = useQuery({

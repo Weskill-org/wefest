@@ -65,18 +65,23 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const routerState = useRouterState();
   const pathname = routerState.location.pathname;
+  
+  // Routes that shouldn't show the global header/footer because they have their own layouts
   const isOrganizerRoute = pathname.startsWith("/organizer");
+  const isStudentRoute = routerState.matches.some(m => m.routeId === '/_student');
+  
+  const hideGlobalLayout = isOrganizerRoute || isStudentRoute;
 
   return (
     <QueryClientProvider client={queryClient}>
       <RegionProvider>
         <div className="flex min-h-screen flex-col">
           <GlobalBroadcasts />
-          {!isOrganizerRoute && <SiteHeader />}
+          {!hideGlobalLayout && <SiteHeader />}
           <main className="flex-1">
             <Outlet />
           </main>
-          {!isOrganizerRoute && <SiteFooter />}
+          {!hideGlobalLayout && <SiteFooter />}
           <Toaster />
         </div>
       </RegionProvider>

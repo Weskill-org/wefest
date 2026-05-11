@@ -26,7 +26,8 @@ function BlogListingPage() {
         {BLOG_POSTS.map((post) => (
           <Link 
             key={post.slug}
-            to={`/blog/${post.slug}`}
+            to="/blog/$slug"
+            params={{ slug: post.slug }}
             className="group glass rounded-3xl overflow-hidden transition-all duration-500 hover:border-primary/40 hover:shadow-glow"
           >
             <div className={`aspect-video w-full ${post.cover} flex items-center justify-center p-8`}>

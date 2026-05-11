@@ -23,8 +23,8 @@ export const Route = createFileRoute("/organizer/")({
 });
 
 function OrganizerDashboard() {
-  const ctx = Route.useRouteContext();
-  const membership = ctx.membership as any;
+  const ctx = Route.useRouteContext() as any;
+  const membership = ctx.membership;
   const { data: userData, isLoading: loadingUser } = useQuery({
     queryKey: ["current-user"],
     queryFn: async () => {

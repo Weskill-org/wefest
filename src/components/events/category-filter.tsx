@@ -14,10 +14,10 @@ export function CategoryFilter({ categories, activeCategory, setActiveCategory }
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`whitespace-nowrap rounded-full px-5 py-2 text-sm font-medium transition-all duration-300 ${
+              className={`whitespace-nowrap rounded-full px-6 py-2.5 text-sm font-bold transition-all duration-300 ${
                 isActive
-                  ? "bg-brand-gradient text-primary-foreground shadow-glow scale-105"
-                  : "bg-muted/50 text-muted-foreground border border-border/40 hover:bg-muted hover:text-foreground hover:border-border"
+                  ? "bg-brand-gradient text-white shadow-glow scale-105"
+                  : "bg-background/50 backdrop-blur-md text-muted-foreground border border-border/60 hover:border-primary/40 hover:bg-primary/5 hover:text-foreground"
               }`}
             >
               {cat}

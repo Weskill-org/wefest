@@ -122,6 +122,9 @@ export function SiteHeader() {
           {user ? (
             <>
               <span className="hidden text-xs text-muted-foreground md:inline">{user.email}</span>
+              <Button asChild variant="ghost" size="sm" className="hidden md:inline-flex">
+                <Link to={userRole === "college" ? "/organizer/settings" : "/settings"}>Settings</Link>
+              </Button>
               <Button variant="ghost" size="sm" onClick={signOut}>Sign out</Button>
             </>
           ) : (

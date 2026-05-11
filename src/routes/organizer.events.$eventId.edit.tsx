@@ -61,8 +61,8 @@ function EditEvent() {
           city: form.city,
           category: form.category,
           description: form.description,
-          price_from: form.price_from ? parseFloat(form.price_from) : null,
-          attendees: form.attendees ? parseInt(form.attendees) : null,
+          price_from: form.price_from ? parseFloat(form.price_from) : undefined,
+          attendees: form.attendees ? parseInt(form.attendees) : undefined,
         })
         .eq("id", eventId);
 

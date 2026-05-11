@@ -4,9 +4,10 @@ import { Link } from "@tanstack/react-router";
 
 interface EmptyStateProps {
   onReset: () => void;
+  hasSearch?: boolean;
 }
 
-export function EmptyState({ onReset }: EmptyStateProps) {
+export function EmptyState({ onReset, hasSearch }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
       <div className="relative mb-6">
@@ -16,19 +17,25 @@ export function EmptyState({ onReset }: EmptyStateProps) {
         </div>
       </div>
       
-      <h3 className="text-2xl font-bold tracking-tight text-foreground">No festivals found</h3>
+      <h3 className="text-2xl font-bold tracking-tight text-foreground">
+        {hasSearch ? "No matching festivals found" : "No upcoming festivals"}
+      </h3>
       <p className="mt-2 max-w-sm text-muted-foreground">
-        New college festivals will appear here soon. Try changing your search or category to find what you're looking for.
+        {hasSearch 
+          ? "Try adjusting your search terms or category to find what you're looking for." 
+          : "New college festivals will appear here soon. Check back later for upcoming events."}
       </p>
       
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-        <Button 
-          variant="outline" 
-          onClick={onReset}
-          className="rounded-xl border-border/60 hover:bg-muted/50"
-        >
-          Reset Filters
-        </Button>
+        {hasSearch && (
+          <Button 
+            variant="outline" 
+            onClick={onReset}
+            className="rounded-xl border-border/60 hover:bg-muted/50"
+          >
+            Reset Filters
+          </Button>
+        )}
         <Button asChild className="rounded-xl bg-brand-gradient text-primary-foreground shadow-glow">
           <Link to="/organizer">
             <CalendarPlus className="mr-2 h-4 w-4" />

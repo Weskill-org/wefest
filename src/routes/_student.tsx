@@ -1,22 +1,17 @@
-import { createFileRoute, Outlet, redirect, Link, useMatchRoute } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, Link, useMatchRoute, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { Clock, LayoutDashboard, CalendarPlus, CalendarRange, ScanLine, Users, BadgeCheck, Menu, X, LogOut, ChevronLeft, ChevronRight, Settings } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { 
+  LayoutDashboard, CalendarRange, Ticket, Users, 
+  ShoppingBag, Settings, Menu, X, LogOut, 
+  ChevronLeft, ChevronRight, GraduationCap
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { useNavigate } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/organizer")({
-  head: () => ({ 
-    meta: [
-      { title: "Organizer Dashboard — WeFest" }, 
-      { name: "description", content: "Professional event management suite for college festivals." }
-    ] 
-  }),
+export const Route = createFileRoute("/_student")({
   beforeLoad: async ({ location }) => {
-    // Skip redirect on server to prevent redirect-on-refresh bug
     if (typeof window === 'undefined') return;
 
     const { data: { session } } = await supabase.auth.getSession();
@@ -26,107 +21,50 @@ export const Route = createFileRoute("/organizer")({
         search: { redirect: location.href },
       });
     }
-    
-    // Fetch role from user_roles table
-    const { data: roleData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", session.user.id)
-      .maybeSingle();
-      
-    if (roleData?.role !== "college") {
-      throw redirect({ to: '/' });
-    }
 
-    // Fetch college membership
-    let { data: membership } = await supabase
-      .from("college_members")
-      .select(`
-        *,
-        colleges (id, name, status)
-      `)
-      .eq("user_id", session.user.id)
-      .maybeSingle();
-
-    // Fallback: The college user IS the college.
-    // If no membership exists, find the college by name and auto-repair.
-    if (!membership?.colleges) {
-      const userCollegeName = session.user.user_metadata?.full_name;
-      if (userCollegeName) {
-        const { data: collegeByName } = await supabase
-          .from("colleges")
-          .select("id, name, status")
-          .eq("name", userCollegeName)
-          .maybeSingle();
-
-        if (collegeByName) {
-          // Auto-repair: create the missing college_members record
-          const { data: newMember } = await supabase
-            .from("college_members")
-            .upsert({
-              college_id: collegeByName.id,
-              user_id: session.user.id,
-              role: "admin" as any,
-              is_approved: true,
-            }, { onConflict: "college_id,user_id" })
-            .select(`*, colleges (id, name, status)`)
-            .maybeSingle();
-
-          membership = newMember || {
-            role: "admin",
-            is_approved: true,
-            college_id: collegeByName.id,
-            colleges: collegeByName,
-          } as any;
-        }
-      }
-    }
+    // Fetch student profile to get college details
+    let profile = null;
+    try {
+      const { data } = await supabase
+        .from("student_profiles")
+        .select(`
+          *,
+          colleges (id, name)
+        `)
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+      profile = data;
+    } catch (e) {}
 
     return {
       user: session.user,
-      membership
+      profile
     };
   },
-  component: OrganizerLayout,
+  component: StudentLayout,
 });
 
 const sidebarLinks = [
-  { to: "/organizer", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/organizer/events", label: "Events", icon: CalendarRange },
-  { to: "/organizer/new", label: "Create Event", icon: CalendarPlus },
-  { to: "/organizer/scan", label: "Scan Tickets", icon: ScanLine },
-  { to: "/organizer/team", label: "Team", icon: Users },
+  { to: "/dashboard", label: "Overview", icon: LayoutDashboard, exact: true },
+  { to: "/events", label: "Explore Fests", icon: CalendarRange, exact: false },
+  { to: "/tickets", label: "My Tickets", icon: Ticket, exact: false },
+  { to: "/social", label: "Campus Network", icon: Users, exact: false },
+  { to: "/shop", label: "Campus Store", icon: ShoppingBag, exact: false },
 ];
 
-function OrganizerLayout() {
+function StudentLayout() {
   const ctx = Route.useRouteContext();
-  const membership = ctx.membership as any;
   const user = ctx.user as any;
+  const profile = ctx.profile as any;
+  
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const matchRoute = useMatchRoute();
 
-  if (membership && !membership.is_approved) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-background p-6 text-center">
-        <div className="h-20 w-20 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 mb-6">
-          <Clock className="h-10 w-10" />
-        </div>
-        <h1 className="text-3xl font-black tracking-tight mb-3">Membership Pending</h1>
-        <p className="text-muted-foreground max-w-md mx-auto">
-          Your request to join <strong>{membership.colleges?.name}</strong> is currently pending approval from the College Admin.
-        </p>
-        <Button variant="ghost" className="mt-8 text-primary font-bold" asChild>
-          <Link to="/">Back to Home</Link>
-        </Button>
-      </div>
-    );
-  }
-
-  const collegeName = membership?.colleges?.name || user?.user_metadata?.full_name || "Organizer";
-  const isVerified = membership?.colleges?.status === "approved";
-  const initials = collegeName.substring(0, 2).toUpperCase();
+  const studentName = profile?.display_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Student";
+  const collegeName = profile?.colleges?.name || "Independent Student";
+  const initials = studentName.substring(0, 2).toUpperCase();
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -138,16 +76,21 @@ function OrganizerLayout() {
     <div className="flex h-full flex-col">
       {/* Header */}
       <div className={cn("flex items-center gap-3 px-5 pt-6 pb-4", collapsed && "justify-center px-3")}>
-        <div className="h-10 w-10 shrink-0 rounded-xl bg-brand-gradient flex items-center justify-center text-white font-black text-sm shadow-glow">
-          {initials}
+        <div className="h-10 w-10 shrink-0 rounded-xl bg-brand-gradient flex items-center justify-center text-white font-black text-sm shadow-glow overflow-hidden">
+          {profile?.avatar_url ? (
+            <img src={profile.avatar_url} alt={studentName} className="h-full w-full object-cover" />
+          ) : (
+            initials
+          )}
         </div>
         {!collapsed && (
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <span className="text-sm font-bold truncate">Organizer</span>
-              {isVerified && <BadgeCheck className="h-4 w-4 text-blue-500 fill-blue-500/10 shrink-0" />}
+              <span className="text-sm font-bold truncate">{studentName}</span>
             </div>
-            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">{collegeName}</span>
+            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest truncate block">
+              {collegeName}
+            </span>
           </div>
         )}
       </div>
@@ -156,7 +99,7 @@ function OrganizerLayout() {
       <div className="mx-4 h-px bg-border/50 my-2" />
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto hide-scrollbar">
         {sidebarLinks.map((link) => {
           const isActive = link.exact
             ? matchRoute({ to: link.to, fuzzy: false })
@@ -171,7 +114,7 @@ function OrganizerLayout() {
                 "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
                 collapsed && "justify-center px-2",
                 isActive
-                  ? "bg-primary/10 text-primary font-bold"
+                  ? "bg-primary/10 text-primary font-bold shadow-sm"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
               )}
             >
@@ -188,19 +131,19 @@ function OrganizerLayout() {
       {/* Settings Link */}
       <div className={cn("px-3 pb-2", collapsed && "px-2")}>
         <Link
-          to="/organizer/settings"
+          to="/settings"
           onClick={() => setMobileOpen(false)}
           className={cn(
             "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
             collapsed && "justify-center px-2",
-            matchRoute({ to: "/organizer/settings", fuzzy: false })
+            matchRoute({ to: "/settings", fuzzy: false })
               ? "bg-primary/10 text-primary font-bold"
               : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
           )}
         >
-          <Settings className={cn("h-[18px] w-[18px] shrink-0", matchRoute({ to: "/organizer/settings", fuzzy: false }) && "text-primary")} />
+          <Settings className={cn("h-[18px] w-[18px] shrink-0", matchRoute({ to: "/settings", fuzzy: false }) && "text-primary")} />
           {!collapsed && <span>Settings</span>}
-          {matchRoute({ to: "/organizer/settings", fuzzy: false }) && !collapsed && (
+          {matchRoute({ to: "/settings", fuzzy: false }) && !collapsed && (
             <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
           )}
         </Link>
@@ -209,14 +152,12 @@ function OrganizerLayout() {
       {/* Footer */}
       <div className={cn("border-t border-border/50 p-4", collapsed && "p-3")}>
         <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
-          <Avatar className="h-8 w-8 shrink-0">
-            <AvatarFallback className="bg-muted text-xs font-bold">
-              {(user?.user_metadata?.full_name || user?.email || "U").substring(0, 1).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          <div className="h-8 w-8 shrink-0 rounded-full bg-muted flex items-center justify-center">
+            <GraduationCap className="h-4 w-4 text-muted-foreground" />
+          </div>
           {!collapsed && (
             <div className="min-w-0 flex-1">
-              <div className="text-xs font-bold truncate">{user?.user_metadata?.full_name || user?.email}</div>
+              <div className="text-xs font-bold truncate">Student Portal</div>
               <button onClick={signOut} className="text-[10px] text-muted-foreground hover:text-destructive font-medium flex items-center gap-1 mt-0.5">
                 <LogOut className="h-3 w-3" /> Sign out
               </button>
@@ -261,7 +202,7 @@ function OrganizerLayout() {
 
       {/* Main Content */}
       <main className={cn(
-        "flex-1 min-h-screen transition-all duration-300",
+        "flex-1 min-h-screen transition-all duration-300 flex flex-col",
         collapsed ? "lg:ml-[72px]" : "lg:ml-[260px]"
       )}>
         {/* Mobile Top Bar */}
@@ -273,20 +214,23 @@ function OrganizerLayout() {
             <Menu className="h-5 w-5" />
           </button>
           <div className="flex items-center gap-2 min-w-0">
-            <div className="h-8 w-8 rounded-lg bg-brand-gradient flex items-center justify-center text-white text-[10px] font-black shrink-0">
-              {initials}
+            <div className="h-8 w-8 rounded-lg bg-brand-gradient flex items-center justify-center text-white text-[10px] font-black shrink-0 overflow-hidden">
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt={studentName} className="h-full w-full object-cover" />
+              ) : (
+                initials
+              )}
             </div>
             <div className="min-w-0 flex flex-col">
-              <div className="flex items-center gap-1">
-                <span className="text-sm font-bold truncate">Organizer</span>
-                {isVerified && <BadgeCheck className="h-4 w-4 text-blue-500 fill-blue-500/10 shrink-0" />}
-              </div>
+              <span className="text-sm font-bold truncate">{studentName}</span>
               <span className="text-[10px] text-muted-foreground font-medium truncate">{collegeName}</span>
             </div>
           </div>
         </div>
 
-        <Outlet context={{ user, membership }} />
+        <div className="flex-1 overflow-x-hidden">
+          <Outlet context={{ user, profile }} />
+        </div>
       </main>
     </div>
   );

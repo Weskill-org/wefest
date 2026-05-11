@@ -21,8 +21,8 @@ function Scan() {
   const [eventId, setEventId] = useState<string>("");
   const [log, setLog] = useState<LogEntry[]>([]);
 
-  const ctx = Route.useRouteContext();
-  const membership = ctx.membership as any;
+  const ctx = Route.useRouteContext() as any;
+  const membership = ctx.membership;
  
    const { data: userData } = useQuery({
      queryKey: ["current-user"],

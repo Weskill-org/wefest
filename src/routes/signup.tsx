@@ -38,7 +38,7 @@ function Signup() {
   const { data: colleges } = useQuery({
     queryKey: ["colleges-signup"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("colleges").select("id, name").order("name");
+      const { data, error } = await supabase.from("colleges").select("id, name").eq("status", "approved").order("name");
       if (error) throw error;
       return data;
     }
@@ -101,28 +101,30 @@ function Signup() {
       </div>
 
       <Tabs value={role} onValueChange={(v) => setRole(v as Role)} className="mt-8">
-        <TabsList className="grid h-auto w-full grid-cols-3 gap-2 bg-transparent p-0">
+        <TabsList className="grid h-auto w-full max-w-2xl mx-auto grid-cols-3 gap-4 bg-transparent p-0">
           <TabsTrigger
             value="student"
-            className="flex h-auto flex-col items-center gap-2 rounded-2xl border-2 border-primary/40 bg-brand-gradient/10 p-6 text-base font-bold data-[state=active]:scale-105 data-[state=active]:border-primary data-[state=active]:bg-brand-gradient data-[state=active]:text-primary-foreground data-[state=active]:shadow-glow md:p-8 md:text-lg"
+            className="flex h-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-primary/40 bg-brand-gradient/10 p-4 text-sm font-bold transition-all data-[state=active]:scale-105 data-[state=active]:border-primary data-[state=active]:bg-brand-gradient data-[state=active]:shadow-glow sm:p-6 sm:text-base"
           >
-            <GraduationCap className="h-8 w-8 md:h-10 md:w-10" />
-            Student
-            <span className="text-[10px] font-normal opacity-80">Most popular</span>
+            <GraduationCap className="h-6 w-6 sm:h-8 sm:w-8" />
+            <span>Student</span>
+            <span className="text-[10px] font-normal opacity-80 sm:text-xs">Most popular</span>
           </TabsTrigger>
           <TabsTrigger
             value="college"
-            className="flex h-auto flex-col items-center gap-1.5 rounded-xl border border-border/60 bg-background/40 p-3 text-sm data-[state=active]:border-primary data-[state=active]:bg-accent/10"
+            className="flex h-full flex-col items-center justify-center gap-2 rounded-xl border border-border/60 bg-background/40 p-4 text-sm font-medium transition-all data-[state=active]:scale-105 data-[state=active]:border-primary data-[state=active]:bg-accent/10 sm:p-6 sm:text-base"
           >
-            <Building2 className="h-5 w-5" />
-            College
+            <Building2 className="h-6 w-6 sm:h-8 sm:w-8" />
+            <span>College</span>
+            <span className="text-[10px] font-normal opacity-0 sm:text-xs">Hidden</span> {/* Invisible spacer to match height */}
           </TabsTrigger>
           <TabsTrigger
             value="company"
-            className="flex h-auto flex-col items-center gap-1.5 rounded-xl border border-border/60 bg-background/40 p-3 text-sm data-[state=active]:border-primary data-[state=active]:bg-accent/10"
+            className="flex h-full flex-col items-center justify-center gap-2 rounded-xl border border-border/60 bg-background/40 p-4 text-sm font-medium transition-all data-[state=active]:scale-105 data-[state=active]:border-primary data-[state=active]:bg-accent/10 sm:p-6 sm:text-base"
           >
-            <Briefcase className="h-5 w-5" />
-            Company
+            <Briefcase className="h-6 w-6 sm:h-8 sm:w-8" />
+            <span>Company</span>
+            <span className="text-[10px] font-normal opacity-0 sm:text-xs">Hidden</span> {/* Invisible spacer to match height */}
           </TabsTrigger>
         </TabsList>
 

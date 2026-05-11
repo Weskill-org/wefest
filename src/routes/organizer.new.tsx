@@ -57,8 +57,8 @@ function NewEvent() {
     }
   });
 
-  const ctx = Route.useRouteContext();
-  const membership = ctx.membership as any;
+  const ctx = Route.useRouteContext() as any;
+  const membership = ctx.membership;
 
   // Pre-fill college from context
   useEffect(() => {
@@ -115,7 +115,9 @@ function NewEvent() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.college_id) {
-      toast.error("Your account is not associated with any college. Please update your profile or contact support.");
+      toast.error("Institutional ID missing", {
+        description: "Your account is not linked to a college. Please ensure your profile name matches your institution or contact support."
+      });
       return;
     }
     createMutation.mutate();
@@ -148,10 +150,10 @@ function NewEvent() {
           </div>
         </div>
         {!form.college_id && (
-          <div className="rounded-lg bg-destructive/10 p-3 border border-destructive/20 flex items-start gap-2">
-            <Info className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
-            <p className="text-xs text-destructive font-bold">
-              No college detected in your profile. You must be linked to an institution to launch festivals.
+          <div className="rounded-lg bg-amber-500/10 p-3 border border-amber-500/20 flex items-start gap-2">
+            <Info className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+            <p className="text-xs text-amber-500 font-bold">
+              Identity verification required. If your college isn't listed, please update your College Details in Settings.
             </p>
           </div>
         )}

@@ -9,26 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TicketsRouteImport } from './routes/tickets'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TalentRouteImport } from './routes/talent'
 import { Route as SponsorsRouteImport } from './routes/sponsors'
-import { Route as SocialRouteImport } from './routes/social'
 import { Route as SignupRouteImport } from './routes/signup'
-import { Route as ShopRouteImport } from './routes/shop'
 import { Route as RefundRouteImport } from './routes/refund'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as OrganizerRouteImport } from './routes/organizer'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as EventsRouteImport } from './routes/events'
-import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CookiePolicyRouteImport } from './routes/cookie-policy'
 import { Route as CollegesRouteImport } from './routes/colleges'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AmbassadorsRouteImport } from './routes/ambassadors'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as StudentRouteImport } from './routes/_student'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OrganizerIndexRouteImport } from './routes/organizer.index'
+import { Route as CollegesIndexRouteImport } from './routes/colleges.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as SponsorScanRouteImport } from './routes/sponsor.scan'
@@ -51,15 +49,16 @@ import { Route as AdminBroadcastsRouteImport } from './routes/admin/broadcasts'
 import { Route as AdminApprovalsRouteImport } from './routes/admin.approvals'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as AdminAdminsRouteImport } from './routes/admin.admins'
+import { Route as StudentTicketsRouteImport } from './routes/_student.tickets'
+import { Route as StudentSocialRouteImport } from './routes/_student.social'
+import { Route as StudentShopRouteImport } from './routes/_student.shop'
+import { Route as StudentSettingsRouteImport } from './routes/_student.settings'
+import { Route as StudentDashboardRouteImport } from './routes/_student.dashboard'
 import { Route as OrganizerEventsIndexRouteImport } from './routes/organizer.events.index'
+import { Route as StudentEventsIndexRouteImport } from './routes/_student.events.index'
 import { Route as OrganizerEventsEventIdRouteImport } from './routes/organizer.events.$eventId'
 import { Route as OrganizerEventsEventIdEditRouteImport } from './routes/organizer.events.$eventId.edit'
 
-const TicketsRoute = TicketsRouteImport.update({
-  id: '/tickets',
-  path: '/tickets',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -75,19 +74,9 @@ const SponsorsRoute = SponsorsRouteImport.update({
   path: '/sponsors',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SocialRoute = SocialRouteImport.update({
-  id: '/social',
-  path: '/social',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ShopRoute = ShopRouteImport.update({
-  id: '/shop',
-  path: '/shop',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RefundRoute = RefundRouteImport.update({
@@ -115,11 +104,6 @@ const EventsRoute = EventsRouteImport.update({
   path: '/events',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const CookiePolicyRoute = CookiePolicyRouteImport.update({
   id: '/cookie-policy',
   path: '/cookie-policy',
@@ -145,6 +129,10 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudentRoute = StudentRouteImport.update({
+  id: '/_student',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -154,6 +142,11 @@ const OrganizerIndexRoute = OrganizerIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => OrganizerRoute,
+} as any)
+const CollegesIndexRoute = CollegesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CollegesRoute,
 } as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/',
@@ -265,10 +258,40 @@ const AdminAdminsRoute = AdminAdminsRouteImport.update({
   path: '/admins',
   getParentRoute: () => AdminRoute,
 } as any)
+const StudentTicketsRoute = StudentTicketsRouteImport.update({
+  id: '/tickets',
+  path: '/tickets',
+  getParentRoute: () => StudentRoute,
+} as any)
+const StudentSocialRoute = StudentSocialRouteImport.update({
+  id: '/social',
+  path: '/social',
+  getParentRoute: () => StudentRoute,
+} as any)
+const StudentShopRoute = StudentShopRouteImport.update({
+  id: '/shop',
+  path: '/shop',
+  getParentRoute: () => StudentRoute,
+} as any)
+const StudentSettingsRoute = StudentSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => StudentRoute,
+} as any)
+const StudentDashboardRoute = StudentDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => StudentRoute,
+} as any)
 const OrganizerEventsIndexRoute = OrganizerEventsIndexRouteImport.update({
   id: '/events/',
   path: '/events/',
   getParentRoute: () => OrganizerRoute,
+} as any)
+const StudentEventsIndexRoute = StudentEventsIndexRouteImport.update({
+  id: '/events/',
+  path: '/events/',
+  getParentRoute: () => StudentRoute,
 } as any)
 const OrganizerEventsEventIdRoute = OrganizerEventsEventIdRouteImport.update({
   id: '/events/$eventId',
@@ -289,19 +312,20 @@ export interface FileRoutesByFullPath {
   '/blog': typeof BlogRouteWithChildren
   '/colleges': typeof CollegesRouteWithChildren
   '/cookie-policy': typeof CookiePolicyRoute
-  '/dashboard': typeof DashboardRoute
   '/events': typeof EventsRouteWithChildren
   '/login': typeof LoginRoute
   '/organizer': typeof OrganizerRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/refund': typeof RefundRoute
-  '/shop': typeof ShopRoute
   '/signup': typeof SignupRoute
-  '/social': typeof SocialRoute
   '/sponsors': typeof SponsorsRoute
   '/talent': typeof TalentRoute
   '/terms': typeof TermsRoute
-  '/tickets': typeof TicketsRoute
+  '/dashboard': typeof StudentDashboardRoute
+  '/settings': typeof StudentSettingsRoute
+  '/shop': typeof StudentShopRoute
+  '/social': typeof StudentSocialRoute
+  '/tickets': typeof StudentTicketsRoute
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/approvals': typeof AdminApprovalsRoute
@@ -324,28 +348,30 @@ export interface FileRoutesByFullPath {
   '/sponsor/scan': typeof SponsorScanRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
+  '/colleges/': typeof CollegesIndexRoute
   '/organizer/': typeof OrganizerIndexRoute
   '/organizer/events/$eventId': typeof OrganizerEventsEventIdRouteWithChildren
+  '/events/': typeof StudentEventsIndexRoute
   '/organizer/events/': typeof OrganizerEventsIndexRoute
   '/organizer/events/$eventId/edit': typeof OrganizerEventsEventIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ambassadors': typeof AmbassadorsRoute
-  '/colleges': typeof CollegesRouteWithChildren
   '/cookie-policy': typeof CookiePolicyRoute
-  '/dashboard': typeof DashboardRoute
-  '/events': typeof EventsRouteWithChildren
+  '/events': typeof StudentEventsIndexRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/refund': typeof RefundRoute
-  '/shop': typeof ShopRoute
   '/signup': typeof SignupRoute
-  '/social': typeof SocialRoute
   '/sponsors': typeof SponsorsRoute
   '/talent': typeof TalentRoute
   '/terms': typeof TermsRoute
-  '/tickets': typeof TicketsRoute
+  '/dashboard': typeof StudentDashboardRoute
+  '/settings': typeof StudentSettingsRoute
+  '/shop': typeof StudentShopRoute
+  '/social': typeof StudentSocialRoute
+  '/tickets': typeof StudentTicketsRoute
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/approvals': typeof AdminApprovalsRoute
@@ -368,6 +394,7 @@ export interface FileRoutesByTo {
   '/sponsor/scan': typeof SponsorScanRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
+  '/colleges': typeof CollegesIndexRoute
   '/organizer': typeof OrganizerIndexRoute
   '/organizer/events/$eventId': typeof OrganizerEventsEventIdRouteWithChildren
   '/organizer/events': typeof OrganizerEventsIndexRoute
@@ -376,24 +403,26 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_student': typeof StudentRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
   '/ambassadors': typeof AmbassadorsRoute
   '/blog': typeof BlogRouteWithChildren
   '/colleges': typeof CollegesRouteWithChildren
   '/cookie-policy': typeof CookiePolicyRoute
-  '/dashboard': typeof DashboardRoute
   '/events': typeof EventsRouteWithChildren
   '/login': typeof LoginRoute
   '/organizer': typeof OrganizerRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/refund': typeof RefundRoute
-  '/shop': typeof ShopRoute
   '/signup': typeof SignupRoute
-  '/social': typeof SocialRoute
   '/sponsors': typeof SponsorsRoute
   '/talent': typeof TalentRoute
   '/terms': typeof TermsRoute
-  '/tickets': typeof TicketsRoute
+  '/_student/dashboard': typeof StudentDashboardRoute
+  '/_student/settings': typeof StudentSettingsRoute
+  '/_student/shop': typeof StudentShopRoute
+  '/_student/social': typeof StudentSocialRoute
+  '/_student/tickets': typeof StudentTicketsRoute
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/approvals': typeof AdminApprovalsRoute
@@ -416,8 +445,10 @@ export interface FileRoutesById {
   '/sponsor/scan': typeof SponsorScanRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
+  '/colleges/': typeof CollegesIndexRoute
   '/organizer/': typeof OrganizerIndexRoute
   '/organizer/events/$eventId': typeof OrganizerEventsEventIdRouteWithChildren
+  '/_student/events/': typeof StudentEventsIndexRoute
   '/organizer/events/': typeof OrganizerEventsIndexRoute
   '/organizer/events/$eventId/edit': typeof OrganizerEventsEventIdEditRoute
 }
@@ -430,18 +461,19 @@ export interface FileRouteTypes {
     | '/blog'
     | '/colleges'
     | '/cookie-policy'
-    | '/dashboard'
     | '/events'
     | '/login'
     | '/organizer'
     | '/privacy'
     | '/refund'
-    | '/shop'
     | '/signup'
-    | '/social'
     | '/sponsors'
     | '/talent'
     | '/terms'
+    | '/dashboard'
+    | '/settings'
+    | '/shop'
+    | '/social'
     | '/tickets'
     | '/admin/admins'
     | '/admin/analytics'
@@ -465,27 +497,29 @@ export interface FileRouteTypes {
     | '/sponsor/scan'
     | '/admin/'
     | '/blog/'
+    | '/colleges/'
     | '/organizer/'
     | '/organizer/events/$eventId'
+    | '/events/'
     | '/organizer/events/'
     | '/organizer/events/$eventId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/ambassadors'
-    | '/colleges'
     | '/cookie-policy'
-    | '/dashboard'
     | '/events'
     | '/login'
     | '/privacy'
     | '/refund'
-    | '/shop'
     | '/signup'
-    | '/social'
     | '/sponsors'
     | '/talent'
     | '/terms'
+    | '/dashboard'
+    | '/settings'
+    | '/shop'
+    | '/social'
     | '/tickets'
     | '/admin/admins'
     | '/admin/analytics'
@@ -509,6 +543,7 @@ export interface FileRouteTypes {
     | '/sponsor/scan'
     | '/admin'
     | '/blog'
+    | '/colleges'
     | '/organizer'
     | '/organizer/events/$eventId'
     | '/organizer/events'
@@ -516,24 +551,26 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/_student'
     | '/admin'
     | '/ambassadors'
     | '/blog'
     | '/colleges'
     | '/cookie-policy'
-    | '/dashboard'
     | '/events'
     | '/login'
     | '/organizer'
     | '/privacy'
     | '/refund'
-    | '/shop'
     | '/signup'
-    | '/social'
     | '/sponsors'
     | '/talent'
     | '/terms'
-    | '/tickets'
+    | '/_student/dashboard'
+    | '/_student/settings'
+    | '/_student/shop'
+    | '/_student/social'
+    | '/_student/tickets'
     | '/admin/admins'
     | '/admin/analytics'
     | '/admin/approvals'
@@ -556,32 +593,31 @@ export interface FileRouteTypes {
     | '/sponsor/scan'
     | '/admin/'
     | '/blog/'
+    | '/colleges/'
     | '/organizer/'
     | '/organizer/events/$eventId'
+    | '/_student/events/'
     | '/organizer/events/'
     | '/organizer/events/$eventId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  StudentRoute: typeof StudentRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
   AmbassadorsRoute: typeof AmbassadorsRoute
   BlogRoute: typeof BlogRouteWithChildren
   CollegesRoute: typeof CollegesRouteWithChildren
   CookiePolicyRoute: typeof CookiePolicyRoute
-  DashboardRoute: typeof DashboardRoute
   EventsRoute: typeof EventsRouteWithChildren
   LoginRoute: typeof LoginRoute
   OrganizerRoute: typeof OrganizerRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
   RefundRoute: typeof RefundRoute
-  ShopRoute: typeof ShopRoute
   SignupRoute: typeof SignupRoute
-  SocialRoute: typeof SocialRoute
   SponsorsRoute: typeof SponsorsRoute
   TalentRoute: typeof TalentRoute
   TermsRoute: typeof TermsRoute
-  TicketsRoute: typeof TicketsRoute
   SponsorDashboardRoute: typeof SponsorDashboardRoute
   SponsorPricingRoute: typeof SponsorPricingRoute
   SponsorScanRoute: typeof SponsorScanRoute
@@ -589,13 +625,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/tickets': {
-      id: '/tickets'
-      path: '/tickets'
-      fullPath: '/tickets'
-      preLoaderRoute: typeof TicketsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -617,25 +646,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SponsorsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/social': {
-      id: '/social'
-      path: '/social'
-      fullPath: '/social'
-      preLoaderRoute: typeof SocialRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/signup': {
       id: '/signup'
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/shop': {
-      id: '/shop'
-      path: '/shop'
-      fullPath: '/shop'
-      preLoaderRoute: typeof ShopRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/refund': {
@@ -673,13 +688,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/cookie-policy': {
       id: '/cookie-policy'
       path: '/cookie-policy'
@@ -715,6 +723,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_student': {
+      id: '/_student'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof StudentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -728,6 +743,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/organizer/'
       preLoaderRoute: typeof OrganizerIndexRouteImport
       parentRoute: typeof OrganizerRoute
+    }
+    '/colleges/': {
+      id: '/colleges/'
+      path: '/'
+      fullPath: '/colleges/'
+      preLoaderRoute: typeof CollegesIndexRouteImport
+      parentRoute: typeof CollegesRoute
     }
     '/blog/': {
       id: '/blog/'
@@ -883,12 +905,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAdminsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_student/tickets': {
+      id: '/_student/tickets'
+      path: '/tickets'
+      fullPath: '/tickets'
+      preLoaderRoute: typeof StudentTicketsRouteImport
+      parentRoute: typeof StudentRoute
+    }
+    '/_student/social': {
+      id: '/_student/social'
+      path: '/social'
+      fullPath: '/social'
+      preLoaderRoute: typeof StudentSocialRouteImport
+      parentRoute: typeof StudentRoute
+    }
+    '/_student/shop': {
+      id: '/_student/shop'
+      path: '/shop'
+      fullPath: '/shop'
+      preLoaderRoute: typeof StudentShopRouteImport
+      parentRoute: typeof StudentRoute
+    }
+    '/_student/settings': {
+      id: '/_student/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof StudentSettingsRouteImport
+      parentRoute: typeof StudentRoute
+    }
+    '/_student/dashboard': {
+      id: '/_student/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof StudentDashboardRouteImport
+      parentRoute: typeof StudentRoute
+    }
     '/organizer/events/': {
       id: '/organizer/events/'
       path: '/events'
       fullPath: '/organizer/events/'
       preLoaderRoute: typeof OrganizerEventsIndexRouteImport
       parentRoute: typeof OrganizerRoute
+    }
+    '/_student/events/': {
+      id: '/_student/events/'
+      path: '/events'
+      fullPath: '/events/'
+      preLoaderRoute: typeof StudentEventsIndexRouteImport
+      parentRoute: typeof StudentRoute
     }
     '/organizer/events/$eventId': {
       id: '/organizer/events/$eventId'
@@ -906,6 +970,27 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface StudentRouteChildren {
+  StudentDashboardRoute: typeof StudentDashboardRoute
+  StudentSettingsRoute: typeof StudentSettingsRoute
+  StudentShopRoute: typeof StudentShopRoute
+  StudentSocialRoute: typeof StudentSocialRoute
+  StudentTicketsRoute: typeof StudentTicketsRoute
+  StudentEventsIndexRoute: typeof StudentEventsIndexRoute
+}
+
+const StudentRouteChildren: StudentRouteChildren = {
+  StudentDashboardRoute: StudentDashboardRoute,
+  StudentSettingsRoute: StudentSettingsRoute,
+  StudentShopRoute: StudentShopRoute,
+  StudentSocialRoute: StudentSocialRoute,
+  StudentTicketsRoute: StudentTicketsRoute,
+  StudentEventsIndexRoute: StudentEventsIndexRoute,
+}
+
+const StudentRouteWithChildren =
+  StudentRoute._addFileChildren(StudentRouteChildren)
 
 interface AdminRouteChildren {
   AdminAdminsRoute: typeof AdminAdminsRoute
@@ -951,10 +1036,12 @@ const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
 
 interface CollegesRouteChildren {
   CollegesCollegeSlugRoute: typeof CollegesCollegeSlugRoute
+  CollegesIndexRoute: typeof CollegesIndexRoute
 }
 
 const CollegesRouteChildren: CollegesRouteChildren = {
   CollegesCollegeSlugRoute: CollegesCollegeSlugRoute,
+  CollegesIndexRoute: CollegesIndexRoute,
 }
 
 const CollegesRouteWithChildren = CollegesRoute._addFileChildren(
@@ -1012,24 +1099,21 @@ const OrganizerRouteWithChildren = OrganizerRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  StudentRoute: StudentRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
   AmbassadorsRoute: AmbassadorsRoute,
   BlogRoute: BlogRouteWithChildren,
   CollegesRoute: CollegesRouteWithChildren,
   CookiePolicyRoute: CookiePolicyRoute,
-  DashboardRoute: DashboardRoute,
   EventsRoute: EventsRouteWithChildren,
   LoginRoute: LoginRoute,
   OrganizerRoute: OrganizerRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
   RefundRoute: RefundRoute,
-  ShopRoute: ShopRoute,
   SignupRoute: SignupRoute,
-  SocialRoute: SocialRoute,
   SponsorsRoute: SponsorsRoute,
   TalentRoute: TalentRoute,
   TermsRoute: TermsRoute,
-  TicketsRoute: TicketsRoute,
   SponsorDashboardRoute: SponsorDashboardRoute,
   SponsorPricingRoute: SponsorPricingRoute,
   SponsorScanRoute: SponsorScanRoute,

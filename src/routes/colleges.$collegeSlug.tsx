@@ -1,300 +1,510 @@
-
-import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, School, MapPin, Globe, Calendar, Users, Trophy, ShieldCheck, ChevronRight, Edit3, Trash2, CheckCircle2, XCircle } from "lucide-react";
+import { useState } from "react";
+import {
+  Loader2, MapPin, Globe, Calendar, Users, Trophy, ShieldCheck,
+  ArrowLeft, ArrowRight, Sparkles, Building2, Clock, Star,
+  GraduationCap, Zap, ChevronRight, Lock, ExternalLink,
+  BarChart3, Award, Target, Heart,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/colleges/$collegeSlug")({
-  component: CollegeDetailPage,
+  head: () => ({
+    meta: [
+      { title: "College Profile — WeFest" },
+      { name: "description", content: "Explore this college's festivals, events, and campus life on WeFest." },
+    ],
+  }),
+  component: CollegeProfilePage,
 });
 
-function CollegeDetailPage() {
-  const { collegeSlug } = useParams({ from: "/colleges/$collegeSlug" });
+/* ───────── helpers ───────── */
+const gradientPalette = [
+  "from-fuchsia-500 to-violet-600",
+  "from-blue-500 to-cyan-500",
+  "from-emerald-500 to-teal-500",
+  "from-amber-500 to-orange-500",
+  "from-rose-500 to-pink-500",
+  "from-indigo-500 to-purple-600",
+];
 
+function hashGradient(name: string) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
+  return gradientPalette[Math.abs(h) % gradientPalette.length];
+}
+
+function relativeDate(d: string) {
+  const diff = new Date(d).getTime() - Date.now();
+  const days = Math.ceil(diff / 86400000);
+  if (days < 0) return "Past";
+  if (days === 0) return "Today";
+  if (days === 1) return "Tomorrow";
+  if (days <= 7) return `In ${days} days`;
+  return new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+/* ───────── component ───────── */
+function CollegeProfilePage() {
+  const { collegeSlug } = Route.useParams();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming");
+
+  /* ── current user ── */
   const { data: currentUser } = useQuery({
     queryKey: ["current-user"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       return user;
-    }
+    },
   });
 
-  const { data: adminData } = useQuery({
-    queryKey: ["check-admin-status", currentUser?.id],
-    enabled: !!currentUser,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("admin_users")
-        .select("rank")
-        .eq("user_id", currentUser!.id)
-        .single();
-      return data;
-    }
-  });
-
-  const queryClient = useQueryClient();
-
+  /* ── college + events ── */
   const { data: college, isLoading } = useQuery({
-    queryKey: ["college-detail", collegeSlug],
+    queryKey: ["college-profile", collegeSlug],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("colleges")
-        .select(`
-          *,
-          events (*)
-        `)
+        .select(`*, events (*)`)
         .eq("slug", collegeSlug)
         .single();
-      
       if (error) throw error;
       return data;
     },
   });
 
-  const updateStatusMutation = useMutation({
-    mutationFn: async (status: "approved" | "rejected") => {
-      if (!college) return;
-      const { error } = await supabase
-        .from("colleges")
-        .update({ status, approved_by: currentUser?.id })
-        .eq("id", college.id);
-      if (error) throw error;
-      
-      await supabase.rpc('log_activity', {
-        _type: 'college_status_updated',
-        _title: status === 'approved' ? 'College Approved' : 'College Rejected',
-        _description: `College ${college.name} updated to ${status}`,
-        _metadata: { college_id: college.id }
-      });
+  /* ── member count ── */
+  const { data: memberCount } = useQuery({
+    queryKey: ["college-member-count", college?.id],
+    enabled: !!college?.id,
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("college_members")
+        .select("id", { count: "exact", head: true })
+        .eq("college_id", college!.id);
+      return count ?? 0;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["college-detail", collegeSlug] });
-      toast.success("College status updated");
-    },
-    onError: (error: any) => toast.error(error.message)
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      if (!college) return;
-      const { error } = await supabase.from("colleges").delete().eq("id", college.id);
-      if (error) throw error;
+  /* ── student count ── */
+  const { data: studentCount } = useQuery({
+    queryKey: ["college-student-count", college?.id],
+    enabled: !!college?.id,
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("student_profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("college_id", college!.id);
+      return count ?? 0;
     },
-    onSuccess: () => {
-      toast.success("College deleted");
-      // navigate to /colleges
-    },
-    onError: (error: any) => toast.error(error.message)
   });
 
-  const isAdmin = !!adminData;
-  const canApprove = adminData?.rank && ["Organizer", "Admin", "Superadmin"].includes(adminData.rank);
-
+  /* ── loading ── */
   if (isLoading) {
     return (
       <div className="flex min-h-[70vh] items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <span className="text-sm text-muted-foreground font-medium">Loading profile…</span>
+        </div>
       </div>
     );
   }
 
+  /* ── not found ── */
   if (!college) {
     return (
       <div className="container mx-auto px-6 py-20 text-center">
-        <School className="mx-auto h-16 w-16 text-muted-foreground" />
-        <h1 className="mt-4 text-3xl font-bold">College not found</h1>
-        <Link to="/colleges" className="mt-6 inline-block text-primary hover:underline">
-          Back to all colleges
-        </Link>
+        <div className="mx-auto h-24 w-24 rounded-3xl bg-muted/20 flex items-center justify-center mb-6">
+          <Building2 className="h-12 w-12 text-muted-foreground/40" />
+        </div>
+        <h1 className="text-3xl font-black">College not found</h1>
+        <p className="mt-2 text-muted-foreground max-w-sm mx-auto">
+          This institution may not exist or hasn't been verified yet.
+        </p>
+        <Button asChild className="mt-6 bg-brand-gradient text-white rounded-xl shadow-glow">
+          <Link to="/colleges">Browse All Colleges</Link>
+        </Button>
       </div>
     );
   }
 
+  /* ── derived data ── */
+  const grad = hashGradient(college.name);
+  const initials = college.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
+  const now = new Date();
+  const allEvents = college.events || [];
+  const upcomingEvents = allEvents.filter((e: any) => new Date(e.date) >= now);
+  const pastEvents = allEvents.filter((e: any) => new Date(e.date) < now);
+  const displayEvents = activeTab === "upcoming" ? upcomingEvents : pastEvents;
+  const totalAttendees = allEvents.reduce((a: number, e: any) => a + (e.attendees || 0), 0);
+
   return (
-    <div className="container mx-auto px-6 py-12">
-      {/* Header Section */}
-      <div className="relative overflow-hidden rounded-3xl bg-brand-gradient p-8 text-white shadow-2xl md:p-12">
-        <div className="relative z-10 flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
-          <div className="space-y-4">
-            {college.status === 'approved' ? (
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-1 text-sm font-bold backdrop-blur-md">
-                <ShieldCheck className="h-4 w-4" /> Verified Institution
+    <div className="min-h-screen">
+      {/* ═══════ HERO ═══════ */}
+      <div className="relative overflow-hidden">
+        {/* background gradient */}
+        <div className={`absolute inset-0 bg-gradient-to-br ${grad} opacity-20`} />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+        <div className="absolute -right-40 -top-40 h-[500px] w-[500px] rounded-full bg-primary/10 blur-[120px]" />
+        <div className="absolute -left-40 bottom-0 h-[400px] w-[400px] rounded-full bg-indigo-500/15 blur-[100px]" />
+
+        <div className="container relative mx-auto px-6 pt-8 pb-12 md:pb-16">
+          {/* back link */}
+          <Link
+            to="/colleges"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group mb-8"
+          >
+            <div className="h-8 w-8 rounded-full bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center transition-transform group-hover:-translate-x-1">
+              <ArrowLeft className="h-4 w-4" />
+            </div>
+            College Network
+          </Link>
+
+          <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+            {/* left */}
+            <div className="space-y-5">
+              <div className="flex items-center gap-4">
+                <div className={`h-20 w-20 md:h-24 md:w-24 rounded-2xl bg-gradient-to-br ${grad} flex items-center justify-center shadow-2xl border border-white/10`}>
+                  <span className="text-2xl md:text-3xl font-black text-white drop-shadow-lg">{initials}</span>
+                </div>
+                <div>
+                  {college.status === "approved" && (
+                    <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/20 px-3 py-1 text-[11px] font-bold text-emerald-400 mb-2">
+                      <ShieldCheck className="h-3 w-3" /> Verified Institution
+                    </div>
+                  )}
+                  <h1 className="font-display text-3xl md:text-5xl font-black tracking-tight leading-tight">
+                    {college.name}
+                  </h1>
+                </div>
               </div>
-            ) : (
-              <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/20 px-4 py-1 text-sm font-bold backdrop-blur-md text-amber-200">
-                <Clock className="h-4 w-4" /> Verification Pending
+
+              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                {college.city && (
+                  <span className="flex items-center gap-1.5 bg-white/5 rounded-full px-3 py-1.5 backdrop-blur-sm border border-white/5">
+                    <MapPin className="h-3.5 w-3.5 text-primary" /> {college.city}
+                  </span>
+                )}
+                {college.domain && (
+                  <span className="flex items-center gap-1.5 bg-white/5 rounded-full px-3 py-1.5 backdrop-blur-sm border border-white/5">
+                    <Globe className="h-3.5 w-3.5 text-primary" /> @{college.domain}
+                  </span>
+                )}
+                <span className="flex items-center gap-1.5 bg-white/5 rounded-full px-3 py-1.5 backdrop-blur-sm border border-white/5">
+                  <Trophy className="h-3.5 w-3.5 text-yellow-400" />
+                  <span className="font-bold text-foreground">{college.fests}</span> {college.fests === 1 ? "Festival" : "Festivals"} Hosted
+                </span>
               </div>
-            )}
-            <h1 className="font-display text-4xl font-black md:text-6xl">{college.name}</h1>
-            <div className="flex flex-wrap items-center gap-6 text-white/80">
-              <span className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" /> {college.city}
-              </span>
-              <span className="flex items-center gap-2">
-                <Globe className="h-4 w-4" /> {college.domain}
-              </span>
-              <span className="flex items-center gap-2 text-white font-bold">
-                <Trophy className="h-4 w-4 text-yellow-400" /> {college.fests} Festivals Hosted
-              </span>
+            </div>
+
+            {/* right — quick stats pills */}
+            <div className="flex flex-wrap gap-3">
+              <div className="glass rounded-2xl px-5 py-3 text-center min-w-[100px]">
+                <div className="text-2xl font-black text-foreground">{allEvents.length}</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Events</div>
+              </div>
+              <div className="glass rounded-2xl px-5 py-3 text-center min-w-[100px]">
+                <div className="text-2xl font-black text-foreground">{studentCount ?? 0}</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Students</div>
+              </div>
+              <div className="glass rounded-2xl px-5 py-3 text-center min-w-[100px]">
+                <div className="text-2xl font-black text-foreground">{totalAttendees.toLocaleString()}</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Reach</div>
+              </div>
             </div>
           </div>
-
-          {isAdmin && (
-            <div className="flex flex-wrap gap-3">
-              <Button variant="secondary" size="sm" className="bg-white/10 hover:bg-white/20 border-white/20 text-white gap-2">
-                <Edit3 className="h-4 w-4" /> Edit Profile
-              </Button>
-              {canApprove && college.status === 'pending' && (
-                <>
-                  <Button 
-                    size="sm" 
-                    className="bg-emerald-500 hover:bg-emerald-600 text-white gap-2"
-                    onClick={() => updateStatusMutation.mutate('approved')}
-                    disabled={updateStatusMutation.isPending}
-                  >
-                    <CheckCircle2 className="h-4 w-4" /> Approve
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="destructive" 
-                    className="gap-2"
-                    onClick={() => updateStatusMutation.mutate('rejected')}
-                    disabled={updateStatusMutation.isPending}
-                  >
-                    <XCircle className="h-4 w-4" /> Reject
-                  </Button>
-                </>
-              )}
-              <Button 
-                size="sm" 
-                variant="destructive" 
-                className="bg-red-500/20 hover:bg-red-500/40 text-red-100 border-red-500/20 gap-2"
-                onClick={() => {
-                  if (confirm("Are you sure you want to delete this college?")) {
-                    deleteMutation.mutate();
-                  }
-                }}
-                disabled={deleteMutation.isPending}
-              >
-                <Trash2 className="h-4 w-4" /> Delete
-              </Button>
-            </div>
-          )}
         </div>
-        
-        {/* Background Decorations */}
-        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-indigo-500/30 blur-3xl" />
       </div>
 
-      <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_350px]">
-        {/* Main Content: Events */}
-        <div className="space-y-8">
-          <div>
-            <h2 className="font-display text-3xl font-bold tracking-tight">Hosted Festivals</h2>
-            <p className="text-muted-foreground mt-2">Explore events organized by {college.name}.</p>
+      {/* ═══════ BODY ═══════ */}
+      <div className="container mx-auto px-6 py-10">
+        <div className="grid gap-10 lg:grid-cols-[1fr_360px]">
+          {/* ─── main column ─── */}
+          <div className="space-y-10">
+            {/* About */}
+            <section className="glass rounded-3xl p-6 md:p-8">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Building2 className="h-4 w-4 text-primary" />
+                </div>
+                <h2 className="font-display text-xl font-bold">About the Institution</h2>
+              </div>
+              <p className="text-muted-foreground leading-relaxed">
+                {college.name} is a premier educational institution
+                {college.city ? ` located in ${college.city}` : ""}.
+                Known for its vibrant campus culture and excellence in organizing world-class festivals,
+                it has become a cornerstone of the WeFest college network.
+                {college.fests > 0 && ` With ${college.fests} successful ${college.fests === 1 ? "festival" : "festivals"} under its belt, the institution continues to set benchmarks in student-led events.`}
+              </p>
+              {college.domain && (
+                <a
+                  href={`https://${college.domain}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 mt-4 text-sm font-bold text-primary hover:underline"
+                >
+                  Visit Official Website <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              )}
+            </section>
+
+            {/* Events section */}
+            <section>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="font-display text-2xl font-bold tracking-tight">Festivals & Events</h2>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Events organized by {college.name}
+                  </p>
+                </div>
+                <div className="flex rounded-xl bg-muted/30 p-1 border border-border/40">
+                  <button
+                    onClick={() => setActiveTab("upcoming")}
+                    className={`rounded-lg px-4 py-2 text-xs font-bold transition-all ${
+                      activeTab === "upcoming"
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Upcoming ({upcomingEvents.length})
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("past")}
+                    className={`rounded-lg px-4 py-2 text-xs font-bold transition-all ${
+                      activeTab === "past"
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Past ({pastEvents.length})
+                  </button>
+                </div>
+              </div>
+
+              {displayEvents.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center glass rounded-3xl border border-dashed border-border/60">
+                  <div className="h-16 w-16 rounded-2xl bg-muted/20 flex items-center justify-center mb-4">
+                    <Calendar className="h-8 w-8 text-muted-foreground/30" />
+                  </div>
+                  <h3 className="text-lg font-bold">
+                    {activeTab === "upcoming" ? "No upcoming events" : "No past events"}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1 max-w-xs">
+                    {activeTab === "upcoming"
+                      ? "Stay tuned — new festivals are announced regularly."
+                      : "This institution hasn't hosted any events yet."}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {displayEvents.map((event: any) => {
+                    const isUpcoming = new Date(event.date) >= now;
+                    return (
+                      <Link
+                        key={event.id}
+                        to={currentUser ? "/events/$eventId" : "/signup"}
+                        params={currentUser ? { eventId: event.id } : undefined}
+                        search={!currentUser ? { redirect: `/events/${event.id}` } : undefined}
+                        className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/40 bg-background/60 backdrop-blur-sm transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5"
+                      >
+                        {/* color bar */}
+                        <div className={`h-32 w-full bg-gradient-to-br ${event.cover || "from-fuchsia-500 to-indigo-700"} relative`}>
+                          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+                          <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between">
+                            <Badge className="bg-white/15 text-white border-white/20 backdrop-blur-md text-[10px] font-bold">
+                              {event.category || "Festival"}
+                            </Badge>
+                            {isUpcoming && (
+                              <span className="flex items-center gap-1 text-[10px] font-bold text-white/90">
+                                <Zap className="h-3 w-3 text-amber-400" />
+                                {relativeDate(event.date)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-1 flex-col p-5">
+                          <h3 className="font-bold text-base leading-tight group-hover:text-primary transition-colors line-clamp-1">
+                            {event.title}
+                          </h3>
+                          <p className="mt-1.5 text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                            {event.description || "An exciting campus event."}
+                          </p>
+
+                          <div className="mt-auto pt-4 flex items-center justify-between border-t border-border/30">
+                            <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                {new Date(event.date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                              </span>
+                              {event.attendees > 0 && (
+                                <span className="flex items-center gap-1">
+                                  <Users className="h-3 w-3" /> {event.attendees}
+                                </span>
+                              )}
+                            </div>
+                            {currentUser ? (
+                              <span className="text-[11px] font-bold text-primary flex items-center gap-1 group-hover:gap-2 transition-all">
+                                View Details <ChevronRight className="h-3.5 w-3.5" />
+                              </span>
+                            ) : (
+                              <span className="text-[11px] font-bold text-muted-foreground flex items-center gap-1">
+                                <Lock className="h-3 w-3" /> Sign up to view
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
           </div>
 
-          <div className="grid gap-6">
-            {college.events && college.events.length > 0 ? (
-              college.events.map((event: any) => (
-                <Link
-                  key={event.id}
-                  to="/events/$eventId"
-                  params={{ eventId: event.id }}
-                  className="glass group flex flex-col overflow-hidden rounded-2xl border-border/40 transition-all hover:scale-[1.02] hover:border-primary/40 md:flex-row"
-                >
-                  <div className={cn(
-                    "h-48 w-full shrink-0 md:h-auto md:w-48 bg-gradient-to-br",
-                    event.cover || "from-fuchsia-500 to-indigo-700"
-                  )} />
-                  <div className="flex flex-1 flex-col justify-between p-6">
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">
-                          {event.category}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(event.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
-                        </span>
-                      </div>
-                      <h3 className="mt-3 text-xl font-bold group-hover:text-primary transition-colors">{event.title}</h3>
-                      <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{event.description}</p>
-                    </div>
-                    <div className="mt-6 flex items-center justify-between border-t border-border/40 pt-4">
-                      <div className="flex items-center gap-4 text-xs font-medium text-muted-foreground">
-                        <span className="flex items-center gap-1.5">
-                          <Users className="h-3.5 w-3.5" /> {event.attendees} interested
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <Calendar className="h-3.5 w-3.5" /> {event.city}
-                        </span>
-                      </div>
-                      <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                    </div>
+          {/* ─── sidebar ─── */}
+          <div className="space-y-6">
+            {/* Sign-up CTA (guest only) */}
+            {!currentUser && (
+              <div className="relative overflow-hidden rounded-3xl bg-brand-gradient p-6 text-white shadow-2xl">
+                <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+                <div className="relative z-10">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles className="h-5 w-5 text-amber-300" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white/80">Join the Network</span>
                   </div>
-                </Link>
-              ))
-            ) : (
-              <div className="flex flex-col items-center justify-center py-20 text-center bg-muted/20 rounded-3xl border border-dashed border-border/60">
-                <Calendar className="h-12 w-12 text-muted-foreground/30" />
-                <h3 className="mt-4 text-lg font-bold">No active festivals</h3>
-                <p className="text-muted-foreground max-w-xs mx-auto mt-1">This college hasn't listed any upcoming festivals yet.</p>
+                  <h3 className="font-display text-xl font-bold leading-tight">
+                    Sign up to register for events
+                  </h3>
+                  <p className="mt-2 text-sm text-white/70 leading-relaxed">
+                    Create your free WeFest account to explore events, book tickets, and connect with students from {college.name}.
+                  </p>
+                  <div className="mt-5 flex flex-col gap-2">
+                    <Button
+                      onClick={() => navigate({ to: "/signup", search: { redirect: `/colleges/${collegeSlug}` } })}
+                      className="w-full bg-white text-primary font-bold rounded-xl hover:bg-white/90 shadow-lg"
+                    >
+                      Create Free Account <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => navigate({ to: "/login", search: { redirect: `/colleges/${collegeSlug}` } })}
+                      className="w-full text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-sm"
+                    >
+                      Already have an account? Sign in
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
-          </div>
-        </div>
 
-        {/* Sidebar: Stats & Info */}
-        <div className="space-y-6">
-          <div className="glass rounded-3xl p-6">
-            <h3 className="font-display text-xl font-bold">Institutional Stats</h3>
-            <div className="mt-6 space-y-4">
-              <div className="flex items-center justify-between rounded-xl bg-muted/30 p-3">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-primary/10 p-2 text-primary">
-                    <Trophy className="h-4 w-4" />
-                  </div>
-                  <span className="text-sm font-medium">Rank</span>
-                </div>
-                <span className="font-bold">#4 Region</span>
+            {/* Institutional Stats */}
+            <div className="glass rounded-3xl p-6">
+              <div className="flex items-center gap-2 mb-5">
+                <BarChart3 className="h-4 w-4 text-primary" />
+                <h3 className="font-display text-lg font-bold">Institutional Stats</h3>
               </div>
-              <div className="flex items-center justify-between rounded-xl bg-muted/30 p-3">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-blue-500/10 p-2 text-blue-500">
-                    <Users className="h-4 w-4" />
+              <div className="space-y-3">
+                {[
+                  { icon: Trophy, label: "Festivals Hosted", value: college.fests, color: "text-yellow-400", bg: "bg-yellow-500/10" },
+                  { icon: Calendar, label: "Total Events", value: allEvents.length, color: "text-primary", bg: "bg-primary/10" },
+                  { icon: Sparkles, label: "Upcoming", value: upcomingEvents.length, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+                  { icon: Users, label: "Total Reach", value: totalAttendees.toLocaleString(), color: "text-blue-400", bg: "bg-blue-500/10" },
+                  { icon: GraduationCap, label: "Students Enrolled", value: studentCount ?? 0, color: "text-violet-400", bg: "bg-violet-500/10" },
+                  { icon: Award, label: "Team Members", value: memberCount ?? 0, color: "text-amber-400", bg: "bg-amber-500/10" },
+                ].map(({ icon: Icon, label, value, color, bg }) => (
+                  <div key={label} className="flex items-center justify-between rounded-xl bg-muted/20 p-3 hover:bg-muted/30 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className={`rounded-lg ${bg} p-2`}>
+                        <Icon className={`h-4 w-4 ${color}`} />
+                      </div>
+                      <span className="text-sm font-medium">{label}</span>
+                    </div>
+                    <span className="font-bold">{value}</span>
                   </div>
-                  <span className="text-sm font-medium">Network</span>
-                </div>
-                <span className="font-bold">4.2k+ Students</span>
-              </div>
-              <div className="flex items-center justify-between rounded-xl bg-muted/30 p-3">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-emerald-500/10 p-2 text-emerald-500">
-                    <ShieldCheck className="h-4 w-4" />
-                  </div>
-                  <span className="text-sm font-medium">Status</span>
-                </div>
-                <Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border-none">
-                  {college.status}
-                </Badge>
+                ))}
               </div>
             </div>
-          </div>
 
-          <div className="glass rounded-3xl p-6">
-            <h3 className="font-display text-xl font-bold">About the Institution</h3>
-            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-              {college.name} is a premier educational institution located in {college.city}. 
-              Known for its vibrant campus life and excellence in fests, it has become a cornerstone of our festival network.
-            </p>
-            <Button variant="outline" className="mt-6 w-full rounded-2xl border-primary/20 text-primary hover:bg-primary/5">
-              Visit Official Website
-            </Button>
+            {/* Quick info */}
+            <div className="glass rounded-3xl p-6">
+              <div className="flex items-center gap-2 mb-5">
+                <Target className="h-4 w-4 text-primary" />
+                <h3 className="font-display text-lg font-bold">Quick Info</h3>
+              </div>
+              <div className="space-y-4">
+                {college.city && (
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                    <div>
+                      <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Location</div>
+                      <div className="text-sm font-medium">{college.city}</div>
+                    </div>
+                  </div>
+                )}
+                {college.domain && (
+                  <div className="flex items-start gap-3">
+                    <Globe className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                    <div>
+                      <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Domain</div>
+                      <div className="text-sm font-medium">@{college.domain}</div>
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-start gap-3">
+                  <ShieldCheck className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
+                  <div>
+                    <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Verification</div>
+                    <Badge className={`mt-1 text-[10px] font-bold border-none ${
+                      college.status === "approved"
+                        ? "bg-emerald-500/10 text-emerald-400"
+                        : "bg-amber-500/10 text-amber-400"
+                    }`}>
+                      {college.status === "approved" ? "Verified" : "Pending"}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Clock className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                  <div>
+                    <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Member Since</div>
+                    <div className="text-sm font-medium">
+                      {new Date(college.created_at).toLocaleDateString(undefined, { month: "long", year: "numeric" })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Need help */}
+            <div className="glass rounded-3xl p-6 border border-primary/10">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <Heart className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm">Part of this college?</h4>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Sign up as a student to access exclusive events and connect with your campus community.
+                  </p>
+                </div>
+              </div>
+              {!currentUser && (
+                <Button
+                  asChild
+                  variant="outline"
+                  className="w-full mt-4 rounded-xl border-primary/20 text-primary hover:bg-primary/5 font-bold"
+                >
+                  <Link to="/signup" search={{ redirect: `/colleges/${collegeSlug}` }}>
+                    Join as Student <GraduationCap className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>

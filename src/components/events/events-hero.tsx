@@ -48,6 +48,7 @@ export function EventsHero({ searchQuery, setSearchQuery }: EventsHeroProps) {
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && scrollToExplore()}
                   placeholder="Search by festival, college, or city..."
                   className="h-14 rounded-xl border-border/50 bg-background/80 pl-12 pr-4 text-lg backdrop-blur-xl focus-visible:ring-primary/30"
                 />
