@@ -28,7 +28,9 @@ function Events() {
     queryKey: ["user-profile-for-isolation"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      return user;
+      if (!user) return null;
+      const { data } = await supabase.from("student_profiles").select("college_id").eq("user_id", user.id).maybeSingle();
+      return data;
     }
   });
 
@@ -57,7 +59,7 @@ function Events() {
   const filtered = useMemo(() => {
     if (!dbEvents) return [];
     
-    const userCollegeId = userProfile?.user_metadata?.college_id;
+    const userCollegeId = userProfile?.college_id;
     
     return dbEvents
       .map(e => ({
@@ -74,13 +76,18 @@ function Events() {
         description: e.description,
         organizer: e.organizer
       }))
-      .filter((e) =>
-        (cat === "All" || e.category === cat) &&
-        (e.title.toLowerCase().includes(q.toLowerCase()) || 
-         e.college.toLowerCase().includes(q.toLowerCase()) ||
-         e.city.toLowerCase().includes(q.toLowerCase()))
-      );
-  }, [dbEvents, q, cat]);
+      .filter((e) => {
+        // If user has a college, ONLY show events from their college or independent events
+        if (userCollegeId && e.collegeId && e.collegeId !== userCollegeId) {
+          return false;
+        }
+        
+        return (cat === "All" || e.category === cat) &&
+          (e.title.toLowerCase().includes(q.toLowerCase()) || 
+           e.college.toLowerCase().includes(q.toLowerCase()) ||
+           e.city.toLowerCase().includes(q.toLowerCase()));
+      });
+  }, [dbEvents, q, cat, userProfile]);
 
   const smartMatches = useMemo(() => {
     if (!filtered || filtered.length === 0) return [];

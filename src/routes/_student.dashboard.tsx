@@ -5,13 +5,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
-  QrCode, Loader2, Star, Zap, Award, Sparkles,
+  QrCode, Loader2, Star, Zap, Sparkles,
   Calendar, Ticket, CalendarRange, Trophy, Bell, BellOff, 
   ScanLine, CheckCircle2, XCircle, ShieldCheck,
-  Clock, ArrowRight, Search
+  Clock, ArrowRight, ChevronRight, TrendingUp, Wallet
 } from "lucide-react";
 import { toast } from "sonner";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_student/dashboard")({
@@ -19,7 +19,6 @@ export const Route = createFileRoute("/_student/dashboard")({
   beforeLoad: async ({ location }) => {
     if (typeof window === 'undefined') return;
 
-    // Check session first, if missing, check user to prevent refresh race condition
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       const { data: { user } } = await supabase.auth.getUser();
@@ -67,15 +66,6 @@ function StudentDashboard() {
         visits = data || [];
       } catch (_) {}
 
-      let memories: any[] = [];
-      try {
-        const { data } = await supabase
-          .from("digital_memories")
-          .select("*")
-          .eq("user_id", user.id);
-        memories = data || [];
-      } catch (_) {}
-
       let notifications: any[] = [];
       try {
         const { data } = await supabase
@@ -83,14 +73,13 @@ function StudentDashboard() {
           .select("*")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false })
-          .limit(20);
+          .limit(10);
         notifications = data || [];
       } catch (_) {}
 
       return {
         tickets: ticketsData || [],
         visits: visits || [],
-        memories: memories || [],
         notifications: notifications || [],
       };
     },
@@ -98,391 +87,349 @@ function StudentDashboard() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto max-w-5xl px-6 py-16 flex flex-col items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="mt-4 text-sm text-muted-foreground">Loading your dashboard...</p>
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <p className="mt-3 text-xs text-muted-foreground">Loading dashboard…</p>
       </div>
     );
   }
 
   const myTickets = tickets?.tickets || [];
   const myVisits = tickets?.visits || [];
-  const myMemories = tickets?.memories || [];
   const myNotifications = tickets?.notifications || [];
 
-  const festPoints = (myTickets.length * 100) + (myVisits.length * 50) + (myMemories.length * 200);
+  const festPoints = (myTickets.length * 100) + (myVisits.length * 50);
   const currentLevel = Math.floor(festPoints / 300) + 1;
-  const progressToNext = (festPoints % 300) / 300 * 100;
+  const xpInLevel = festPoints % 300;
+  const xpPercent = (xpInLevel / 300) * 100;
 
-  const upcomingTickets = myTickets.filter((t: any) => t.events?.date && isFuture(new Date(t.events.date)));
-  const pastTickets = myTickets.filter((t: any) => t.events?.date && isPast(new Date(t.events.date)));
-  const scannedTickets = myTickets.filter((t: any) => t.scanned_at);
+  const upcoming = myTickets.filter((t: any) => t.events?.date && isFuture(new Date(t.events.date)));
+  const past = myTickets.filter((t: any) => t.events?.date && isPast(new Date(t.events.date)));
+  const attended = myTickets.filter((t: any) => t.scanned_at);
 
   const studentName = currentUser?.user_metadata?.full_name || "Student";
+  const greeting = getGreeting();
 
   return (
-    <div className="container mx-auto max-w-5xl px-6 py-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* Profile Hero */}
-      <div className="glass rounded-3xl p-8 sm:p-10 mb-10 relative overflow-hidden group">
-        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-brand-gradient opacity-20 blur-[80px] transition-opacity duration-700 group-hover:opacity-40" />
-        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-primary opacity-10 blur-[80px] transition-opacity duration-700 group-hover:opacity-30" />
-        
-        <div className="flex flex-col sm:flex-row gap-8 items-start sm:items-center relative z-10">
-          <div className="relative">
-            <div className="absolute inset-0 rounded-2xl bg-brand-gradient blur-md opacity-50 transition-opacity duration-500 group-hover:opacity-100" />
-            <div className="h-20 w-20 relative rounded-2xl bg-brand-gradient p-0.5 shadow-glow shrink-0">
-              <div className="h-full w-full rounded-[14px] bg-background/90 backdrop-blur-xl flex flex-col items-center justify-center">
-                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground -mb-1">Lvl</div>
-                <div className="text-3xl font-black bg-brand-gradient bg-clip-text text-transparent">{currentLevel}</div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="font-display text-3xl font-black tracking-tight sm:text-4xl truncate">{studentName}</h1>
-              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-bold uppercase tracking-widest">
-                <CheckCircle2 className="h-3 w-3" /> Verified Student
-              </div>
-            </div>
-            
-            <div className="flex flex-wrap items-center gap-4">
-              <span className="text-sm font-bold text-primary flex items-center gap-1.5 px-3 py-1 rounded-lg bg-primary/10 border border-primary/20 shadow-sm">
-                <Star className="h-4 w-4" /> {festPoints} pts
-              </span>
-              <span className="text-sm text-muted-foreground font-medium flex items-center gap-1.5">
-                <Ticket className="h-4 w-4 opacity-50" /> {myTickets.length} festivals
-              </span>
-              <span className="text-sm text-muted-foreground font-medium flex items-center gap-1.5">
-                <ScanLine className="h-4 w-4 opacity-50" /> {myVisits.length} booths visited
-              </span>
-            </div>
-          </div>
-          
-          <div className="w-full sm:w-56 glass-panel p-4 rounded-2xl border-white/5">
-            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
-              <span className="text-foreground">Level {currentLevel}</span>
-              <span>Level {currentLevel + 1}</span>
-            </div>
-            <div className="h-2.5 w-full bg-background/50 overflow-hidden rounded-full border border-border/50 p-0.5 shadow-inner">
-              <div 
-                className="h-full bg-brand-gradient rounded-full shadow-glow transition-all duration-1000 ease-out relative" 
-                style={{ width: `${progressToNext}%` }} 
-              >
-                <div className="absolute inset-0 bg-white/20 animate-pulse" />
-              </div>
-            </div>
-            <div className="text-xs font-bold text-primary mt-2 text-right">
-              {300 - (festPoints % 300)} pts to next rank
-            </div>
+    <div className="px-6 sm:px-8 py-8 max-w-[1200px] mx-auto space-y-8 animate-in fade-in duration-500">
+      
+      {/* ─── Header Row ─── */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <p className="text-sm text-muted-foreground font-medium mb-1">{greeting}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{studentName}</h1>
+        </div>
+        <div className="flex items-center gap-3">
+          <LevelPill level={currentLevel} xp={xpInLevel} percent={xpPercent} />
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/15">
+            <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+            <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Verified</span>
           </div>
         </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
-        <MiniStat icon={CalendarRange} label="Upcoming" value={upcomingTickets.length} color="text-blue-500" bg="bg-blue-500/10" />
-        <MiniStat icon={Ticket} label="Total Tickets" value={myTickets.length} color="text-primary" bg="bg-primary/10" />
-        <MiniStat icon={CheckCircle2} label="Attended" value={scannedTickets.length} color="text-emerald-500" bg="bg-emerald-500/10" />
-        <MiniStat icon={Trophy} label="Fest Points" value={festPoints} color="text-amber-500" bg="bg-amber-500/10" />
+      {/* ─── Stats Row ─── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <StatCard icon={CalendarRange} label="Upcoming" value={upcoming.length} accent="blue" />
+        <StatCard icon={Ticket} label="Total Passes" value={myTickets.length} accent="purple" />
+        <StatCard icon={CheckCircle2} label="Attended" value={attended.length} accent="emerald" />
+        <StatCard icon={Star} label="Points" value={festPoints} accent="amber" />
       </div>
 
-      {/* Dashboard Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* ─── Main Grid ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Left Column: Events (Takes up 2 columns on large screens) */}
-        <div className="lg:col-span-2 space-y-10">
-          
-          {/* Upcoming Events */}
-          {upcomingTickets.length > 0 && (
-            <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="h-8 w-1 rounded-full bg-blue-500" />
-                <h3 className="text-xl font-bold tracking-tight">Upcoming Festivals</h3>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {upcomingTickets.map((t: any) => {
-                  const daysLeft = differenceInDays(new Date(t.events?.date), new Date());
+        {/* ─── Left Column (2/3) ─── */}
+        <div className="lg:col-span-2 space-y-6">
+
+          {/* Active Passes */}
+          {upcoming.length > 0 ? (
+            <DashboardSection 
+              title="Active Passes" 
+              action={<Link to="/tickets" className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">View all <ArrowRight className="h-3 w-3" /></Link>}
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                {upcoming.slice(0, 4).map((t: any) => {
+                  const days = differenceInDays(new Date(t.events?.date), new Date());
                   return (
                     <Link key={t.id} to="/events/$eventId" params={{ eventId: t.event_id }} className="group">
-                      <div className={cn("glass-panel relative overflow-hidden rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 border-white/5", t.events?.cover)}>
-                        <div className="absolute inset-0 bg-gradient-to-br from-black/40 to-black/80 z-0" />
-                        <div className="relative z-10 flex flex-col h-full justify-between">
-                          <div className="flex items-start justify-between mb-4">
-                            <div className="inline-flex items-center rounded-full border border-white/20 bg-black/40 backdrop-blur-md px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-white shadow-sm">
-                              {t.tier}
-                            </div>
-                            <div className="flex flex-col items-end">
-                              <div className="text-3xl font-black text-white drop-shadow-md">{daysLeft}</div>
-                              <div className="text-[9px] font-bold text-white/70 uppercase tracking-widest">days left</div>
-                            </div>
+                      <div className="relative rounded-xl border border-white/5 bg-white/[0.02] p-5 hover:bg-white/[0.04] transition-all duration-200 hover:border-white/10">
+                        <div className="flex items-start justify-between mb-3">
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground bg-white/5 px-2 py-0.5 rounded-md">{t.tier} pass</span>
+                          <div className="text-right">
+                            <div className="text-lg font-bold leading-none">{days}</div>
+                            <div className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">days</div>
                           </div>
-                          <div>
-                            <h4 className="font-display text-xl font-bold text-white drop-shadow-md line-clamp-1 group-hover:text-primary-100 transition-colors">{t.events?.title}</h4>
-                            <div className="flex items-center gap-2 text-sm text-white/80 mt-2 font-medium">
-                              <Calendar className="h-4 w-4" />
-                              {format(new Date(t.events?.date), "EEE, MMM dd, yyyy")}
-                            </div>
-                          </div>
+                        </div>
+                        <h4 className="font-semibold text-sm leading-tight line-clamp-1 mb-1.5 group-hover:text-primary transition-colors">{t.events?.title}</h4>
+                        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                          <Calendar className="h-3 w-3" />
+                          {format(new Date(t.events?.date), "EEE, MMM dd")}
                         </div>
                       </div>
                     </Link>
                   );
                 })}
               </div>
-            </section>
+            </DashboardSection>
+          ) : (
+            <DashboardSection title="Active Passes">
+              <div className="rounded-xl border-2 border-dashed border-white/10 py-12 px-6 text-center">
+                <div className="h-12 w-12 rounded-xl bg-white/5 flex items-center justify-center mx-auto mb-3">
+                  <Sparkles className="h-5 w-5 text-muted-foreground/40" />
+                </div>
+                <h3 className="font-semibold text-sm mb-1">No upcoming festivals</h3>
+                <p className="text-xs text-muted-foreground mb-5 max-w-[240px] mx-auto">Discover amazing college fests and book your first pass.</p>
+                <Button asChild size="sm" className="bg-brand-gradient text-white rounded-lg font-semibold shadow-lg text-xs h-9 px-5">
+                  <Link to="/events">Browse Fests <ArrowRight className="ml-1.5 h-3.5 w-3.5" /></Link>
+                </Button>
+              </div>
+            </DashboardSection>
           )}
 
-          {/* Past Experiences */}
-          {pastTickets.length > 0 && (
-            <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="h-8 w-1 rounded-full bg-muted-foreground/30" />
-                <h3 className="text-xl font-bold tracking-tight text-muted-foreground">Past Experiences</h3>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {pastTickets.map((t: any) => (
+          {/* Past Events */}
+          {past.length > 0 && (
+            <DashboardSection title="Past Events" muted>
+              <div className="space-y-2">
+                {past.slice(0, 4).map((t: any) => (
                   <Link key={t.id} to="/events/$eventId" params={{ eventId: t.event_id }} className="group">
-                    <div className="rounded-2xl border border-border/40 bg-muted/5 p-5 opacity-70 hover:opacity-100 transition-all duration-300 hover:bg-muted/20">
-                      <div className="flex items-center justify-between">
-                        <div className="min-w-0 flex-1">
-                          <h4 className="font-bold truncate text-foreground/80 group-hover:text-foreground">{t.events?.title}</h4>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                            <Calendar className="h-3 w-3" />
-                            {format(new Date(t.events?.date), "MMM dd, yyyy")}
-                          </div>
-                        </div>
-                        {t.scanned_at ? (
-                          <div className="shrink-0 ml-3 flex flex-col items-end">
-                            <ShieldCheck className="h-5 w-5 text-emerald-500 mb-1" />
-                            <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">Attended</span>
-                          </div>
-                        ) : (
-                          <div className="shrink-0 ml-3 flex flex-col items-end">
-                            <XCircle className="h-4 w-4 text-muted-foreground/50 mb-1" />
-                            <span className="text-[9px] font-bold text-muted-foreground/50 uppercase tracking-widest">Missed</span>
-                          </div>
-                        )}
+                    <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/[0.03] transition-colors">
+                      <div className="h-9 w-9 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+                        <Clock className="h-4 w-4 text-muted-foreground/40" />
                       </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-medium truncate group-hover:text-foreground transition-colors">{t.events?.title}</h4>
+                        <p className="text-[10px] text-muted-foreground">{format(new Date(t.events?.date), "MMM dd, yyyy")}</p>
+                      </div>
+                      {t.scanned_at ? (
+                        <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-wider flex items-center gap-1">
+                          <CheckCircle2 className="h-3 w-3" /> Attended
+                        </span>
+                      ) : (
+                        <span className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-wider flex items-center gap-1">
+                          <XCircle className="h-3 w-3" /> Missed
+                        </span>
+                      )}
+                      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/20 group-hover:text-muted-foreground/60 transition-colors shrink-0" />
                     </div>
                   </Link>
                 ))}
               </div>
-            </section>
-          )}
-
-          {/* Empty State */}
-          {myTickets.length === 0 && (
-            <div className="rounded-2xl border-2 border-dashed border-border/50 p-12 text-center animate-in fade-in duration-500">
-              <CalendarRange className="mx-auto h-12 w-12 text-muted-foreground opacity-20 mb-4" />
-              <h3 className="font-bold text-lg mb-2">No events yet</h3>
-              <p className="text-sm text-muted-foreground mb-6">Browse festivals and book your first pass.</p>
-              <Button asChild className="bg-brand-gradient text-white rounded-xl font-bold shadow-glow">
-                <Link to="/events">Explore Fests <ArrowRight className="ml-2 h-4 w-4" /></Link>
-              </Button>
-            </div>
+            </DashboardSection>
           )}
         </div>
 
-        {/* Right Column: Scan & Alerts */}
-        <div className="space-y-8 lg:mt-0 mt-8">
-          
-          {/* Certificates Call to action / Link to tickets */}
-          <div className="glass-panel p-6 rounded-3xl border-white/5 bg-brand-gradient text-white relative overflow-hidden group hover:shadow-xl hover:shadow-primary/20 transition-all duration-300">
-            <div className="absolute -right-10 -top-10 opacity-20 group-hover:scale-110 transition-transform duration-700">
-              <Award className="h-40 w-40" />
+        {/* ─── Right Column (1/3) ─── */}
+        <div className="space-y-6">
+
+          {/* Wallet Quick Access */}
+          <div className="rounded-xl bg-brand-gradient p-5 text-white relative overflow-hidden group">
+            <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
+              <QrCode className="h-24 w-24" />
             </div>
             <div className="relative z-10">
-              <h3 className="text-lg font-bold mb-2">Your Tickets & Certificates</h3>
-              <p className="text-sm text-white/80 mb-6">View your QR passes and download certificates for attended festivals.</p>
-              <Button asChild variant="secondary" className="w-full font-bold bg-white/20 hover:bg-white/30 text-white border-0">
-                <Link to="/tickets">View Wallet</Link>
+              <div className="flex items-center gap-2 mb-2">
+                <Wallet className="h-4 w-4" />
+                <h3 className="font-semibold text-sm">Digital Wallet</h3>
+              </div>
+              <p className="text-[11px] text-white/70 mb-4 leading-relaxed">QR passes & certificates</p>
+              <Button asChild variant="secondary" size="sm" className="w-full font-semibold bg-white/15 hover:bg-white/25 text-white border-0 text-xs h-8">
+                <Link to="/tickets">Open Wallet</Link>
               </Button>
             </div>
           </div>
 
           {/* Quick Scan */}
-          <div className="glass-panel p-6 rounded-3xl border-white/5 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold flex items-center gap-2">
-                <ScanLine className="h-4 w-4 text-primary" /> Sponsor Scan
-              </h3>
-            </div>
-            <p className="text-xs text-muted-foreground mb-4">Enter a booth code to earn +50 fest points.</p>
-            <ScanSection userId={currentUser?.id} />
-          </div>
+          <DashboardSection 
+            title="Quick Scan" 
+            icon={<Zap className="h-3.5 w-3.5 text-amber-500" />}
+            subtitle="Earn +50 pts per booth"
+          >
+            <QuickScan userId={currentUser?.id} />
+          </DashboardSection>
 
-          {/* Notifications */}
-          <div className="glass-panel rounded-3xl border-white/5 shadow-sm overflow-hidden flex flex-col max-h-[400px]">
-            <div className="p-5 border-b border-border/50 flex items-center justify-between bg-muted/10 shrink-0">
-              <h3 className="font-bold flex items-center gap-2">
-                <Bell className="h-4 w-4 text-primary" /> Recent Alerts
-              </h3>
+          {/* Activity Feed */}
+          <div className="rounded-xl border border-white/5 bg-white/[0.02] overflow-hidden flex flex-col max-h-[380px]">
+            <div className="px-4 py-3 border-b border-white/5 flex items-center gap-2">
+              <Bell className="h-3.5 w-3.5 text-muted-foreground" />
+              <h3 className="text-xs font-semibold text-muted-foreground">Activity</h3>
             </div>
             <div className="overflow-y-auto hide-scrollbar flex-1">
               {myNotifications.length > 0 ? (
-                <div className="divide-y divide-border/50">
+                <div className="divide-y divide-white/5">
                   {myNotifications.map((n: any) => (
-                    <div key={n.id} className={cn("flex gap-3 p-4", n.is_read ? "opacity-60" : "bg-primary/5")}>
-                      <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5", n.is_read ? "bg-muted text-muted-foreground" : "bg-primary text-white")}>
-                        <Bell className="h-4 w-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-bold text-sm">{n.title}</div>
-                        <p className="text-xs text-muted-foreground mt-0.5">{n.body}</p>
-                        <div className="text-[10px] text-muted-foreground mt-1.5 font-medium">{format(new Date(n.created_at), "MMM dd, hh:mm a")}</div>
+                    <div key={n.id} className={cn("px-4 py-3", !n.is_read && "bg-primary/5")}>
+                      <div className="flex gap-2.5">
+                        <div className={cn(
+                          "h-6 w-6 rounded-md flex items-center justify-center shrink-0 mt-0.5",
+                          !n.is_read ? "bg-primary text-white" : "bg-white/5 text-muted-foreground"
+                        )}>
+                          <Bell className="h-3 w-3" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-xs font-semibold leading-tight">{n.title}</div>
+                          <p className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">{n.body}</p>
+                          <div className="text-[9px] text-muted-foreground/50 mt-1 font-medium">
+                            {format(new Date(n.created_at), "MMM dd, hh:mm a")}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="p-8 text-center">
-                  <BellOff className="mx-auto h-8 w-8 opacity-15 mb-3" />
-                  <p className="text-sm text-muted-foreground font-medium">No alerts yet.</p>
+                <div className="py-10 text-center">
+                  <BellOff className="mx-auto h-6 w-6 text-muted-foreground/15 mb-2" />
+                  <p className="text-[10px] text-muted-foreground/50 font-medium">No notifications yet</p>
                 </div>
               )}
             </div>
           </div>
-          
         </div>
-
       </div>
     </div>
   );
 }
 
-/* ── Mini Stat ── */
-function MiniStat({ icon: Icon, label, value, color, bg }: { icon: any; label: string; value: number; color: string; bg: string }) {
+/* ───────────────────────────────────────────
+   Reusable Components
+   ─────────────────────────────────────────── */
+
+/** Section wrapper with consistent heading */
+function DashboardSection({ title, action, icon, subtitle, muted, children }: {
+  title: string;
+  action?: React.ReactNode;
+  icon?: React.ReactNode;
+  subtitle?: string;
+  muted?: boolean;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="glass-panel rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg border-white/5 relative overflow-hidden group">
-      <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-white/5 blur-xl transition-all duration-500 group-hover:bg-white/10 group-hover:scale-150" />
-      <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center mb-4 shadow-inner", bg, color)}>
-        <Icon className="h-5 w-5" />
+    <section className="rounded-xl border border-white/5 bg-white/[0.02] p-5">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <div className="flex items-center gap-2">
+            {icon}
+            <h3 className={cn("text-sm font-semibold", muted && "text-muted-foreground")}>{title}</h3>
+          </div>
+          {subtitle && <p className="text-[10px] text-muted-foreground mt-0.5">{subtitle}</p>}
+        </div>
+        {action}
       </div>
-      <div className="text-3xl font-display font-black tracking-tight mb-1">{value}</div>
-      <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{label}</div>
+      {children}
+    </section>
+  );
+}
+
+/** Compact stat card */
+function StatCard({ icon: Icon, label, value, accent }: { icon: any; label: string; value: number; accent: string }) {
+  const colors: Record<string, string> = {
+    blue: "text-blue-400 bg-blue-500/10",
+    purple: "text-primary bg-primary/10",
+    emerald: "text-emerald-400 bg-emerald-500/10",
+    amber: "text-amber-400 bg-amber-500/10",
+  };
+  const c = colors[accent] || colors.blue;
+  const [textColor, bgColor] = c.split(" ");
+
+  return (
+    <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4 hover:bg-white/[0.04] transition-colors group">
+      <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center mb-3", bgColor, textColor)}>
+        <Icon className="h-4 w-4" />
+      </div>
+      <div className="text-xl font-bold tracking-tight leading-none mb-0.5">{value}</div>
+      <div className="text-[10px] text-muted-foreground font-medium">{label}</div>
     </div>
   );
 }
 
-/* ── Scan Section ── */
-function ScanSection({ userId }: { userId?: string }) {
+/** Level + XP inline pill */
+function LevelPill({ level, xp, percent }: { level: number; xp: number; percent: number }) {
+  return (
+    <div className="flex items-center gap-3 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">
+      {/* Level number */}
+      <div className="flex items-center gap-1.5">
+        <TrendingUp className="h-3.5 w-3.5 text-primary" />
+        <span className="text-xs font-bold">Lv. {level}</span>
+      </div>
+      {/* XP bar */}
+      <div className="flex items-center gap-2">
+        <div className="w-16 h-1.5 bg-white/10 rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-brand-gradient rounded-full transition-all duration-1000"
+            style={{ width: `${percent}%` }}
+          />
+        </div>
+        <span className="text-[9px] text-muted-foreground font-medium whitespace-nowrap">{xp}/300</span>
+      </div>
+    </div>
+  );
+}
+
+/** Compact booth scan form */
+function QuickScan({ userId }: { userId?: string }) {
   const [code, setCode] = useState("");
-  const [log, setLog] = useState<{ code: string; ok: boolean; t: string; note?: string }[]>([]);
   const queryClient = useQueryClient();
 
   const scanMutation = useMutation({
     mutationFn: async (boothCode: string) => {
       if (!userId) throw new Error("Please login");
-      // Try to find a sponsor booth with this code
       const { data: booth, error } = await (supabase as any)
         .from("sponsor_booths")
         .select("id, sponsor_name")
-        .eq("code", boothCode.trim())
+        .eq("code", boothCode.trim().toUpperCase())
         .maybeSingle();
       
       if (error) throw error;
-      if (!booth) throw new Error("Booth not found. Check the code and try again.");
+      if (!booth) throw new Error("Booth not found");
       
-      // Record the visit
       const { error: visitError } = await supabase
         .from("sponsor_booth_visits")
-        .insert({
-          student_user_id: userId,
-          booth_id: booth.id,
-        } as any);
+        .insert({ student_user_id: userId, booth_id: booth.id } as any);
       
       if (visitError) {
-        if (visitError.code === "23505") throw new Error("You've already visited this booth!");
+        if (visitError.code === "23505") throw new Error("Already visited");
         throw visitError;
       }
-      
       return booth;
     },
     onSuccess: (booth) => {
-      toast.success(`+50 pts! Visited ${booth.sponsor_name}`);
-      setLog(l => [{ code, ok: true, t: new Date().toLocaleTimeString(), note: `${booth.sponsor_name} booth` }, ...l]);
+      toast.success(`+50 pts — ${booth.sponsor_name}`);
       setCode("");
       queryClient.invalidateQueries({ queryKey: ["dashboard-tickets"] });
     },
-    onError: (e: any) => {
-      toast.error(e.message);
-      setLog(l => [{ code, ok: false, t: new Date().toLocaleTimeString(), note: e.message }, ...l]);
-    },
+    onError: (e: any) => toast.error(e.message),
   });
 
-  const handleScan = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!code.trim()) return;
-    scanMutation.mutate(code);
-  };
-
   return (
-    <div className="max-w-xl mx-auto py-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="glass-panel rounded-3xl p-8 mb-8 border-white/10 relative overflow-hidden shadow-xl">
-        <div className="absolute top-0 right-0 p-8 opacity-5">
-          <ScanLine className="h-32 w-32" />
-        </div>
-        <div className="flex flex-col items-center text-center mb-8 relative z-10">
-          <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4 shadow-inner border border-primary/20">
-            <ScanLine className="h-8 w-8" />
-          </div>
-          <h3 className="font-display text-2xl font-bold mb-2">Scan Sponsor Booth</h3>
-          <p className="text-sm text-muted-foreground max-w-sm">
-            Enter the unique booth code provided by the sponsor to mark your visit and earn +50 fest points.
-          </p>
-        </div>
-
-        <form onSubmit={handleScan} className="flex gap-3 relative z-10">
-          <Input
-            value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase())}
-            placeholder="ENTER BOOTH CODE"
-            disabled={scanMutation.isPending}
-            className="h-14 rounded-xl border-border/50 bg-background/50 font-mono text-lg tracking-widest text-center shadow-inner focus-visible:ring-primary/50"
-            maxLength={10}
-          />
-          <Button 
-            type="submit" 
-            disabled={scanMutation.isPending || !code.trim()} 
-            className="bg-brand-gradient text-white rounded-xl font-bold min-w-[120px] h-14 shadow-glow hover:scale-105 transition-transform"
-          >
-            {scanMutation.isPending ? <Loader2 className="h-6 w-6 animate-spin" /> : "Verify"}
-          </Button>
-        </form>
-      </div>
-
-      {/* Scan Log */}
-      {log.length > 0 && (
-        <div className="glass-panel rounded-2xl divide-y divide-border/30 overflow-hidden border-white/5">
-          <div className="bg-muted/20 px-5 py-3 border-b border-border/30">
-            <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Recent Scans</h4>
-          </div>
-          {log.map((l, i) => (
-            <div key={i} className="flex items-center justify-between px-5 py-4 text-sm bg-background/30 hover:bg-background/50 transition-colors">
-              <div className="flex items-center gap-4 min-w-0">
-                {l.ok ? (
-                  <div className="h-8 w-8 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
-                    <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                  </div>
-                ) : (
-                  <div className="h-8 w-8 rounded-full bg-destructive/10 flex items-center justify-center shrink-0">
-                    <XCircle className="h-5 w-5 text-destructive" />
-                  </div>
-                )}
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <code className="font-mono text-sm font-bold tracking-wider">{l.code}</code>
-                    {l.ok && <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded">+50 PTS</span>}
-                  </div>
-                  {l.note && <p className={cn("text-xs mt-0.5 font-medium truncate", l.ok ? "text-muted-foreground" : "text-destructive/80")}>{l.note}</p>}
-                </div>
-              </div>
-              <span className="text-[10px] text-muted-foreground font-bold tracking-widest shrink-0 ml-4">{l.t}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+    <form 
+      onSubmit={(e) => { e.preventDefault(); if (code.trim()) scanMutation.mutate(code); }}
+      className="flex gap-2"
+    >
+      <Input
+        value={code}
+        onChange={(e) => setCode(e.target.value.toUpperCase())}
+        placeholder="BOOTH CODE"
+        disabled={scanMutation.isPending}
+        className="h-9 rounded-lg bg-white/5 border-white/10 font-mono text-xs text-center tracking-widest placeholder:tracking-normal placeholder:font-sans"
+        maxLength={8}
+      />
+      <Button 
+        type="submit" 
+        disabled={scanMutation.isPending || !code.trim()} 
+        size="sm"
+        className="bg-brand-gradient text-white rounded-lg font-semibold px-3 h-9 shrink-0 text-xs"
+      >
+        {scanMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Scan"}
+      </Button>
+    </form>
   );
+}
+
+/** Time-aware greeting */
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning,";
+  if (hour < 17) return "Good afternoon,";
+  return "Good evening,";
 }

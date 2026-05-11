@@ -36,7 +36,6 @@ import { Route as OrganizerTeamRouteImport } from './routes/organizer.team'
 import { Route as OrganizerSettingsRouteImport } from './routes/organizer.settings'
 import { Route as OrganizerScanRouteImport } from './routes/organizer.scan'
 import { Route as OrganizerNewRouteImport } from './routes/organizer.new'
-import { Route as EventsEventIdRouteImport } from './routes/events.$eventId'
 import { Route as CollegesCollegeSlugRouteImport } from './routes/colleges.$collegeSlug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
@@ -53,10 +52,12 @@ import { Route as StudentTicketsRouteImport } from './routes/_student.tickets'
 import { Route as StudentSocialRouteImport } from './routes/_student.social'
 import { Route as StudentShopRouteImport } from './routes/_student.shop'
 import { Route as StudentSettingsRouteImport } from './routes/_student.settings'
+import { Route as StudentEventsRouteImport } from './routes/_student.events'
 import { Route as StudentDashboardRouteImport } from './routes/_student.dashboard'
 import { Route as OrganizerEventsIndexRouteImport } from './routes/organizer.events.index'
 import { Route as StudentEventsIndexRouteImport } from './routes/_student.events.index'
 import { Route as OrganizerEventsEventIdRouteImport } from './routes/organizer.events.$eventId'
+import { Route as StudentEventsEventIdRouteImport } from './routes/_student.events.$eventId'
 import { Route as OrganizerEventsEventIdEditRouteImport } from './routes/organizer.events.$eventId.edit'
 
 const TermsRoute = TermsRouteImport.update({
@@ -193,11 +194,6 @@ const OrganizerNewRoute = OrganizerNewRouteImport.update({
   path: '/new',
   getParentRoute: () => OrganizerRoute,
 } as any)
-const EventsEventIdRoute = EventsEventIdRouteImport.update({
-  id: '/$eventId',
-  path: '/$eventId',
-  getParentRoute: () => EventsRoute,
-} as any)
 const CollegesCollegeSlugRoute = CollegesCollegeSlugRouteImport.update({
   id: '/$collegeSlug',
   path: '/$collegeSlug',
@@ -278,6 +274,11 @@ const StudentSettingsRoute = StudentSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => StudentRoute,
 } as any)
+const StudentEventsRoute = StudentEventsRouteImport.update({
+  id: '/events',
+  path: '/events',
+  getParentRoute: () => StudentRoute,
+} as any)
 const StudentDashboardRoute = StudentDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -289,14 +290,19 @@ const OrganizerEventsIndexRoute = OrganizerEventsIndexRouteImport.update({
   getParentRoute: () => OrganizerRoute,
 } as any)
 const StudentEventsIndexRoute = StudentEventsIndexRouteImport.update({
-  id: '/events/',
-  path: '/events/',
-  getParentRoute: () => StudentRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => StudentEventsRoute,
 } as any)
 const OrganizerEventsEventIdRoute = OrganizerEventsEventIdRouteImport.update({
   id: '/events/$eventId',
   path: '/events/$eventId',
   getParentRoute: () => OrganizerRoute,
+} as any)
+const StudentEventsEventIdRoute = StudentEventsEventIdRouteImport.update({
+  id: '/$eventId',
+  path: '/$eventId',
+  getParentRoute: () => StudentEventsRoute,
 } as any)
 const OrganizerEventsEventIdEditRoute =
   OrganizerEventsEventIdEditRouteImport.update({
@@ -312,7 +318,7 @@ export interface FileRoutesByFullPath {
   '/blog': typeof BlogRouteWithChildren
   '/colleges': typeof CollegesRouteWithChildren
   '/cookie-policy': typeof CookiePolicyRoute
-  '/events': typeof EventsRouteWithChildren
+  '/events': typeof StudentEventsRouteWithChildren
   '/login': typeof LoginRoute
   '/organizer': typeof OrganizerRouteWithChildren
   '/privacy': typeof PrivacyRoute
@@ -338,7 +344,6 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/colleges/$collegeSlug': typeof CollegesCollegeSlugRoute
-  '/events/$eventId': typeof EventsEventIdRoute
   '/organizer/new': typeof OrganizerNewRoute
   '/organizer/scan': typeof OrganizerScanRoute
   '/organizer/settings': typeof OrganizerSettingsRoute
@@ -350,6 +355,7 @@ export interface FileRoutesByFullPath {
   '/blog/': typeof BlogIndexRoute
   '/colleges/': typeof CollegesIndexRoute
   '/organizer/': typeof OrganizerIndexRoute
+  '/events/$eventId': typeof StudentEventsEventIdRoute
   '/organizer/events/$eventId': typeof OrganizerEventsEventIdRouteWithChildren
   '/events/': typeof StudentEventsIndexRoute
   '/organizer/events/': typeof OrganizerEventsIndexRoute
@@ -384,7 +390,6 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/colleges/$collegeSlug': typeof CollegesCollegeSlugRoute
-  '/events/$eventId': typeof EventsEventIdRoute
   '/organizer/new': typeof OrganizerNewRoute
   '/organizer/scan': typeof OrganizerScanRoute
   '/organizer/settings': typeof OrganizerSettingsRoute
@@ -396,6 +401,7 @@ export interface FileRoutesByTo {
   '/blog': typeof BlogIndexRoute
   '/colleges': typeof CollegesIndexRoute
   '/organizer': typeof OrganizerIndexRoute
+  '/events/$eventId': typeof StudentEventsEventIdRoute
   '/organizer/events/$eventId': typeof OrganizerEventsEventIdRouteWithChildren
   '/organizer/events': typeof OrganizerEventsIndexRoute
   '/organizer/events/$eventId/edit': typeof OrganizerEventsEventIdEditRoute
@@ -409,7 +415,7 @@ export interface FileRoutesById {
   '/blog': typeof BlogRouteWithChildren
   '/colleges': typeof CollegesRouteWithChildren
   '/cookie-policy': typeof CookiePolicyRoute
-  '/events': typeof EventsRouteWithChildren
+  '/events': typeof EventsRoute
   '/login': typeof LoginRoute
   '/organizer': typeof OrganizerRouteWithChildren
   '/privacy': typeof PrivacyRoute
@@ -419,6 +425,7 @@ export interface FileRoutesById {
   '/talent': typeof TalentRoute
   '/terms': typeof TermsRoute
   '/_student/dashboard': typeof StudentDashboardRoute
+  '/_student/events': typeof StudentEventsRouteWithChildren
   '/_student/settings': typeof StudentSettingsRoute
   '/_student/shop': typeof StudentShopRoute
   '/_student/social': typeof StudentSocialRoute
@@ -435,7 +442,6 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/colleges/$collegeSlug': typeof CollegesCollegeSlugRoute
-  '/events/$eventId': typeof EventsEventIdRoute
   '/organizer/new': typeof OrganizerNewRoute
   '/organizer/scan': typeof OrganizerScanRoute
   '/organizer/settings': typeof OrganizerSettingsRoute
@@ -447,6 +453,7 @@ export interface FileRoutesById {
   '/blog/': typeof BlogIndexRoute
   '/colleges/': typeof CollegesIndexRoute
   '/organizer/': typeof OrganizerIndexRoute
+  '/_student/events/$eventId': typeof StudentEventsEventIdRoute
   '/organizer/events/$eventId': typeof OrganizerEventsEventIdRouteWithChildren
   '/_student/events/': typeof StudentEventsIndexRoute
   '/organizer/events/': typeof OrganizerEventsIndexRoute
@@ -487,7 +494,6 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/blog/$slug'
     | '/colleges/$collegeSlug'
-    | '/events/$eventId'
     | '/organizer/new'
     | '/organizer/scan'
     | '/organizer/settings'
@@ -499,6 +505,7 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/colleges/'
     | '/organizer/'
+    | '/events/$eventId'
     | '/organizer/events/$eventId'
     | '/events/'
     | '/organizer/events/'
@@ -533,7 +540,6 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/blog/$slug'
     | '/colleges/$collegeSlug'
-    | '/events/$eventId'
     | '/organizer/new'
     | '/organizer/scan'
     | '/organizer/settings'
@@ -545,6 +551,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/colleges'
     | '/organizer'
+    | '/events/$eventId'
     | '/organizer/events/$eventId'
     | '/organizer/events'
     | '/organizer/events/$eventId/edit'
@@ -567,6 +574,7 @@ export interface FileRouteTypes {
     | '/talent'
     | '/terms'
     | '/_student/dashboard'
+    | '/_student/events'
     | '/_student/settings'
     | '/_student/shop'
     | '/_student/social'
@@ -583,7 +591,6 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/blog/$slug'
     | '/colleges/$collegeSlug'
-    | '/events/$eventId'
     | '/organizer/new'
     | '/organizer/scan'
     | '/organizer/settings'
@@ -595,6 +602,7 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/colleges/'
     | '/organizer/'
+    | '/_student/events/$eventId'
     | '/organizer/events/$eventId'
     | '/_student/events/'
     | '/organizer/events/'
@@ -609,7 +617,7 @@ export interface RootRouteChildren {
   BlogRoute: typeof BlogRouteWithChildren
   CollegesRoute: typeof CollegesRouteWithChildren
   CookiePolicyRoute: typeof CookiePolicyRoute
-  EventsRoute: typeof EventsRouteWithChildren
+  EventsRoute: typeof EventsRoute
   LoginRoute: typeof LoginRoute
   OrganizerRoute: typeof OrganizerRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
@@ -814,13 +822,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrganizerNewRouteImport
       parentRoute: typeof OrganizerRoute
     }
-    '/events/$eventId': {
-      id: '/events/$eventId'
-      path: '/$eventId'
-      fullPath: '/events/$eventId'
-      preLoaderRoute: typeof EventsEventIdRouteImport
-      parentRoute: typeof EventsRoute
-    }
     '/colleges/$collegeSlug': {
       id: '/colleges/$collegeSlug'
       path: '/$collegeSlug'
@@ -933,6 +934,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudentSettingsRouteImport
       parentRoute: typeof StudentRoute
     }
+    '/_student/events': {
+      id: '/_student/events'
+      path: '/events'
+      fullPath: '/events'
+      preLoaderRoute: typeof StudentEventsRouteImport
+      parentRoute: typeof StudentRoute
+    }
     '/_student/dashboard': {
       id: '/_student/dashboard'
       path: '/dashboard'
@@ -949,10 +957,10 @@ declare module '@tanstack/react-router' {
     }
     '/_student/events/': {
       id: '/_student/events/'
-      path: '/events'
+      path: '/'
       fullPath: '/events/'
       preLoaderRoute: typeof StudentEventsIndexRouteImport
-      parentRoute: typeof StudentRoute
+      parentRoute: typeof StudentEventsRoute
     }
     '/organizer/events/$eventId': {
       id: '/organizer/events/$eventId'
@@ -960,6 +968,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/organizer/events/$eventId'
       preLoaderRoute: typeof OrganizerEventsEventIdRouteImport
       parentRoute: typeof OrganizerRoute
+    }
+    '/_student/events/$eventId': {
+      id: '/_student/events/$eventId'
+      path: '/$eventId'
+      fullPath: '/events/$eventId'
+      preLoaderRoute: typeof StudentEventsEventIdRouteImport
+      parentRoute: typeof StudentEventsRoute
     }
     '/organizer/events/$eventId/edit': {
       id: '/organizer/events/$eventId/edit'
@@ -971,22 +986,36 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface StudentEventsRouteChildren {
+  StudentEventsEventIdRoute: typeof StudentEventsEventIdRoute
+  StudentEventsIndexRoute: typeof StudentEventsIndexRoute
+}
+
+const StudentEventsRouteChildren: StudentEventsRouteChildren = {
+  StudentEventsEventIdRoute: StudentEventsEventIdRoute,
+  StudentEventsIndexRoute: StudentEventsIndexRoute,
+}
+
+const StudentEventsRouteWithChildren = StudentEventsRoute._addFileChildren(
+  StudentEventsRouteChildren,
+)
+
 interface StudentRouteChildren {
   StudentDashboardRoute: typeof StudentDashboardRoute
+  StudentEventsRoute: typeof StudentEventsRouteWithChildren
   StudentSettingsRoute: typeof StudentSettingsRoute
   StudentShopRoute: typeof StudentShopRoute
   StudentSocialRoute: typeof StudentSocialRoute
   StudentTicketsRoute: typeof StudentTicketsRoute
-  StudentEventsIndexRoute: typeof StudentEventsIndexRoute
 }
 
 const StudentRouteChildren: StudentRouteChildren = {
   StudentDashboardRoute: StudentDashboardRoute,
+  StudentEventsRoute: StudentEventsRouteWithChildren,
   StudentSettingsRoute: StudentSettingsRoute,
   StudentShopRoute: StudentShopRoute,
   StudentSocialRoute: StudentSocialRoute,
   StudentTicketsRoute: StudentTicketsRoute,
-  StudentEventsIndexRoute: StudentEventsIndexRoute,
 }
 
 const StudentRouteWithChildren =
@@ -1048,17 +1077,6 @@ const CollegesRouteWithChildren = CollegesRoute._addFileChildren(
   CollegesRouteChildren,
 )
 
-interface EventsRouteChildren {
-  EventsEventIdRoute: typeof EventsEventIdRoute
-}
-
-const EventsRouteChildren: EventsRouteChildren = {
-  EventsEventIdRoute: EventsEventIdRoute,
-}
-
-const EventsRouteWithChildren =
-  EventsRoute._addFileChildren(EventsRouteChildren)
-
 interface OrganizerEventsEventIdRouteChildren {
   OrganizerEventsEventIdEditRoute: typeof OrganizerEventsEventIdEditRoute
 }
@@ -1105,7 +1123,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogRoute: BlogRouteWithChildren,
   CollegesRoute: CollegesRouteWithChildren,
   CookiePolicyRoute: CookiePolicyRoute,
-  EventsRoute: EventsRouteWithChildren,
+  EventsRoute: EventsRoute,
   LoginRoute: LoginRoute,
   OrganizerRoute: OrganizerRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
