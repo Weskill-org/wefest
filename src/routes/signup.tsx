@@ -1,13 +1,13 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ShieldCheck, GraduationCap, Building2, Briefcase } from "lucide-react";
+import { GraduationCap, Building2, Briefcase, ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 type SignupSearch = {
   redirect?: string;
@@ -20,10 +20,36 @@ export const Route = createFileRoute("/signup")({
     };
   },
   head: () => ({ meta: [{ title: "Sign up — WeFest" }, { name: "description", content: "Create your WeFest account as a Student, College, or Company." }] }),
+  beforeLoad: async () => {
+    if (typeof window === 'undefined') return;
+    const { data: { session } } = await supabase.auth.getSession();
+    let userId = session?.user?.id;
+    if (!userId) {
+      const { data: { user } } = await supabase.auth.getUser();
+      userId = user?.id;
+    }
+    if (userId) {
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .maybeSingle();
+      const role = roleData?.role || "student";
+      if (role === "company") throw redirect({ to: "/sponsor/dashboard" });
+      if (role === "college") throw redirect({ to: "/organizer" });
+      throw redirect({ to: "/dashboard" });
+    }
+  },
   component: Signup,
 });
 
 type Role = "student" | "college" | "company";
+
+const roles = [
+  { value: "student" as Role, label: "Student", icon: GraduationCap, description: "Most popular" },
+  { value: "college" as Role, label: "College", icon: Building2, description: "Organize events" },
+  { value: "company" as Role, label: "Company", icon: Briefcase, description: "Sponsor fests" },
+];
 
 function Signup() {
   const navigate = useNavigate();
@@ -89,94 +115,152 @@ function Signup() {
   };
 
   return (
-    <div className="container mx-auto max-w-3xl px-6 py-16">
-      <div className="text-center">
-        <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/40 px-3 py-1 text-xs">
-          <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Identity-verified network
+    <div className="min-h-screen flex">
+      {/* Left side — branding panel */}
+      <div className="hidden lg:flex lg:w-[45%] bg-brand-gradient relative overflow-hidden items-center justify-center p-12">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-20 left-10 h-40 w-40 rounded-full bg-white blur-3xl" />
+          <div className="absolute bottom-20 right-10 h-60 w-60 rounded-full bg-white blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-96 w-96 rounded-full bg-white/20 blur-[120px]" />
         </div>
-        <h1 className="mt-4 font-display text-4xl font-black tracking-tight md:text-5xl">
-          Join <span className="text-gradient">WeFest</span>
-        </h1>
-        <p className="mt-3 text-muted-foreground">Pick how you'll use WeFest.</p>
+        <div className="relative z-10 max-w-md text-white">
+          <Link to="/" className="inline-flex items-center gap-2 text-white/60 hover:text-white text-sm font-medium mb-12 group">
+            <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+            Back to home
+          </Link>
+          <h1 className="text-5xl font-black tracking-tight leading-tight">
+            Join the<br />WeFest Network
+          </h1>
+          <p className="mt-6 text-lg text-white/70 leading-relaxed">
+            Create your account to discover festivals, book tickets, connect with students, and manage events.
+          </p>
+          <div className="mt-12 flex items-center gap-6 text-sm text-white/50">
+            <div className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
+              <span>Free forever</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.6)]" />
+              <span>Instant access</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <Tabs value={role} onValueChange={(v) => setRole(v as Role)} className="mt-8">
-        <TabsList className="grid h-auto w-full max-w-2xl mx-auto grid-cols-3 gap-4 bg-transparent p-0">
-          <TabsTrigger
-            value="student"
-            className="flex h-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-primary/40 bg-brand-gradient/10 p-4 text-sm font-bold transition-all data-[state=active]:scale-105 data-[state=active]:border-primary data-[state=active]:bg-brand-gradient data-[state=active]:shadow-glow sm:p-6 sm:text-base"
-          >
-            <GraduationCap className="h-6 w-6 sm:h-8 sm:w-8" />
-            <span>Student</span>
-            <span className="text-[10px] font-normal opacity-80 sm:text-xs">Most popular</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="college"
-            className="flex h-full flex-col items-center justify-center gap-2 rounded-xl border border-border/60 bg-background/40 p-4 text-sm font-medium transition-all data-[state=active]:scale-105 data-[state=active]:border-primary data-[state=active]:bg-accent/10 sm:p-6 sm:text-base"
-          >
-            <Building2 className="h-6 w-6 sm:h-8 sm:w-8" />
-            <span>College</span>
-            <span className="text-[10px] font-normal opacity-0 sm:text-xs">Hidden</span> {/* Invisible spacer to match height */}
-          </TabsTrigger>
-          <TabsTrigger
-            value="company"
-            className="flex h-full flex-col items-center justify-center gap-2 rounded-xl border border-border/60 bg-background/40 p-4 text-sm font-medium transition-all data-[state=active]:scale-105 data-[state=active]:border-primary data-[state=active]:bg-accent/10 sm:p-6 sm:text-base"
-          >
-            <Briefcase className="h-6 w-6 sm:h-8 sm:w-8" />
-            <span>Company</span>
-            <span className="text-[10px] font-normal opacity-0 sm:text-xs">Hidden</span> {/* Invisible spacer to match height */}
-          </TabsTrigger>
-        </TabsList>
+      {/* Right side — signup form */}
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-12 bg-background overflow-y-auto">
+        <div className="w-full max-w-md">
+          {/* Mobile back link */}
+          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground text-sm font-medium mb-6 lg:hidden group">
+            <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+            Back to home
+          </Link>
 
-        <TabsContent value={role} className="mt-8">
-          <form onSubmit={submit} className="glass mx-auto max-w-md rounded-2xl p-8">
-            <div className="grid gap-4">
-              <div className="grid gap-1.5">
-                <Label htmlFor="name">{role === "college" ? "College name" : role === "company" ? "Company name" : "Full name"}</Label>
-                <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} />
-              </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" required type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@domain.com" />
-              </div>
-              {role === "student" && (
-                <div className="grid gap-1.5">
-                  <Label htmlFor="college">Your College</Label>
-                  <select 
-                    id="college"
-                    required
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    value={collegeId}
-                    onChange={(e) => setCollegeId(e.target.value)}
-                  >
-                    <option value="">Select your college</option>
-                    {colleges?.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              <div className="grid gap-1.5">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" required type="password" minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
-              </div>
-              <Button type="submit" size="lg" disabled={loading} className="bg-brand-gradient text-primary-foreground hover:opacity-90">
-                {loading ? "Creating…" : "Create account"}
-              </Button>
-              <div className="relative my-1 text-center text-xs text-muted-foreground">
-                <span className="bg-background/40 px-2">or</span>
-                <div className="absolute inset-x-0 top-1/2 -z-10 h-px bg-border/60" />
-              </div>
-              <Button type="button" variant="outline" size="lg" disabled={loading} onClick={sendMagicLink}>
-                Email me a magic link
-              </Button>
-              <p className="text-center text-xs text-muted-foreground">
-                Already have an account? <Link to="/login" search={{ redirect: search.redirect }} className="text-primary hover:underline">Sign in</Link>
-              </p>
+          <h1 className="text-3xl font-bold tracking-tight">Create account</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Pick how you'll use WeFest.</p>
+
+          {/* Role Selector */}
+          <div className="mt-6 grid grid-cols-3 gap-2">
+            {roles.map(r => (
+              <button
+                key={r.value}
+                type="button"
+                onClick={() => setRole(r.value)}
+                className={cn(
+                  "flex flex-col items-center gap-1.5 rounded-xl border-2 p-3 text-center transition-all",
+                  role === r.value
+                    ? "border-primary bg-primary/5 shadow-glow"
+                    : "border-white/10 hover:border-white/20 bg-white/[0.02]"
+                )}
+              >
+                <r.icon className={cn("h-5 w-5", role === r.value ? "text-primary" : "text-muted-foreground")} />
+                <span className={cn("text-xs font-bold", role === r.value ? "text-primary" : "text-foreground")}>{r.label}</span>
+                <span className="text-[9px] text-muted-foreground">{r.description}</span>
+              </button>
+            ))}
+          </div>
+
+          <form onSubmit={submit} className="mt-6 space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                {role === "college" ? "College name" : role === "company" ? "Company name" : "Full name"}
+              </Label>
+              <Input 
+                required 
+                value={name} 
+                onChange={(e) => setName(e.target.value)} 
+                className="h-11 rounded-xl bg-white/[0.03] border-white/10"
+              />
             </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email</Label>
+              <Input 
+                required 
+                type="email" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+                placeholder="you@domain.com" 
+                className="h-11 rounded-xl bg-white/[0.03] border-white/10"
+              />
+            </div>
+            {role === "student" && (
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Your College</Label>
+                <select 
+                  required
+                  className="flex h-11 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  value={collegeId}
+                  onChange={(e) => setCollegeId(e.target.value)}
+                >
+                  <option value="">Select your college</option>
+                  {colleges?.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Password</Label>
+              <Input 
+                required 
+                type="password" 
+                minLength={6} 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                className="h-11 rounded-xl bg-white/[0.03] border-white/10"
+              />
+            </div>
+            <Button 
+              type="submit" 
+              size="lg" 
+              disabled={loading} 
+              className="w-full h-12 rounded-xl bg-brand-gradient text-white font-bold text-sm shadow-glow mt-2"
+            >
+              {loading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Creating…</> : "Create account"}
+            </Button>
+            
+            <div className="relative my-1 text-center">
+              <span className="relative z-10 bg-background px-3 text-xs text-muted-foreground">or</span>
+              <div className="absolute inset-x-0 top-1/2 -z-0 h-px bg-white/10" />
+            </div>
+            
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="lg" 
+              disabled={loading} 
+              onClick={sendMagicLink}
+              className="w-full h-11 rounded-xl border-white/10 text-sm font-semibold"
+            >
+              Email me a magic link
+            </Button>
+            
+            <p className="text-center text-xs text-muted-foreground pt-1">
+              Already have an account? <Link to="/login" search={{ redirect: search.redirect }} className="text-primary hover:underline font-semibold">Sign in</Link>
+            </p>
           </form>
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
     </div>
   );
 }

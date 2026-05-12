@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Sparkles } from "lucide-react";
+import { Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useRegion } from "@/contexts/RegionContext";
 import { Globe } from "lucide-react";
 
+// Public marketing navigation — only shown to non-logged-in visitors
 const marketingNav = [
   { to: "/events", label: "Events" },
   { to: "/colleges", label: "Colleges" },
@@ -15,33 +16,11 @@ const marketingNav = [
   { to: "/blog", label: "Blog" },
 ];
 
-const studentNav = [
-  { to: "/dashboard", label: "Dashboard" },
-  { to: "/events", label: "Explore Fests" },
-  { to: "/tickets", label: "My Tickets" },
-  { to: "/shop", label: "Shop" },
-  { to: "/social", label: "Network" },
-];
-
-const organizerNav = [
-  { to: "/organizer", label: "Dashboard" },
-  { to: "/organizer/new", label: "Create Event" },
-  { to: "/organizer/scan", label: "Scan Tickets" },
-  { to: "/ambassadors", label: "Ambassadors" },
-];
-
-const sponsorNav = [
-  { to: "/sponsor/dashboard", label: "Dashboard" },
-  { to: "/sponsors", label: "Discover Fests" },
-  { to: "/sponsor/scan", label: "Scan Booth" },
-];
-
 export function SiteHeader() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
-
-  const [isAdmin, setIsAdmin] = useState(false);
   const [userRole, setUserRole] = useState<string>("none");
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const checkRole = async (user: User | null) => {
@@ -79,12 +58,13 @@ export function SiteHeader() {
     navigate({ to: "/" });
   };
 
-  let currentNav = marketingNav;
-  if (user) {
-    if (userRole === "company") currentNav = sponsorNav;
-    else if (userRole === "college") currentNav = organizerNav;
-    else currentNav = studentNav;
-  }
+  // Determine the correct dashboard URL for the user's role
+  const getDashboardUrl = () => {
+    if (isAdmin) return "/admin";
+    if (userRole === "company") return "/sponsor/dashboard";
+    if (userRole === "college") return "/organizer";
+    return "/dashboard";
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/70 backdrop-blur-xl">
@@ -97,33 +77,31 @@ export function SiteHeader() {
             we<span className="text-gradient">fest</span>
           </span>
         </Link>
-        <nav className="hidden items-center gap-1 md:flex">
-          {currentNav.map((n) => (
-            <Link
-              key={n.to}
-              to={n.to}
-              className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent/10 hover:text-foreground"
-              activeProps={{ className: "text-foreground bg-accent/10" }}
-            >
-              {n.label}
-            </Link>
-          ))}
-          {isAdmin && (
-            <Link
-              to="/admin"
-              className="rounded-md px-3 py-2 text-sm font-semibold text-red-500 transition-colors hover:bg-red-500/10"
-              activeProps={{ className: "bg-red-500/10" }}
-            >
-              Admin
-            </Link>
-          )}
-        </nav>
+
+        {/* Public marketing nav — only for visitors */}
+        {!user && (
+          <nav className="hidden items-center gap-1 md:flex">
+            {marketingNav.map((n) => (
+              <Link
+                key={n.to}
+                to={n.to}
+                className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent/10 hover:text-foreground"
+                activeProps={{ className: "text-foreground bg-accent/10" }}
+              >
+                {n.label}
+              </Link>
+            ))}
+          </nav>
+        )}
+
         <div className="flex items-center gap-2">
           {user ? (
             <>
               <span className="hidden text-xs text-muted-foreground md:inline">{user.email}</span>
-              <Button asChild variant="ghost" size="sm" className="hidden md:inline-flex">
-                <Link to={userRole === "college" ? "/organizer/settings" : "/settings"}>Settings</Link>
+              <Button asChild size="sm" className="bg-brand-gradient text-primary-foreground hover:opacity-90">
+                <Link to={getDashboardUrl()}>
+                  Open Dashboard <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                </Link>
               </Button>
               <Button variant="ghost" size="sm" onClick={signOut}>Sign out</Button>
             </>

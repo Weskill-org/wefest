@@ -13,8 +13,16 @@ export const Route = createFileRoute("/_student")({
   beforeLoad: async ({ location }) => {
     if (typeof window === 'undefined') return;
 
+    // Try session first, fall back to getUser for reliability
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) {
+    let currentUser = session?.user ?? null;
+    
+    if (!currentUser) {
+      const { data: { user } } = await supabase.auth.getUser();
+      currentUser = user;
+    }
+
+    if (!currentUser) {
       throw redirect({
         to: '/login',
         search: { redirect: location.href },
@@ -30,13 +38,13 @@ export const Route = createFileRoute("/_student")({
           *,
           colleges (id, name)
         `)
-        .eq("user_id", session.user.id)
+        .eq("id", currentUser.id)
         .maybeSingle();
       profile = data;
     } catch (e) {}
 
     return {
-      user: session.user,
+      user: currentUser,
       profile
     };
   },
@@ -45,7 +53,7 @@ export const Route = createFileRoute("/_student")({
 
 const navLinks = [
   { to: "/dashboard", label: "Overview", icon: LayoutDashboard, exact: true },
-  { to: "/events", label: "Explore Fests", icon: CalendarRange, exact: false },
+  { to: "/explore", label: "Explore Fests", icon: CalendarRange, exact: false },
   { to: "/tickets", label: "My Tickets", icon: Ticket, exact: false },
   { to: "/social", label: "Campus Network", icon: Users, exact: false },
   { to: "/shop", label: "Campus Store", icon: ShoppingBag, exact: false },

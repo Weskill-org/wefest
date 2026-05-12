@@ -144,5 +144,9 @@ function StatusBadge({ status }: { status: string }) {
   if (status === 'approved') return <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] font-bold text-emerald-500 uppercase">Approved</span>;
   if (status === 'rejected') return <span className="inline-flex items-center rounded-full bg-red-500/10 px-2 py-1 text-[10px] font-bold text-red-500 uppercase">Rejected</span>;
   if (status === 'locked') return <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2 py-1 text-[10px] font-bold text-amber-500 uppercase">Sales Locked</span>;
+  if (status === 'published') return <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] font-bold text-emerald-500 uppercase">Published</span>;
+  if (status === 'draft') return <span className="inline-flex items-center rounded-full bg-slate-500/10 px-2 py-1 text-[10px] font-bold text-slate-500 uppercase">Draft</span>;
+  if (status === 'archived') return <span className="inline-flex items-center rounded-full bg-slate-500/10 px-2 py-1 text-[10px] font-bold text-slate-500 uppercase">Archived</span>;
+  if (status === 'cancelled') return <span className="inline-flex items-center rounded-full bg-red-500/10 px-2 py-1 text-[10px] font-bold text-red-500 uppercase">Cancelled</span>;
   return <span className="inline-flex items-center rounded-full bg-blue-500/10 px-2 py-1 text-[10px] font-bold text-blue-500 uppercase">Pending</span>;
 }

@@ -1,0 +1,109 @@
+{
+  "nodes": [
+    {
+      "id": "wefest_vision",
+      "label": "WeFest Vision",
+      "file_type": "rationale",
+      "source_file": "allfeatures.md"
+    },
+    {
+      "id": "wefest_architecture",
+      "label": "College-Based Multi-Tenant Model",
+      "file_type": "rationale",
+      "source_file": "allfeatures.md"
+    },
+    {
+      "id": "monetization_model",
+      "label": "Monetization Model",
+      "file_type": "rationale",
+      "source_file": "allfeatures.md"
+    },
+    {
+      "id": "marketing_seo",
+      "label": "SEO & Trust Infrastructure",
+      "file_type": "rationale",
+      "source_file": "marketing.md"
+    },
+    {
+      "id": "campus_pulse_blog",
+      "label": "The WeFest Blog",
+      "file_type": "document",
+      "source_file": "marketing.md"
+    },
+    {
+      "id": "campus_ambassador_program",
+      "label": "Campus Ambassador Program (CAP)",
+      "file_type": "document",
+      "source_file": "marketing.md"
+    },
+    {
+      "id": "college_approval_logic",
+      "label": "College Approval System",
+      "file_type": "rationale",
+      "source_file": "nexttask.md"
+    },
+    {
+      "id": "recent_activity_logic",
+      "label": "Real-time Recent Activity",
+      "file_type": "rationale",
+      "source_file": "nexttask.md"
+    },
+    {
+      "id": "event_status_logic",
+      "label": "Event Status Workflow",
+      "file_type": "rationale",
+      "source_file": "taskfororganizer.md"
+    },
+    {
+      "id": "event_pass_feature",
+      "label": "Customizable Pass Feature",
+      "file_type": "rationale",
+      "source_file": "taskfororganizer.md"
+    }
+  ],
+  "edges": [
+    {
+      "source": "wefest_vision",
+      "target": "wefest_architecture",
+      "relation": "rationale_for",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "allfeatures.md"
+    },
+    {
+      "source": "wefest_architecture",
+      "target": "college_approval_logic",
+      "relation": "rationale_for",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "nexttask.md"
+    },
+    {
+      "source": "event_status_logic",
+      "target": "recent_activity_logic",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "nexttask.md"
+    },
+    {
+      "source": "marketing_seo",
+      "target": "campus_pulse_blog",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "marketing.md"
+    },
+    {
+      "source": "campus_ambassador_program",
+      "target": "wefest_vision",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "marketing.md"
+    }
+  ],
+  "hyperedges": [],
+  "input_tokens": 1200,
+  "output_tokens": 800
+}

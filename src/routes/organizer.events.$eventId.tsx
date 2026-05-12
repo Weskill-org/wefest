@@ -161,9 +161,21 @@ function OrganizerEventDashboard() {
           <h1 className="font-display text-2xl font-black tracking-tight lg:text-3xl">{event.title}</h1>
           <div className="text-sm text-muted-foreground mt-1">Analytics, volunteers, and operations management</div>
         </div>
-        <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-bold">
-          <Link to="/events/$eventId" params={{ eventId: event.id }}>View Public Page</Link>
-        </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
+            event.status === 'published' ? 'bg-emerald-500/10 text-emerald-500' : 
+            event.status === 'draft' ? 'bg-amber-500/10 text-amber-500' : 'bg-muted text-muted-foreground'
+          }`}>
+            {event.status === 'published' ? <Check className="h-3 w-3" /> : null}
+            {event.status}
+          </div>
+          <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-bold">
+            <Link to="/organizer/events/$eventId/edit" params={{ eventId: event.id }}>Edit Event</Link>
+          </Button>
+          <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-bold">
+            <Link to="/events/$eventId" params={{ eventId: event.id }}>View Public Page</Link>
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="analytics" className="">
@@ -175,6 +187,7 @@ function OrganizerEventDashboard() {
           <TabsTrigger value="sponsors">Sponsors ({activeProposals.length})</TabsTrigger>
           <TabsTrigger value="merch">Merchandise ({eventProducts?.length || 0})</TabsTrigger>
           <TabsTrigger value="ambassadors">Ambassadors ({eventPrograms?.length || 0})</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
 
         <TabsContent value="analytics" className="space-y-6">
@@ -628,6 +641,133 @@ function OrganizerEventDashboard() {
                 No ambassador programs active for this event.
               </div>
             )}
+          </div>
+        </TabsContent>
+        <TabsContent value="settings" className="space-y-8">
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="glass rounded-2xl p-8">
+              <h3 className="font-bold text-lg mb-6 flex items-center gap-2"><Activity className="h-5 w-5 text-primary" /> Event Visibility</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-xl border border-border/40">
+                  <div>
+                    <div className="font-bold">Status</div>
+                    <div className="text-xs text-muted-foreground">How this event appears to students</div>
+                  </div>
+                  <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                    event.status === 'published' ? 'bg-emerald-500/10 text-emerald-500' : 
+                    event.status === 'cancelled' ? 'bg-red-500/10 text-red-500' :
+                    'bg-amber-500/10 text-amber-500'
+                  }`}>
+                    {event.status || 'draft'}
+                  </div>
+                </div>
+                <div className="p-4 bg-muted/30 rounded-xl border border-border/40">
+                  <div className="font-bold mb-2">Discovery Tags</div>
+                  <div className="flex flex-wrap gap-2">
+                    {(event.tags as string[] | null)?.length ? (
+                      (event.tags as string[]).map((tag: string) => (
+                        <span key={tag} className="px-2 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded-md">
+                          #{tag}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-xs text-muted-foreground italic">No tags added</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="glass rounded-2xl p-8">
+              <h3 className="font-bold text-lg mb-6 flex items-center gap-2"><Users className="h-5 w-5 text-primary" /> Logistics & Venue</h3>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-muted/30 rounded-xl border border-border/40">
+                    <div className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Venue</div>
+                    <div className="text-sm font-bold">{(event as any).venue || 'TBD'}</div>
+                  </div>
+                  <div className="p-4 bg-muted/30 rounded-xl border border-border/40">
+                    <div className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Time</div>
+                    <div className="text-sm font-bold">{(event as any).time || 'All Day'}</div>
+                  </div>
+                </div>
+                <div className="p-4 bg-muted/30 rounded-xl border border-border/40">
+                  <div className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Committee Members</div>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {(() => {
+                      const members: any[] = (event as any).team_members || [];
+                      if (!members.length) {
+                        return <span className="text-xs text-muted-foreground italic">No team members listed</span>;
+                      }
+                      return members.map((m: any, i: number) => {
+                        const name = typeof m === 'string' ? m : m.name;
+                        const role = typeof m === 'object' ? m.role : undefined;
+                        return (
+                          <span key={i} className="px-2 py-0.5 bg-muted text-muted-foreground text-[10px] font-medium rounded-full border border-border/40">
+                            {name}{role ? ` · ${role}` : ''}
+                          </span>
+                        );
+                      });
+                    })()}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Pass Configuration — correctly reads JSONB object {vip:{...}, normal:{...}} */}
+          <div className="glass rounded-2xl p-8">
+            <h3 className="font-bold text-lg mb-6 flex items-center gap-2"><Ticket className="h-5 w-5 text-primary" /> Pass Configuration</h3>
+            {(() => {
+              const ps = (event as any).pass_settings as { vip?: any; normal?: any } | null | undefined;
+              if (!ps) {
+                return (
+                  <div className="py-8 text-center text-sm text-muted-foreground italic">
+                    Using default pricing: ₹{event.price_from} (Day Pass)
+                  </div>
+                );
+              }
+              const cards = [
+                { key: 'normal', label: 'Normal Pass', data: ps.normal, color: 'bg-muted/30 border-border/40' },
+                { key: 'vip',    label: 'VIP Pass',    data: ps.vip,    color: 'bg-primary/5 border-primary/20' },
+              ].filter(c => c.data);
+              if (!cards.length) {
+                return (
+                  <div className="py-8 text-center text-sm text-muted-foreground italic">
+                    No passes configured yet.
+                  </div>
+                );
+              }
+              return (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {cards.map(({ key, label, data, color }) => (
+                    <div key={key} className={`p-5 rounded-xl border ${color} space-y-3`}>
+                      <div className="flex items-center justify-between">
+                        <div className={`text-xs font-black uppercase tracking-widest ${key === 'vip' ? 'text-primary' : ''}`}>{label}</div>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${data.enabled ? 'bg-emerald-500/10 text-emerald-500' : 'bg-muted text-muted-foreground'}`}>
+                          {data.enabled ? 'Active' : 'Disabled'}
+                        </span>
+                      </div>
+                      <div className="text-2xl font-black text-primary">₹{data.price?.toLocaleString() || 0}</div>
+                      <div className="space-y-1.5 text-[11px] text-muted-foreground">
+                        <div className="flex justify-between">
+                          <span>Duration</span>
+                          <span className="font-bold text-foreground">{data.days || 1} day{(data.days || 1) > 1 ? 's' : ''}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Single day</span>
+                          <span className="font-bold text-foreground">₹{data.single_day_price?.toLocaleString() || 0}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Multi day</span>
+                          <span className="font-bold text-foreground">₹{data.multi_day_price?.toLocaleString() || 0}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         </TabsContent>
       </Tabs>

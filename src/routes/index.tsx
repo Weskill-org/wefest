@@ -17,12 +17,31 @@ export const Route = createFileRoute("/")({
     // Skip auth check on server to prevent flash of wrong content on refresh
     if (typeof window === 'undefined') return;
 
+    // Try session first, then fall back to getUser
+    let userId: string | undefined;
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
+      userId = session.user.id;
+    } else {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) userId = user.id;
+    }
+
+    if (userId) {
+      // Check admin first
+      const { data: adminRow } = await supabase
+        .from("admin_users")
+        .select("id")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (adminRow) {
+        throw redirect({ to: "/admin" });
+      }
+
       const { data: roleData } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", session.user.id)
+        .eq("user_id", userId)
         .maybeSingle();
       
       const role = roleData?.role || "student";
@@ -32,7 +51,7 @@ export const Route = createFileRoute("/")({
       } else if (role === "college") {
         throw redirect({ to: "/organizer" });
       } else {
-        throw redirect({ to: "/tickets" });
+        throw redirect({ to: "/dashboard" });
       }
     }
   },
@@ -43,7 +62,12 @@ function Home() {
   const { data: events, isLoading: loadingEvents } = useQuery({
     queryKey: ["featured-events"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("events").select("*").limit(6).order("attendees", { ascending: false });
+      const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .eq("status", "published")
+        .limit(6)
+        .order("attendees", { ascending: false });
       if (error) throw error;
       return data.map(e => ({
         id: e.id,

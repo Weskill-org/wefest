@@ -343,11 +343,11 @@ function TeamManagement() {
                   <div key={request.id} className="flex items-center justify-between p-4 rounded-xl border border-amber-500/20 bg-amber-500/5">
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center text-sm font-bold shrink-0">
-                        {(request.profiles?.full_name || "U").charAt(0)}
+                        {((request as any).profiles?.full_name || "U").charAt(0)}
                       </div>
                       <div className="min-w-0">
-                        <div className="font-bold text-sm truncate">{request.profiles?.full_name || "Unknown"}</div>
-                        <div className="text-xs text-muted-foreground truncate">{request.profiles?.email}</div>
+                        <div className="font-bold text-sm truncate">{(request as any).profiles?.full_name || "Unknown"}</div>
+                        <div className="text-xs text-muted-foreground truncate">{(request as any).profiles?.email}</div>
                       </div>
                     </div>
                     <div className="flex gap-1.5 shrink-0">
@@ -384,7 +384,7 @@ function TeamManagement() {
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="relative shrink-0">
                         <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-sm font-black text-primary">
-                          {(member.profiles?.full_name || "U").charAt(0).toUpperCase()}
+                          {((member as any).profiles?.full_name || "U").charAt(0).toUpperCase()}
                         </div>
                         {member.role === "admin" && (
                           <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-yellow-500 flex items-center justify-center text-white border-2 border-background">
@@ -394,14 +394,14 @@ function TeamManagement() {
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm truncate">{member.profiles?.full_name || "Unknown"}</span>
+                          <span className="font-bold text-sm truncate">{(member as any).profiles?.full_name || "Unknown"}</span>
                           {member.user_id === userData?.id && (
                             <Badge variant="secondary" className="bg-primary/10 text-primary text-[8px] font-black tracking-widest uppercase px-1.5 py-0">You</Badge>
                           )}
                         </div>
                         <div className="flex items-center gap-2 mt-0.5">
                           <RoleBadge role={member.role} />
-                          <span className="text-[10px] text-muted-foreground">{member.profiles?.email}</span>
+                          <span className="text-[10px] text-muted-foreground">{(member as any).profiles?.email}</span>
                         </div>
                       </div>
                     </div>

@@ -69,8 +69,9 @@ function RootComponent() {
   // Routes that shouldn't show the global header/footer because they have their own layouts
   const isOrganizerRoute = pathname.startsWith("/organizer");
   const isStudentRoute = routerState.matches.some(m => m.routeId === '/_student');
+  const isAuthRoute = pathname === "/login" || pathname === "/signup";
   
-  const hideGlobalLayout = isOrganizerRoute || isStudentRoute;
+  const hideGlobalLayout = isOrganizerRoute || isStudentRoute || isAuthRoute;
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { Calendar, MapPin, Users, ChevronRight, BadgeCheck } from "lucide-react";
 import { useRegion } from "@/contexts/RegionContext";
 import { Button } from "./ui/button";
@@ -19,10 +19,14 @@ export interface Event {
 
 export function EventCard({ event }: { event: Event }) {
   const { formatPrice } = useRegion();
+  const routerState = useRouterState();
+  
+  // Determine if we're inside the student portal layout
+  const isStudentRoute = routerState.matches.some(m => m.routeId === '/_student');
 
   return (
     <Link
-      to="/events/$eventId"
+      to={isStudentRoute ? "/explore/$eventId" : "/events/$eventId"}
       params={{ eventId: event.id }}
       className="group relative flex flex-col overflow-hidden rounded-3xl border border-border/50 bg-muted/30 backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-primary/40 hover:shadow-[0_20px_50px_rgba(var(--brand-primary-rgb),0.1)]"
     >
@@ -100,4 +104,5 @@ export function EventCard({ event }: { event: Event }) {
     </Link>
   );
 }
+
 

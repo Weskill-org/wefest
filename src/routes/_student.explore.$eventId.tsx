@@ -13,7 +13,7 @@ import { useRegion } from "@/contexts/RegionContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 
-export const Route = createFileRoute("/_student/events/$eventId")({
+export const Route = createFileRoute("/_student/explore/$eventId")({
   loader: async ({ params }) => {
     const { data: event, error } = await supabase
       .from("events")
@@ -33,20 +33,43 @@ export const Route = createFileRoute("/_student/events/$eventId")({
   errorComponent: ({ error }) => <div className="px-6 py-20">{error.message}</div>,
   notFoundComponent: () => <div className="px-6 py-20 text-center">
     <h1 className="text-2xl font-bold">Event not found</h1>
-    <Link to="/events" className="mt-4 text-primary hover:underline inline-block">Return to explore</Link>
+    <Link to="/explore" className="mt-4 text-primary hover:underline inline-block">Return to explore</Link>
   </div>,
   component: StudentEventDetail,
 });
 
-const tiers = [
-  { name: "Day Pass", price: 499, perks: ["Single day access", "All open events"] },
-  { name: "Pro Pass", price: 1499, perks: ["All 4 days", "Priority entry", "Pro shows"] },
-  { name: "VIP", price: 3999, perks: ["All access", "Backstage tour", "Merch kit"] },
-];
-
 function StudentEventDetail() {
   const event = Route.useLoaderData();
-  const [selected, setSelected] = useState(1);
+  
+  const tiers = useMemo(() => {
+    const settings = (event as any).pass_settings;
+    if (!settings) {
+      return [
+        { name: "Day Pass", price: 499, perks: ["Single day access", "All open events"] },
+        { name: "Pro Pass", price: 1499, perks: ["All 4 days", "Priority entry", "Pro shows"] },
+        { name: "VIP", price: 3999, perks: ["All access", "Backstage tour", "Merch kit"] },
+      ];
+    }
+
+    const result = [];
+    if (settings.normal?.enabled) {
+      result.push({
+        name: "Normal Pass",
+        price: settings.normal.price,
+        perks: [`${settings.normal.days} Day(s) access`, "All open events", `Single day: ₹${settings.normal.single_day_price}`]
+      });
+    }
+    if (settings.vip?.enabled) {
+      result.push({
+        name: "VIP Pass",
+        price: settings.vip.price,
+        perks: ["Priority Entry", "Backstage Access", "VIP Lounge", `Multi-day: ₹${settings.vip.multi_day_price}`]
+      });
+    }
+    return result;
+  }, [event]);
+
+  const [selected, setSelected] = useState(0);
   const [chatMsg, setChatMsg] = useState("");
   const queryClient = useQueryClient();
   const { formatPrice } = useRegion();
@@ -90,7 +113,7 @@ function StudentEventDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("event_chat_messages")
-        .select("*, auth_users:user_id(id)")
+        .select("*")
         .eq("event_id", event.id)
         .order("created_at", { ascending: true });
       if (error) throw error;
@@ -132,7 +155,7 @@ function StudentEventDetail() {
           This event is exclusively for students of <span className="font-semibold text-foreground">{event.college_name}</span>. You do not have permission to view or participate in this festival.
         </p>
         <Button asChild className="bg-brand-gradient text-white font-bold shadow-glow">
-          <Link to="/events">Return to Explore</Link>
+          <Link to="/explore">Return to Explore</Link>
         </Button>
       </div>
     );
@@ -219,7 +242,7 @@ function StudentEventDetail() {
       <div className={`relative h-[300px] bg-gradient-to-br ${event.cover}`}>
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
         <div className="relative h-full px-6 sm:px-8 flex flex-col justify-between py-8 max-w-[1200px] mx-auto">
-          <Link to="/events" className="inline-flex items-center gap-2 text-sm text-white/80 hover:text-white group w-fit">
+          <Link to="/explore" className="inline-flex items-center gap-2 text-sm text-white/80 hover:text-white group w-fit">
             <div className="h-8 w-8 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center transition-transform group-hover:-translate-x-1">
               <ArrowLeft className="h-4 w-4" />
             </div>
@@ -238,6 +261,15 @@ function StudentEventDetail() {
             </div>
             <div className="text-xs font-bold text-white/60 uppercase tracking-tighter mb-1">{event.college_name} Presents</div>
             <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[0.9]">{event.title}</h1>
+            {(event as any).tags && (event as any).tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-4">
+                {(event as any).tags.map((tag: string) => (
+                  <span key={tag} className="text-[10px] font-bold uppercase tracking-widest text-white/60 bg-white/5 px-2 py-0.5 rounded border border-white/10">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -248,7 +280,13 @@ function StudentEventDetail() {
           <section>
             <div className="flex flex-wrap gap-4 text-sm text-muted-foreground bg-muted/30 p-4 rounded-2xl border border-border/40 inline-flex">
               <span className="flex items-center gap-2"><Calendar className="h-4 w-4 text-primary" />{new Date(event.date).toDateString()}</span>
+              {(event as any).time && (
+                <span className="flex items-center gap-2 border-l border-border/40 pl-4"><Calendar className="h-4 w-4 text-primary" />{(event as any).time}</span>
+              )}
               <span className="flex items-center gap-2 border-l border-border/40 pl-4"><MapPin className="h-4 w-4 text-primary" />{event.city}</span>
+              {(event as any).venue && (
+                <span className="flex items-center gap-2 border-l border-border/40 pl-4"><MapPin className="h-4 w-4 text-primary" />{(event as any).venue}</span>
+              )}
               <span className="flex items-center gap-2 border-l border-border/40 pl-4"><Users className="h-4 w-4 text-primary" />{event.attendees.toLocaleString("en-IN")} capacity</span>
             </div>
             <p className="mt-6 text-lg leading-relaxed text-foreground/80 font-medium">{event.description}</p>

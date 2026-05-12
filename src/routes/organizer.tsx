@@ -99,9 +99,9 @@ const sidebarLinks = [
 ];
 
 function OrganizerLayout() {
-  const ctx = Route.useRouteContext();
-  const membership = ctx.membership as any;
-  const user = ctx.user as any;
+  const ctx = Route.useRouteContext() as any;
+  const membership = ctx?.membership;
+  const user = ctx?.user;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
@@ -286,7 +286,8 @@ function OrganizerLayout() {
           </div>
         </div>
 
-        <Outlet context={{ user, membership }} />
+        {/* @ts-ignore */}
+        <Outlet context={{ user, membership } as any} />
       </main>
     </div>
   );

@@ -50,7 +50,7 @@ BEGIN
 
       -- Create new college — APPROVED immediately on signup
       INSERT INTO public.colleges (name, slug, status, domain, city)
-      VALUES (_college_name, _temp_slug, 'approved', _email_domain, NULL)
+      VALUES (_college_name, _temp_slug, 'approved', _email_domain, 'Not Specified')
       RETURNING id INTO _college_id;
 
       -- Add creator as admin

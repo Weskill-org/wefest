@@ -152,7 +152,7 @@ function StudentDashboard() {
                 {upcoming.slice(0, 4).map((t: any) => {
                   const days = differenceInDays(new Date(t.events?.date), new Date());
                   return (
-                    <Link key={t.id} to="/events/$eventId" params={{ eventId: t.event_id }} className="group">
+                    <Link key={t.id} to="/explore/$eventId" params={{ eventId: t.event_id }} className="group">
                       <div className="relative rounded-xl border border-white/5 bg-white/[0.02] p-5 hover:bg-white/[0.04] transition-all duration-200 hover:border-white/10">
                         <div className="flex items-start justify-between mb-3">
                           <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground bg-white/5 px-2 py-0.5 rounded-md">{t.tier} pass</span>
@@ -181,7 +181,7 @@ function StudentDashboard() {
                 <h3 className="font-semibold text-sm mb-1">No upcoming festivals</h3>
                 <p className="text-xs text-muted-foreground mb-5 max-w-[240px] mx-auto">Discover amazing college fests and book your first pass.</p>
                 <Button asChild size="sm" className="bg-brand-gradient text-white rounded-lg font-semibold shadow-lg text-xs h-9 px-5">
-                  <Link to="/events">Browse Fests <ArrowRight className="ml-1.5 h-3.5 w-3.5" /></Link>
+                  <Link to="/explore">Browse Fests <ArrowRight className="ml-1.5 h-3.5 w-3.5" /></Link>
                 </Button>
               </div>
             </DashboardSection>
@@ -192,7 +192,7 @@ function StudentDashboard() {
             <DashboardSection title="Past Events" muted>
               <div className="space-y-2">
                 {past.slice(0, 4).map((t: any) => (
-                  <Link key={t.id} to="/events/$eventId" params={{ eventId: t.event_id }} className="group">
+                  <Link key={t.id} to="/explore/$eventId" params={{ eventId: t.event_id }} className="group">
                     <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/[0.03] transition-colors">
                       <div className="h-9 w-9 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
                         <Clock className="h-4 w-4 text-muted-foreground/40" />
