@@ -270,7 +270,7 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
       _type: "withdrawal_hold",
       _description: `Withdrawal hold (₹${data.amountInr})`,
       _reference_type: "withdrawal",
-      _reference_id: null,
+      
     });
     if (dErr) {
       if (dErr.message?.includes("INSUFFICIENT_BALANCE")) throw new Error("Insufficient WeCoin balance");
@@ -290,7 +290,7 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
       // Release hold
       await supabaseAdmin.rpc("wallet_credit", {
         _user_id: userId, _amount_coins: coins, _type: "withdrawal_release",
-        _description: "Release: withdrawal request failed", _reference_type: "withdrawal", _reference_id: null,
+        _description: "Release: withdrawal request failed", _reference_type: "withdrawal", 
       });
       throw new Error(rErr.message);
     }
