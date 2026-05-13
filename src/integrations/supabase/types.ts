@@ -381,6 +381,13 @@ export type Database = {
             referencedRelation: "institutional_analytics"
             referencedColumns: ["college_id"]
           },
+          {
+            foreignKeyName: "college_members_user_id_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       colleges: {
@@ -663,10 +670,15 @@ export type Database = {
           is_promoted: boolean
           organizer: string
           organizer_user_id: string | null
+          pass_settings: Json | null
           price_from: number
           status: string
+          tags: string[] | null
+          team_members: Json | null
+          time: string | null
           title: string
           updated_at: string
+          venue: string | null
         }
         Insert: {
           attendees?: number
@@ -685,10 +697,15 @@ export type Database = {
           is_promoted?: boolean
           organizer?: string
           organizer_user_id?: string | null
+          pass_settings?: Json | null
           price_from?: number
           status?: string
+          tags?: string[] | null
+          team_members?: Json | null
+          time?: string | null
           title: string
           updated_at?: string
+          venue?: string | null
         }
         Update: {
           attendees?: number
@@ -707,10 +724,15 @@ export type Database = {
           is_promoted?: boolean
           organizer?: string
           organizer_user_id?: string | null
+          pass_settings?: Json | null
           price_from?: number
           status?: string
+          tags?: string[] | null
+          team_members?: Json | null
+          time?: string | null
           title?: string
           updated_at?: string
+          venue?: string | null
         }
         Relationships: [
           {
@@ -1569,6 +1591,10 @@ export type Database = {
         Returns: boolean
       }
       is_college_admin: {
+        Args: { _college_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_college_member: {
         Args: { _college_id: string; _user_id: string }
         Returns: boolean
       }
