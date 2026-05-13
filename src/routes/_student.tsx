@@ -60,9 +60,9 @@ const navLinks = [
 ];
 
 function StudentLayout() {
-  const ctx = Route.useRouteContext();
-  const user = ctx.user as any;
-  const profile = ctx.profile as any;
+  const ctx = Route.useRouteContext() as any;
+  const user = ctx?.user as any;
+  const profile = ctx?.profile as any;
   
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
