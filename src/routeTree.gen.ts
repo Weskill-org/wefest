@@ -35,11 +35,13 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as SponsorScanRouteImport } from './routes/sponsor.scan'
 import { Route as SponsorPricingRouteImport } from './routes/sponsor.pricing'
 import { Route as SponsorDashboardRouteImport } from './routes/sponsor.dashboard'
+import { Route as OrganizerWalletRouteImport } from './routes/organizer.wallet'
 import { Route as OrganizerTeamRouteImport } from './routes/organizer.team'
 import { Route as OrganizerSettingsRouteImport } from './routes/organizer.settings'
 import { Route as OrganizerScanRouteImport } from './routes/organizer.scan'
 import { Route as OrganizerNewRouteImport } from './routes/organizer.new'
 import { Route as EventsEventIdRouteImport } from './routes/events.$eventId'
+import { Route as CompanyWalletRouteImport } from './routes/company.wallet'
 import { Route as CompanySettingsRouteImport } from './routes/company.settings'
 import { Route as CompanyScanRouteImport } from './routes/company.scan'
 import { Route as CompanyMarketplaceRouteImport } from './routes/company.marketplace'
@@ -196,6 +198,11 @@ const SponsorDashboardRoute = SponsorDashboardRouteImport.update({
   path: '/sponsor/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OrganizerWalletRoute = OrganizerWalletRouteImport.update({
+  id: '/wallet',
+  path: '/wallet',
+  getParentRoute: () => OrganizerRoute,
+} as any)
 const OrganizerTeamRoute = OrganizerTeamRouteImport.update({
   id: '/team',
   path: '/team',
@@ -220,6 +227,11 @@ const EventsEventIdRoute = EventsEventIdRouteImport.update({
   id: '/$eventId',
   path: '/$eventId',
   getParentRoute: () => EventsRoute,
+} as any)
+const CompanyWalletRoute = CompanyWalletRouteImport.update({
+  id: '/wallet',
+  path: '/wallet',
+  getParentRoute: () => CompanyRoute,
 } as any)
 const CompanySettingsRoute = CompanySettingsRouteImport.update({
   id: '/settings',
@@ -391,11 +403,13 @@ export interface FileRoutesByFullPath {
   '/company/marketplace': typeof CompanyMarketplaceRoute
   '/company/scan': typeof CompanyScanRoute
   '/company/settings': typeof CompanySettingsRoute
+  '/company/wallet': typeof CompanyWalletRoute
   '/events/$eventId': typeof EventsEventIdRoute
   '/organizer/new': typeof OrganizerNewRoute
   '/organizer/scan': typeof OrganizerScanRoute
   '/organizer/settings': typeof OrganizerSettingsRoute
   '/organizer/team': typeof OrganizerTeamRoute
+  '/organizer/wallet': typeof OrganizerWalletRoute
   '/sponsor/dashboard': typeof SponsorDashboardRoute
   '/sponsor/pricing': typeof SponsorPricingRoute
   '/sponsor/scan': typeof SponsorScanRoute
@@ -443,11 +457,13 @@ export interface FileRoutesByTo {
   '/company/marketplace': typeof CompanyMarketplaceRoute
   '/company/scan': typeof CompanyScanRoute
   '/company/settings': typeof CompanySettingsRoute
+  '/company/wallet': typeof CompanyWalletRoute
   '/events/$eventId': typeof EventsEventIdRoute
   '/organizer/new': typeof OrganizerNewRoute
   '/organizer/scan': typeof OrganizerScanRoute
   '/organizer/settings': typeof OrganizerSettingsRoute
   '/organizer/team': typeof OrganizerTeamRoute
+  '/organizer/wallet': typeof OrganizerWalletRoute
   '/sponsor/dashboard': typeof SponsorDashboardRoute
   '/sponsor/pricing': typeof SponsorPricingRoute
   '/sponsor/scan': typeof SponsorScanRoute
@@ -503,11 +519,13 @@ export interface FileRoutesById {
   '/company/marketplace': typeof CompanyMarketplaceRoute
   '/company/scan': typeof CompanyScanRoute
   '/company/settings': typeof CompanySettingsRoute
+  '/company/wallet': typeof CompanyWalletRoute
   '/events/$eventId': typeof EventsEventIdRoute
   '/organizer/new': typeof OrganizerNewRoute
   '/organizer/scan': typeof OrganizerScanRoute
   '/organizer/settings': typeof OrganizerSettingsRoute
   '/organizer/team': typeof OrganizerTeamRoute
+  '/organizer/wallet': typeof OrganizerWalletRoute
   '/sponsor/dashboard': typeof SponsorDashboardRoute
   '/sponsor/pricing': typeof SponsorPricingRoute
   '/sponsor/scan': typeof SponsorScanRoute
@@ -563,11 +581,13 @@ export interface FileRouteTypes {
     | '/company/marketplace'
     | '/company/scan'
     | '/company/settings'
+    | '/company/wallet'
     | '/events/$eventId'
     | '/organizer/new'
     | '/organizer/scan'
     | '/organizer/settings'
     | '/organizer/team'
+    | '/organizer/wallet'
     | '/sponsor/dashboard'
     | '/sponsor/pricing'
     | '/sponsor/scan'
@@ -615,11 +635,13 @@ export interface FileRouteTypes {
     | '/company/marketplace'
     | '/company/scan'
     | '/company/settings'
+    | '/company/wallet'
     | '/events/$eventId'
     | '/organizer/new'
     | '/organizer/scan'
     | '/organizer/settings'
     | '/organizer/team'
+    | '/organizer/wallet'
     | '/sponsor/dashboard'
     | '/sponsor/pricing'
     | '/sponsor/scan'
@@ -674,11 +696,13 @@ export interface FileRouteTypes {
     | '/company/marketplace'
     | '/company/scan'
     | '/company/settings'
+    | '/company/wallet'
     | '/events/$eventId'
     | '/organizer/new'
     | '/organizer/scan'
     | '/organizer/settings'
     | '/organizer/team'
+    | '/organizer/wallet'
     | '/sponsor/dashboard'
     | '/sponsor/pricing'
     | '/sponsor/scan'
@@ -902,6 +926,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SponsorDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/organizer/wallet': {
+      id: '/organizer/wallet'
+      path: '/wallet'
+      fullPath: '/organizer/wallet'
+      preLoaderRoute: typeof OrganizerWalletRouteImport
+      parentRoute: typeof OrganizerRoute
+    }
     '/organizer/team': {
       id: '/organizer/team'
       path: '/team'
@@ -936,6 +967,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/events/$eventId'
       preLoaderRoute: typeof EventsEventIdRouteImport
       parentRoute: typeof EventsRoute
+    }
+    '/company/wallet': {
+      id: '/company/wallet'
+      path: '/wallet'
+      fullPath: '/company/wallet'
+      preLoaderRoute: typeof CompanyWalletRouteImport
+      parentRoute: typeof CompanyRoute
     }
     '/company/settings': {
       id: '/company/settings'
@@ -1207,6 +1245,7 @@ interface CompanyRouteChildren {
   CompanyMarketplaceRoute: typeof CompanyMarketplaceRoute
   CompanyScanRoute: typeof CompanyScanRoute
   CompanySettingsRoute: typeof CompanySettingsRoute
+  CompanyWalletRoute: typeof CompanyWalletRoute
   CompanyIndexRoute: typeof CompanyIndexRoute
 }
 
@@ -1214,6 +1253,7 @@ const CompanyRouteChildren: CompanyRouteChildren = {
   CompanyMarketplaceRoute: CompanyMarketplaceRoute,
   CompanyScanRoute: CompanyScanRoute,
   CompanySettingsRoute: CompanySettingsRoute,
+  CompanyWalletRoute: CompanyWalletRoute,
   CompanyIndexRoute: CompanyIndexRoute,
 }
 
@@ -1252,6 +1292,7 @@ interface OrganizerRouteChildren {
   OrganizerScanRoute: typeof OrganizerScanRoute
   OrganizerSettingsRoute: typeof OrganizerSettingsRoute
   OrganizerTeamRoute: typeof OrganizerTeamRoute
+  OrganizerWalletRoute: typeof OrganizerWalletRoute
   OrganizerIndexRoute: typeof OrganizerIndexRoute
   OrganizerEventsEventIdRoute: typeof OrganizerEventsEventIdRouteWithChildren
   OrganizerEventsIndexRoute: typeof OrganizerEventsIndexRoute
@@ -1262,6 +1303,7 @@ const OrganizerRouteChildren: OrganizerRouteChildren = {
   OrganizerScanRoute: OrganizerScanRoute,
   OrganizerSettingsRoute: OrganizerSettingsRoute,
   OrganizerTeamRoute: OrganizerTeamRoute,
+  OrganizerWalletRoute: OrganizerWalletRoute,
   OrganizerIndexRoute: OrganizerIndexRoute,
   OrganizerEventsEventIdRoute: OrganizerEventsEventIdRouteWithChildren,
   OrganizerEventsIndexRoute: OrganizerEventsIndexRoute,
@@ -1296,3 +1338,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
