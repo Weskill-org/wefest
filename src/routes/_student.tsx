@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { 
   LayoutDashboard, CalendarRange, Ticket, Users, 
   ShoppingBag, Settings, Menu, X, LogOut, 
-  ChevronLeft, ChevronRight, GraduationCap, Sparkles
+  ChevronLeft, ChevronRight, GraduationCap, Sparkles, Coins
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
