@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { 
   LayoutDashboard, CalendarRange, Ticket, Users, 
   ShoppingBag, Settings, Menu, X, LogOut, 
-  ChevronLeft, ChevronRight, GraduationCap, Sparkles
+  ChevronLeft, ChevronRight, GraduationCap, Sparkles, Coins
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -57,12 +57,13 @@ const navLinks = [
   { to: "/tickets", label: "My Tickets", icon: Ticket, exact: false },
   { to: "/social", label: "Campus Network", icon: Users, exact: false },
   { to: "/shop", label: "Campus Store", icon: ShoppingBag, exact: false },
+  { to: "/wallet", label: "WeCoin Wallet", icon: Coins, exact: false },
 ];
 
 function StudentLayout() {
-  const ctx = Route.useRouteContext();
-  const user = ctx.user as any;
-  const profile = ctx.profile as any;
+  const ctx = Route.useRouteContext() as any;
+  const user = ctx?.user as any;
+  const profile = ctx?.profile as any;
   
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -240,7 +241,7 @@ function StudentLayout() {
         </div>
 
         <div className="flex-1 overflow-x-hidden">
-          <Outlet context={{ user, profile }} />
+          <Outlet />
         </div>
       </main>
     </div>

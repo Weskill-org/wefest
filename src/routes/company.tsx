@@ -232,7 +232,7 @@ function CompanyLayout() {
         </div>
 
         <div className="flex-1 overflow-x-hidden">
-          <Outlet context={{ user, companyProfile }} />
+          <Outlet />
         </div>
       </main>
     </div>
