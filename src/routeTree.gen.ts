@@ -55,6 +55,7 @@ import { Route as AdminBroadcastsRouteImport } from './routes/admin.broadcasts'
 import { Route as AdminApprovalsRouteImport } from './routes/admin.approvals'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as AdminAdminsRouteImport } from './routes/admin.admins'
+import { Route as StudentWalletRouteImport } from './routes/_student.wallet'
 import { Route as StudentTicketsRouteImport } from './routes/_student.tickets'
 import { Route as StudentSocialRouteImport } from './routes/_student.social'
 import { Route as StudentShopRouteImport } from './routes/_student.shop'
@@ -295,6 +296,11 @@ const AdminAdminsRoute = AdminAdminsRouteImport.update({
   path: '/admins',
   getParentRoute: () => AdminRoute,
 } as any)
+const StudentWalletRoute = StudentWalletRouteImport.update({
+  id: '/wallet',
+  path: '/wallet',
+  getParentRoute: () => StudentRoute,
+} as any)
 const StudentTicketsRoute = StudentTicketsRouteImport.update({
   id: '/tickets',
   path: '/tickets',
@@ -369,6 +375,7 @@ export interface FileRoutesByFullPath {
   '/shop': typeof StudentShopRoute
   '/social': typeof StudentSocialRoute
   '/tickets': typeof StudentTicketsRoute
+  '/wallet': typeof StudentWalletRoute
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/approvals': typeof AdminApprovalsRoute
@@ -420,6 +427,7 @@ export interface FileRoutesByTo {
   '/shop': typeof StudentShopRoute
   '/social': typeof StudentSocialRoute
   '/tickets': typeof StudentTicketsRoute
+  '/wallet': typeof StudentWalletRoute
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/approvals': typeof AdminApprovalsRoute
@@ -479,6 +487,7 @@ export interface FileRoutesById {
   '/_student/shop': typeof StudentShopRoute
   '/_student/social': typeof StudentSocialRoute
   '/_student/tickets': typeof StudentTicketsRoute
+  '/_student/wallet': typeof StudentWalletRoute
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/approvals': typeof AdminApprovalsRoute
@@ -538,6 +547,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/social'
     | '/tickets'
+    | '/wallet'
     | '/admin/admins'
     | '/admin/analytics'
     | '/admin/approvals'
@@ -589,6 +599,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/social'
     | '/tickets'
+    | '/wallet'
     | '/admin/admins'
     | '/admin/analytics'
     | '/admin/approvals'
@@ -647,6 +658,7 @@ export interface FileRouteTypes {
     | '/_student/shop'
     | '/_student/social'
     | '/_student/tickets'
+    | '/_student/wallet'
     | '/admin/admins'
     | '/admin/analytics'
     | '/admin/approvals'
@@ -1030,6 +1042,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAdminsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_student/wallet': {
+      id: '/_student/wallet'
+      path: '/wallet'
+      fullPath: '/wallet'
+      preLoaderRoute: typeof StudentWalletRouteImport
+      parentRoute: typeof StudentRoute
+    }
     '/_student/tickets': {
       id: '/_student/tickets'
       path: '/tickets'
@@ -1109,6 +1128,7 @@ interface StudentRouteChildren {
   StudentShopRoute: typeof StudentShopRoute
   StudentSocialRoute: typeof StudentSocialRoute
   StudentTicketsRoute: typeof StudentTicketsRoute
+  StudentWalletRoute: typeof StudentWalletRoute
   StudentExploreEventIdRoute: typeof StudentExploreEventIdRoute
   StudentExploreIndexRoute: typeof StudentExploreIndexRoute
 }
@@ -1119,6 +1139,7 @@ const StudentRouteChildren: StudentRouteChildren = {
   StudentShopRoute: StudentShopRoute,
   StudentSocialRoute: StudentSocialRoute,
   StudentTicketsRoute: StudentTicketsRoute,
+  StudentWalletRoute: StudentWalletRoute,
   StudentExploreEventIdRoute: StudentExploreEventIdRoute,
   StudentExploreIndexRoute: StudentExploreIndexRoute,
 }

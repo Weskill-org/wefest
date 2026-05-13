@@ -57,6 +57,7 @@ const navLinks = [
   { to: "/tickets", label: "My Tickets", icon: Ticket, exact: false },
   { to: "/social", label: "Campus Network", icon: Users, exact: false },
   { to: "/shop", label: "Campus Store", icon: ShoppingBag, exact: false },
+  { to: "/wallet", label: "WeCoin Wallet", icon: Coins, exact: false },
 ];
 
 function StudentLayout() {
