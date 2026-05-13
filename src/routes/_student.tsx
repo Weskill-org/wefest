@@ -240,7 +240,7 @@ function StudentLayout() {
         </div>
 
         <div className="flex-1 overflow-x-hidden">
-          <Outlet context={{ user, profile }} />
+          <Outlet />
         </div>
       </main>
     </div>
