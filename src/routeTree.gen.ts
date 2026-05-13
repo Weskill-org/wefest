@@ -19,6 +19,7 @@ import { Route as OrganizerRouteImport } from './routes/organizer'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as CookiePolicyRouteImport } from './routes/cookie-policy'
+import { Route as CompanyRouteImport } from './routes/company'
 import { Route as CollegesRouteImport } from './routes/colleges'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AmbassadorsRouteImport } from './routes/ambassadors'
@@ -27,6 +28,7 @@ import { Route as StudentRouteImport } from './routes/_student'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OrganizerIndexRouteImport } from './routes/organizer.index'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
+import { Route as CompanyIndexRouteImport } from './routes/company.index'
 import { Route as CollegesIndexRouteImport } from './routes/colleges.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -38,6 +40,9 @@ import { Route as OrganizerSettingsRouteImport } from './routes/organizer.settin
 import { Route as OrganizerScanRouteImport } from './routes/organizer.scan'
 import { Route as OrganizerNewRouteImport } from './routes/organizer.new'
 import { Route as EventsEventIdRouteImport } from './routes/events.$eventId'
+import { Route as CompanySettingsRouteImport } from './routes/company.settings'
+import { Route as CompanyScanRouteImport } from './routes/company.scan'
+import { Route as CompanyMarketplaceRouteImport } from './routes/company.marketplace'
 import { Route as CollegesCollegeSlugRouteImport } from './routes/colleges.$collegeSlug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
@@ -111,6 +116,11 @@ const CookiePolicyRoute = CookiePolicyRouteImport.update({
   path: '/cookie-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CompanyRoute = CompanyRouteImport.update({
+  id: '/company',
+  path: '/company',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CollegesRoute = CollegesRouteImport.update({
   id: '/colleges',
   path: '/colleges',
@@ -149,6 +159,11 @@ const EventsIndexRoute = EventsIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => EventsRoute,
+} as any)
+const CompanyIndexRoute = CompanyIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CompanyRoute,
 } as any)
 const CollegesIndexRoute = CollegesIndexRouteImport.update({
   id: '/',
@@ -204,6 +219,21 @@ const EventsEventIdRoute = EventsEventIdRouteImport.update({
   id: '/$eventId',
   path: '/$eventId',
   getParentRoute: () => EventsRoute,
+} as any)
+const CompanySettingsRoute = CompanySettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => CompanyRoute,
+} as any)
+const CompanyScanRoute = CompanyScanRouteImport.update({
+  id: '/scan',
+  path: '/scan',
+  getParentRoute: () => CompanyRoute,
+} as any)
+const CompanyMarketplaceRoute = CompanyMarketplaceRouteImport.update({
+  id: '/marketplace',
+  path: '/marketplace',
+  getParentRoute: () => CompanyRoute,
 } as any)
 const CollegesCollegeSlugRoute = CollegesCollegeSlugRouteImport.update({
   id: '/$collegeSlug',
@@ -323,6 +353,7 @@ export interface FileRoutesByFullPath {
   '/ambassadors': typeof AmbassadorsRoute
   '/blog': typeof BlogRouteWithChildren
   '/colleges': typeof CollegesRouteWithChildren
+  '/company': typeof CompanyRouteWithChildren
   '/cookie-policy': typeof CookiePolicyRoute
   '/events': typeof EventsRouteWithChildren
   '/login': typeof LoginRoute
@@ -350,6 +381,9 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/colleges/$collegeSlug': typeof CollegesCollegeSlugRoute
+  '/company/marketplace': typeof CompanyMarketplaceRoute
+  '/company/scan': typeof CompanyScanRoute
+  '/company/settings': typeof CompanySettingsRoute
   '/events/$eventId': typeof EventsEventIdRoute
   '/organizer/new': typeof OrganizerNewRoute
   '/organizer/scan': typeof OrganizerScanRoute
@@ -361,6 +395,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/colleges/': typeof CollegesIndexRoute
+  '/company/': typeof CompanyIndexRoute
   '/events/': typeof EventsIndexRoute
   '/organizer/': typeof OrganizerIndexRoute
   '/explore/$eventId': typeof StudentExploreEventIdRoute
@@ -397,6 +432,9 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/colleges/$collegeSlug': typeof CollegesCollegeSlugRoute
+  '/company/marketplace': typeof CompanyMarketplaceRoute
+  '/company/scan': typeof CompanyScanRoute
+  '/company/settings': typeof CompanySettingsRoute
   '/events/$eventId': typeof EventsEventIdRoute
   '/organizer/new': typeof OrganizerNewRoute
   '/organizer/scan': typeof OrganizerScanRoute
@@ -408,6 +446,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
   '/colleges': typeof CollegesIndexRoute
+  '/company': typeof CompanyIndexRoute
   '/events': typeof EventsIndexRoute
   '/organizer': typeof OrganizerIndexRoute
   '/explore/$eventId': typeof StudentExploreEventIdRoute
@@ -424,6 +463,7 @@ export interface FileRoutesById {
   '/ambassadors': typeof AmbassadorsRoute
   '/blog': typeof BlogRouteWithChildren
   '/colleges': typeof CollegesRouteWithChildren
+  '/company': typeof CompanyRouteWithChildren
   '/cookie-policy': typeof CookiePolicyRoute
   '/events': typeof EventsRouteWithChildren
   '/login': typeof LoginRoute
@@ -451,6 +491,9 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/colleges/$collegeSlug': typeof CollegesCollegeSlugRoute
+  '/company/marketplace': typeof CompanyMarketplaceRoute
+  '/company/scan': typeof CompanyScanRoute
+  '/company/settings': typeof CompanySettingsRoute
   '/events/$eventId': typeof EventsEventIdRoute
   '/organizer/new': typeof OrganizerNewRoute
   '/organizer/scan': typeof OrganizerScanRoute
@@ -462,6 +505,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/colleges/': typeof CollegesIndexRoute
+  '/company/': typeof CompanyIndexRoute
   '/events/': typeof EventsIndexRoute
   '/organizer/': typeof OrganizerIndexRoute
   '/_student/explore/$eventId': typeof StudentExploreEventIdRoute
@@ -478,6 +522,7 @@ export interface FileRouteTypes {
     | '/ambassadors'
     | '/blog'
     | '/colleges'
+    | '/company'
     | '/cookie-policy'
     | '/events'
     | '/login'
@@ -505,6 +550,9 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/blog/$slug'
     | '/colleges/$collegeSlug'
+    | '/company/marketplace'
+    | '/company/scan'
+    | '/company/settings'
     | '/events/$eventId'
     | '/organizer/new'
     | '/organizer/scan'
@@ -516,6 +564,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/blog/'
     | '/colleges/'
+    | '/company/'
     | '/events/'
     | '/organizer/'
     | '/explore/$eventId'
@@ -552,6 +601,9 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/blog/$slug'
     | '/colleges/$collegeSlug'
+    | '/company/marketplace'
+    | '/company/scan'
+    | '/company/settings'
     | '/events/$eventId'
     | '/organizer/new'
     | '/organizer/scan'
@@ -563,6 +615,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/blog'
     | '/colleges'
+    | '/company'
     | '/events'
     | '/organizer'
     | '/explore/$eventId'
@@ -578,6 +631,7 @@ export interface FileRouteTypes {
     | '/ambassadors'
     | '/blog'
     | '/colleges'
+    | '/company'
     | '/cookie-policy'
     | '/events'
     | '/login'
@@ -605,6 +659,9 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/blog/$slug'
     | '/colleges/$collegeSlug'
+    | '/company/marketplace'
+    | '/company/scan'
+    | '/company/settings'
     | '/events/$eventId'
     | '/organizer/new'
     | '/organizer/scan'
@@ -616,6 +673,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/blog/'
     | '/colleges/'
+    | '/company/'
     | '/events/'
     | '/organizer/'
     | '/_student/explore/$eventId'
@@ -632,6 +690,7 @@ export interface RootRouteChildren {
   AmbassadorsRoute: typeof AmbassadorsRoute
   BlogRoute: typeof BlogRouteWithChildren
   CollegesRoute: typeof CollegesRouteWithChildren
+  CompanyRoute: typeof CompanyRouteWithChildren
   CookiePolicyRoute: typeof CookiePolicyRoute
   EventsRoute: typeof EventsRouteWithChildren
   LoginRoute: typeof LoginRoute
@@ -719,6 +778,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CookiePolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/company': {
+      id: '/company'
+      path: '/company'
+      fullPath: '/company'
+      preLoaderRoute: typeof CompanyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/colleges': {
       id: '/colleges'
       path: '/colleges'
@@ -774,6 +840,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/events/'
       preLoaderRoute: typeof EventsIndexRouteImport
       parentRoute: typeof EventsRoute
+    }
+    '/company/': {
+      id: '/company/'
+      path: '/'
+      fullPath: '/company/'
+      preLoaderRoute: typeof CompanyIndexRouteImport
+      parentRoute: typeof CompanyRoute
     }
     '/colleges/': {
       id: '/colleges/'
@@ -851,6 +924,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/events/$eventId'
       preLoaderRoute: typeof EventsEventIdRouteImport
       parentRoute: typeof EventsRoute
+    }
+    '/company/settings': {
+      id: '/company/settings'
+      path: '/settings'
+      fullPath: '/company/settings'
+      preLoaderRoute: typeof CompanySettingsRouteImport
+      parentRoute: typeof CompanyRoute
+    }
+    '/company/scan': {
+      id: '/company/scan'
+      path: '/scan'
+      fullPath: '/company/scan'
+      preLoaderRoute: typeof CompanyScanRouteImport
+      parentRoute: typeof CompanyRoute
+    }
+    '/company/marketplace': {
+      id: '/company/marketplace'
+      path: '/marketplace'
+      fullPath: '/company/marketplace'
+      preLoaderRoute: typeof CompanyMarketplaceRouteImport
+      parentRoute: typeof CompanyRoute
     }
     '/colleges/$collegeSlug': {
       id: '/colleges/$collegeSlug'
@@ -1088,6 +1182,23 @@ const CollegesRouteWithChildren = CollegesRoute._addFileChildren(
   CollegesRouteChildren,
 )
 
+interface CompanyRouteChildren {
+  CompanyMarketplaceRoute: typeof CompanyMarketplaceRoute
+  CompanyScanRoute: typeof CompanyScanRoute
+  CompanySettingsRoute: typeof CompanySettingsRoute
+  CompanyIndexRoute: typeof CompanyIndexRoute
+}
+
+const CompanyRouteChildren: CompanyRouteChildren = {
+  CompanyMarketplaceRoute: CompanyMarketplaceRoute,
+  CompanyScanRoute: CompanyScanRoute,
+  CompanySettingsRoute: CompanySettingsRoute,
+  CompanyIndexRoute: CompanyIndexRoute,
+}
+
+const CompanyRouteWithChildren =
+  CompanyRoute._addFileChildren(CompanyRouteChildren)
+
 interface EventsRouteChildren {
   EventsEventIdRoute: typeof EventsEventIdRoute
   EventsIndexRoute: typeof EventsIndexRoute
@@ -1146,6 +1257,7 @@ const rootRouteChildren: RootRouteChildren = {
   AmbassadorsRoute: AmbassadorsRoute,
   BlogRoute: BlogRouteWithChildren,
   CollegesRoute: CollegesRouteWithChildren,
+  CompanyRoute: CompanyRouteWithChildren,
   CookiePolicyRoute: CookiePolicyRoute,
   EventsRoute: EventsRouteWithChildren,
   LoginRoute: LoginRoute,

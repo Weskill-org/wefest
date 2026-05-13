@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Crown, Trash2, ShieldCheck } from "lucide-react";
+import { Loader2, Crown, Trash2, ShieldCheck, Mail, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/admin/admins")({
   component: AdminAdmins,
@@ -17,7 +18,7 @@ type Rank = typeof RANKS[number];
 
 function AdminAdmins() {
   const qc = useQueryClient();
-  const [userId, setUserId] = useState("");
+  const [email, setEmail] = useState("");
   const [rank, setRank] = useState<Rank>("Moderator");
 
   const { data: me } = useQuery({
@@ -35,19 +36,49 @@ function AdminAdmins() {
   const { data: admins, isLoading } = useQuery({
     queryKey: ["all-admins"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("admin_users").select("*").order("created_at", { ascending: false });
+      const { data: adminData, error } = await supabase.from("admin_users").select("*").order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+      if (!adminData?.length) return [];
+      
+      const userIds = adminData.map(a => a.user_id);
+      const { data: profiles } = await supabase.from("profiles").select("user_id, full_name, email").in("user_id", userIds);
+      
+      return adminData.map(a => {
+        const profile = profiles?.find(p => p.user_id === a.user_id);
+        return {
+          ...a,
+          profiles: profile || null
+        };
+      });
     },
   });
 
   const add = useMutation({
     mutationFn: async () => {
-      if (!userId) throw new Error("User ID required");
-      const { error } = await supabase.from("admin_users").insert({ user_id: userId, rank });
-      if (error) throw error;
+      if (!email.trim()) throw new Error("Email required");
+      
+      // Lookup user by email
+      const { data: profile, error: profileErr } = await supabase
+        .from("profiles")
+        .select("user_id")
+        .eq("email", email.trim().toLowerCase())
+        .maybeSingle();
+        
+      if (profileErr || !profile) {
+        throw new Error("User not found with this email. They must have a WeFest account first.");
+      }
+      
+      const { error } = await supabase.from("admin_users").insert({ user_id: profile.user_id, rank });
+      if (error) {
+        if (error.code === '23505') throw new Error("User is already an admin");
+        throw error;
+      }
     },
-    onSuccess: () => { toast.success("Admin added"); setUserId(""); qc.invalidateQueries({ queryKey: ["all-admins"] }); },
+    onSuccess: () => { 
+      toast.success("Admin added successfully"); 
+      setEmail(""); 
+      qc.invalidateQueries({ queryKey: ["all-admins"] }); 
+    },
     onError: (e: any) => toast.error(e.message),
   });
 
@@ -71,7 +102,7 @@ function AdminAdmins() {
         </div>
       )}
 
-      <div className="mt-8 grid gap-8 md:grid-cols-[1fr_320px]">
+      <div className="mt-8 grid gap-8 xl:grid-cols-[1fr_360px]">
         <div className="glass rounded-2xl overflow-hidden">
           <div className="p-4 border-b border-border/60 bg-muted/30 font-semibold flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-primary" /> Active administrators
@@ -83,7 +114,7 @@ function AdminAdmins() {
               <table className="w-full text-left text-sm">
                 <thead className="bg-muted/50 text-muted-foreground border-b border-border/60">
                   <tr>
-                    <th className="p-4 font-medium">User ID</th>
+                    <th className="p-4 font-medium">Administrator</th>
                     <th className="p-4 font-medium">Rank</th>
                     <th className="p-4 font-medium">Added</th>
                     <th className="p-4 font-medium text-right">Actions</th>
@@ -91,16 +122,30 @@ function AdminAdmins() {
                 </thead>
                 <tbody className="divide-y divide-border/60">
                   {admins?.map((a) => (
-                    <tr key={a.id}>
-                      <td className="p-4 font-mono text-xs">{a.user_id}</td>
+                    <tr key={a.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
+                            {(a.profiles?.full_name || a.profiles?.email || "U").charAt(0).toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-semibold truncate">{a.profiles?.full_name || "Unknown"}</div>
+                            <div className="text-xs text-muted-foreground truncate">{a.profiles?.email || a.user_id}</div>
+                          </div>
+                        </div>
+                      </td>
                       <td className="p-4">
                         <Badge variant={a.rank === "Superadmin" ? "default" : "secondary"} className="capitalize gap-1">
                           {a.rank === "Superadmin" && <Crown className="h-3 w-3" />} {a.rank}
                         </Badge>
                       </td>
-                      <td className="p-4 text-muted-foreground">{new Date(a.created_at).toLocaleDateString()}</td>
+                      <td className="p-4 text-muted-foreground text-xs">{new Date(a.created_at).toLocaleDateString()}</td>
                       <td className="p-4 text-right">
-                        <Button size="icon" variant="ghost" disabled={!isSuper || remove.isPending} className="h-8 w-8 text-red-500" onClick={() => remove.mutate(a.id)}>
+                        <Button size="icon" variant="ghost" disabled={!isSuper || remove.isPending} className="h-8 w-8 text-red-500 hover:bg-red-500/10" onClick={() => {
+                          if (confirm("Are you sure you want to remove this admin?")) {
+                            remove.mutate(a.id);
+                          }
+                        }}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </td>
@@ -112,23 +157,55 @@ function AdminAdmins() {
           )}
         </div>
 
-        <div className="glass rounded-2xl p-6 h-fit">
-          <h3 className="font-semibold mb-4 flex items-center gap-2"><Crown className="h-4 w-4 text-primary" /> Add admin</h3>
-          <div className="space-y-3">
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">User ID (UUID from auth.users)</label>
-              <Input value={userId} onChange={(e) => setUserId(e.target.value)} placeholder="123e4567-…" className="font-mono text-xs" disabled={!isSuper} />
+        <div className="glass rounded-2xl p-6 h-fit sticky top-24">
+          <h3 className="font-semibold mb-6 flex items-center gap-2"><Crown className="h-5 w-5 text-primary" /> Add Administrator</h3>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-muted-foreground flex items-center gap-2">
+                <Mail className="h-3.5 w-3.5" /> Email Address
+              </Label>
+              <Input 
+                type="email"
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+                placeholder="admin@example.com" 
+                className="h-10 bg-background/50" 
+                disabled={!isSuper} 
+              />
             </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Rank</label>
-              <select value={rank} onChange={(e) => setRank(e.target.value as Rank)} disabled={!isSuper} className="w-full h-9 rounded-md border border-input bg-background px-2 text-sm">
-                {RANKS.map((r) => <option key={r} value={r}>{r}</option>)}
-              </select>
+            
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-muted-foreground">Assign Rank</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {RANKS.map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    disabled={!isSuper}
+                    onClick={() => setRank(r)}
+                    className={`flex items-center justify-center gap-2 rounded-xl border p-2.5 text-xs font-bold transition-all ${
+                      rank === r
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border/50 bg-muted/5 text-muted-foreground hover:bg-muted/20"
+                    }`}
+                  >
+                    {r === "Superadmin" && <Crown className="h-3.5 w-3.5" />}
+                    {r}
+                  </button>
+                ))}
+              </div>
             </div>
-            <Button className="w-full" onClick={() => add.mutate()} disabled={!isSuper || !userId || add.isPending}>
-              {add.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Grant access"}
+            
+            <Button 
+              className="w-full mt-2 h-10 bg-brand-gradient text-white font-bold shadow-glow" 
+              onClick={() => add.mutate()} 
+              disabled={!isSuper || !email.trim() || add.isPending}
+            >
+              {add.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Grant Admin Access"}
             </Button>
-            <p className="text-[10px] text-muted-foreground">User must already have a Supabase auth account.</p>
+            <p className="text-[10px] text-muted-foreground text-center">
+              The user must already have a registered account on the platform.
+            </p>
           </div>
         </div>
       </div>

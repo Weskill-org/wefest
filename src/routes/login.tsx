@@ -41,7 +41,7 @@ export const Route = createFileRoute("/login")({
         .eq("user_id", userId)
         .maybeSingle();
       const role = roleData?.role || "student";
-      if (role === "company") throw redirect({ to: "/sponsor/dashboard" });
+      if (role === "company") throw redirect({ to: "/company" });
       if (role === "college") throw redirect({ to: "/organizer" });
       throw redirect({ to: "/dashboard" });
     }
@@ -108,7 +108,7 @@ function Login() {
     } else if (search.redirect) {
       navigate({ to: search.redirect });
     } else if (role === "company") {
-      navigate({ to: "/sponsor/dashboard" });
+      navigate({ to: "/company" });
     } else if (role === "college") {
       navigate({ to: "/organizer" });
     } else {

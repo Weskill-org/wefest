@@ -1,8 +1,5 @@
+import React from "react";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-
-export const Route = createFileRoute("/events")({
-  component: EventsLayout,
-});
 
 function EventsLayout() {
   return (
@@ -11,3 +8,7 @@ function EventsLayout() {
     </div>
   );
 }
+
+export const Route = createFileRoute("/events")({
+  component: EventsLayout,
+});

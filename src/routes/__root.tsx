@@ -1,3 +1,4 @@
+import React from "react";
 import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouterState } from "@tanstack/react-router";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { SiteHeader, SiteFooter } from "@/components/site-header";
@@ -68,10 +69,12 @@ function RootComponent() {
   
   // Routes that shouldn't show the global header/footer because they have their own layouts
   const isOrganizerRoute = pathname.startsWith("/organizer");
+  const isCompanyRoute = pathname.startsWith("/company");
+  const isAdminRoute = pathname.startsWith("/admin");
   const isStudentRoute = routerState.matches.some(m => m.routeId === '/_student');
   const isAuthRoute = pathname === "/login" || pathname === "/signup";
   
-  const hideGlobalLayout = isOrganizerRoute || isStudentRoute || isAuthRoute;
+  const hideGlobalLayout = isOrganizerRoute || isCompanyRoute || isAdminRoute || isStudentRoute || isAuthRoute;
 
   return (
     <QueryClientProvider client={queryClient}>
