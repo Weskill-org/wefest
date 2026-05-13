@@ -1043,6 +1043,57 @@ export type Database = {
         }
         Relationships: []
       }
+      razorpay_orders: {
+        Row: {
+          amount_paise: number
+          coins_to_credit: number
+          created_at: string
+          credited_at: string | null
+          currency: string
+          id: string
+          notes: Json | null
+          paid_at: string | null
+          purpose: string
+          razorpay_order_id: string
+          razorpay_payment_id: string | null
+          razorpay_signature: string | null
+          status: Database["public"]["Enums"]["razorpay_order_status"]
+          user_id: string
+        }
+        Insert: {
+          amount_paise: number
+          coins_to_credit: number
+          created_at?: string
+          credited_at?: string | null
+          currency?: string
+          id?: string
+          notes?: Json | null
+          paid_at?: string | null
+          purpose?: string
+          razorpay_order_id: string
+          razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
+          status?: Database["public"]["Enums"]["razorpay_order_status"]
+          user_id: string
+        }
+        Update: {
+          amount_paise?: number
+          coins_to_credit?: number
+          created_at?: string
+          credited_at?: string | null
+          currency?: string
+          id?: string
+          notes?: Json | null
+          paid_at?: string | null
+          purpose?: string
+          razorpay_order_id?: string
+          razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
+          status?: Database["public"]["Enums"]["razorpay_order_status"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       recent_activity: {
         Row: {
           created_at: string
@@ -1523,6 +1574,92 @@ export type Database = {
           },
         ]
       }
+      wallet_transactions: {
+        Row: {
+          amount_coins: number
+          balance_after: number
+          counterparty_user_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          reference_id: string | null
+          reference_type: string | null
+          type: Database["public"]["Enums"]["wallet_tx_type"]
+          user_id: string
+          wallet_id: string
+        }
+        Insert: {
+          amount_coins: number
+          balance_after: number
+          counterparty_user_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          reference_id?: string | null
+          reference_type?: string | null
+          type: Database["public"]["Enums"]["wallet_tx_type"]
+          user_id: string
+          wallet_id: string
+        }
+        Update: {
+          amount_coins?: number
+          balance_after?: number
+          counterparty_user_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          reference_id?: string | null
+          reference_type?: string | null
+          type?: Database["public"]["Enums"]["wallet_tx_type"]
+          user_id?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallets: {
+        Row: {
+          balance_coins: number
+          created_at: string
+          held_coins: number
+          id: string
+          lifetime_credited: number
+          lifetime_debited: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance_coins?: number
+          created_at?: string
+          held_coins?: number
+          id?: string
+          lifetime_credited?: number
+          lifetime_debited?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance_coins?: number
+          created_at?: string
+          held_coins?: number
+          id?: string
+          lifetime_credited?: number
+          lifetime_debited?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       webhooks: {
         Row: {
           college_id: string
@@ -1568,6 +1705,63 @@ export type Database = {
           },
         ]
       }
+      withdrawal_requests: {
+        Row: {
+          amount_coins: number
+          amount_inr_paise: number
+          bank_account_name: string
+          bank_account_number: string
+          bank_ifsc: string
+          created_at: string
+          id: string
+          notes: string | null
+          payout_reference: string | null
+          processed_at: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["withdrawal_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_coins: number
+          amount_inr_paise: number
+          bank_account_name: string
+          bank_account_number: string
+          bank_ifsc: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payout_reference?: string | null
+          processed_at?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["withdrawal_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_coins?: number
+          amount_inr_paise?: number
+          bank_account_name?: string
+          bank_account_number?: string
+          bank_ifsc?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payout_reference?: string | null
+          processed_at?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["withdrawal_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       institutional_analytics: {
@@ -1610,12 +1804,65 @@ export type Database = {
         }
         Returns: string
       }
+      wallet_credit: {
+        Args: {
+          _amount_coins: number
+          _counterparty?: string
+          _description?: string
+          _metadata?: Json
+          _reference_id?: string
+          _reference_type?: string
+          _type: Database["public"]["Enums"]["wallet_tx_type"]
+          _user_id: string
+        }
+        Returns: string
+      }
+      wallet_debit: {
+        Args: {
+          _amount_coins: number
+          _counterparty?: string
+          _description?: string
+          _metadata?: Json
+          _reference_id?: string
+          _reference_type?: string
+          _type: Database["public"]["Enums"]["wallet_tx_type"]
+          _user_id: string
+        }
+        Returns: string
+      }
+      wallet_transfer: {
+        Args: {
+          _amount_coins: number
+          _credit_type: Database["public"]["Enums"]["wallet_tx_type"]
+          _debit_type: Database["public"]["Enums"]["wallet_tx_type"]
+          _description?: string
+          _from_user: string
+          _metadata?: Json
+          _reference_id?: string
+          _reference_type?: string
+          _to_user: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       admin_rank: "Moderator" | "Organizer" | "Admin" | "Superadmin"
       app_role: "student" | "college" | "company"
       college_internal_role: "admin" | "coordinator" | "ticket_poc" | "member"
       college_status: "pending" | "approved" | "rejected"
+      razorpay_order_status: "created" | "paid" | "failed" | "refunded"
+      wallet_tx_type:
+        | "topup"
+        | "purchase"
+        | "sale"
+        | "refund"
+        | "sponsorship"
+        | "sponsorship_received"
+        | "withdrawal"
+        | "withdrawal_hold"
+        | "withdrawal_release"
+        | "admin_adjustment"
+      withdrawal_status: "pending" | "approved" | "rejected" | "processed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1747,6 +1994,20 @@ export const Constants = {
       app_role: ["student", "college", "company"],
       college_internal_role: ["admin", "coordinator", "ticket_poc", "member"],
       college_status: ["pending", "approved", "rejected"],
+      razorpay_order_status: ["created", "paid", "failed", "refunded"],
+      wallet_tx_type: [
+        "topup",
+        "purchase",
+        "sale",
+        "refund",
+        "sponsorship",
+        "sponsorship_received",
+        "withdrawal",
+        "withdrawal_hold",
+        "withdrawal_release",
+        "admin_adjustment",
+      ],
+      withdrawal_status: ["pending", "approved", "rejected", "processed"],
     },
   },
 } as const
