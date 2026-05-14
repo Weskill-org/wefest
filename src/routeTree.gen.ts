@@ -66,6 +66,7 @@ import { Route as StudentTicketsRouteImport } from './routes/_student.tickets'
 import { Route as StudentSocialRouteImport } from './routes/_student.social'
 import { Route as StudentShopRouteImport } from './routes/_student.shop'
 import { Route as StudentSettingsRouteImport } from './routes/_student.settings'
+import { Route as StudentOrdersRouteImport } from './routes/_student.orders'
 import { Route as StudentDashboardRouteImport } from './routes/_student.dashboard'
 import { Route as OrganizerEventsIndexRouteImport } from './routes/organizer.events.index'
 import { Route as StudentExploreIndexRouteImport } from './routes/_student.explore.index'
@@ -357,6 +358,11 @@ const StudentSettingsRoute = StudentSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => StudentRoute,
 } as any)
+const StudentOrdersRoute = StudentOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => StudentRoute,
+} as any)
 const StudentDashboardRoute = StudentDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -407,6 +413,7 @@ export interface FileRoutesByFullPath {
   '/talent': typeof TalentRoute
   '/terms': typeof TermsRoute
   '/dashboard': typeof StudentDashboardRoute
+  '/orders': typeof StudentOrdersRoute
   '/settings': typeof StudentSettingsRoute
   '/shop': typeof StudentShopRoute
   '/social': typeof StudentSocialRoute
@@ -465,6 +472,7 @@ export interface FileRoutesByTo {
   '/talent': typeof TalentRoute
   '/terms': typeof TermsRoute
   '/dashboard': typeof StudentDashboardRoute
+  '/orders': typeof StudentOrdersRoute
   '/settings': typeof StudentSettingsRoute
   '/shop': typeof StudentShopRoute
   '/social': typeof StudentSocialRoute
@@ -531,6 +539,7 @@ export interface FileRoutesById {
   '/talent': typeof TalentRoute
   '/terms': typeof TermsRoute
   '/_student/dashboard': typeof StudentDashboardRoute
+  '/_student/orders': typeof StudentOrdersRoute
   '/_student/settings': typeof StudentSettingsRoute
   '/_student/shop': typeof StudentShopRoute
   '/_student/social': typeof StudentSocialRoute
@@ -597,6 +606,7 @@ export interface FileRouteTypes {
     | '/talent'
     | '/terms'
     | '/dashboard'
+    | '/orders'
     | '/settings'
     | '/shop'
     | '/social'
@@ -655,6 +665,7 @@ export interface FileRouteTypes {
     | '/talent'
     | '/terms'
     | '/dashboard'
+    | '/orders'
     | '/settings'
     | '/shop'
     | '/social'
@@ -720,6 +731,7 @@ export interface FileRouteTypes {
     | '/talent'
     | '/terms'
     | '/_student/dashboard'
+    | '/_student/orders'
     | '/_student/settings'
     | '/_student/shop'
     | '/_student/social'
@@ -1191,6 +1203,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudentSettingsRouteImport
       parentRoute: typeof StudentRoute
     }
+    '/_student/orders': {
+      id: '/_student/orders'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof StudentOrdersRouteImport
+      parentRoute: typeof StudentRoute
+    }
     '/_student/dashboard': {
       id: '/_student/dashboard'
       path: '/dashboard'
@@ -1238,6 +1257,7 @@ declare module '@tanstack/react-router' {
 
 interface StudentRouteChildren {
   StudentDashboardRoute: typeof StudentDashboardRoute
+  StudentOrdersRoute: typeof StudentOrdersRoute
   StudentSettingsRoute: typeof StudentSettingsRoute
   StudentShopRoute: typeof StudentShopRoute
   StudentSocialRoute: typeof StudentSocialRoute
@@ -1249,6 +1269,7 @@ interface StudentRouteChildren {
 
 const StudentRouteChildren: StudentRouteChildren = {
   StudentDashboardRoute: StudentDashboardRoute,
+  StudentOrdersRoute: StudentOrdersRoute,
   StudentSettingsRoute: StudentSettingsRoute,
   StudentShopRoute: StudentShopRoute,
   StudentSocialRoute: StudentSocialRoute,

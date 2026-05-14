@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductCard } from "@/components/product-card";
@@ -76,10 +76,13 @@ function Shop() {
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Campus Store</h1>
           <p className="text-sm text-muted-foreground mt-1">Official merchandise from India's top college festivals.</p>
         </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium px-3 py-1.5 rounded-lg bg-white/5 border border-white/5">
-          <ShoppingBag className="h-3 w-3" />
-          <span>{filtered.length} items</span>
-        </div>
+        <Link 
+          to="/orders" 
+          className="flex items-center gap-2 text-xs text-foreground font-semibold px-4 py-2 rounded-lg bg-primary/10 border border-primary/20 hover:bg-primary/20 hover:text-primary transition-all cursor-pointer"
+        >
+          <ShoppingBag className="h-4 w-4" />
+          <span>My Orders</span>
+        </Link>
       </div>
 
       {/* ─── Search + Category Filters ─── */}
