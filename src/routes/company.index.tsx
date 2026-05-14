@@ -624,7 +624,8 @@ function CompanyDashboard() {
               {recommendedEvents?.map(event => (
                 <Link 
                   key={event.id} 
-                  to={`/events/${event.id}`} 
+                  to="/events/$eventId"
+                  params={{ eventId: event.id }}
                   className="group flex items-center gap-5 glass rounded-[28px] p-4 transition-all hover:border-primary/40 hover:bg-white/[0.04] border-white/5"
                 >
                   <div className="h-16 w-16 rounded-2xl overflow-hidden shrink-0 shadow-lg border border-white/5">
