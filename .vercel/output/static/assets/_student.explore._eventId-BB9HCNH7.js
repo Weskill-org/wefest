@@ -1,1 +1,0 @@
-import{Y as e,L as t}from"./index-CO9uRJaT.js";const o=()=>e.jsxs("div",{className:"px-6 py-20 text-center",children:[e.jsx("h1",{className:"text-2xl font-bold",children:"Event not found"}),e.jsx(t,{to:"/explore",className:"mt-4 text-primary hover:underline inline-block",children:"Return to explore"})]});export{o as notFoundComponent};
