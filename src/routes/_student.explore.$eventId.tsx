@@ -479,13 +479,13 @@ function StudentEventDetail() {
                 </p>
               </div>
             )}
-            <Button 
-              onClick={() => setPaymentOpen(true)} 
-              disabled={buyMutation.isPending || payWithWalletMutation.isPending || hasTicket || !isEligible}
-              size="lg" 
+            <Button
+              onClick={() => setPaymentOpen(true)}
+              disabled={hasTicket || !isEligible}
+              size="lg"
               className="mt-6 h-14 w-full rounded-xl bg-brand-gradient text-white font-bold text-base shadow-glow hover:opacity-90 disabled:opacity-50"
             >
-              {buyMutation.isPending || payWithWalletMutation.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : hasTicket ? "Ticket Booked ✅" : !isEligible ? "Restricted Access" : "Get Pass Now"}
+              {hasTicket ? "Ticket Booked ✅" : !isEligible ? "Restricted Access" : "Get Pass Now"}
             </Button>
             <p className="mt-3 text-center text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
               Instant QR • Secured via WeFest Escrow
@@ -500,13 +500,7 @@ function StudentEventDetail() {
         amountInr={tiers[selected].price}
         itemTitle={`${event.title} - ${tiers[selected].name}`}
         itemDescription="Event Pass"
-        onPayWithWallet={() => {
-          payWithWalletMutation.mutate();
-        }}
-        onPayWithRazorpay={() => {
-          buyMutation.mutate();
-        }}
-        isProcessing={buyMutation.isPending || payWithWalletMutation.isPending}
+        purchase={{ kind: "ticket", eventId: event.id, tier: tiers[selected].name }}
       />
     </div>
   );
