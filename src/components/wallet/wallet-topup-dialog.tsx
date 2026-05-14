@@ -30,11 +30,18 @@ export function WalletTopupDialog({ open, onOpenChange, defaultAmount = 500 }: P
   const m = useMutation({
     mutationFn: async (amountInr: number) => {
       if (amountInr < 10) throw new Error("Minimum top-up is ₹10");
-      const [{ keyId }, order, { data: { user } }] = await Promise.all([
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token ? `Bearer ${session.access_token}` : "";
+      
+      const [{ keyId }, order] = await Promise.all([
         getKey(),
-        createOrder({ data: { amountInr } }),
-        supabase.auth.getUser(),
+        createOrder({ 
+          data: { amountInr },
+          headers: { Authorization: token }
+        }),
       ]);
+      const user = session?.user;
+
       return new Promise<{ ok: boolean }>((resolve, reject) => {
         openRazorpayCheckout({
           keyId,
@@ -49,7 +56,10 @@ export function WalletTopupDialog({ open, onOpenChange, defaultAmount = 500 }: P
           },
           onSuccess: async (resp) => {
             try {
-              await verify({ data: resp });
+              await verify({ 
+                data: resp,
+                headers: { Authorization: token }
+              });
               resolve({ ok: true });
             } catch (e: any) {
               reject(e);

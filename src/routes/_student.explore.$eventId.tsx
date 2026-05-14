@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { useRegion } from "@/contexts/RegionContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { PaymentDialog } from "@/components/wallet/payment-dialog";
+import { payForTicketWithWallet } from "@/lib/wallet.functions";
 
 export const Route = createFileRoute("/_student/explore/$eventId")({
   loader: async ({ params }) => {
@@ -71,6 +73,7 @@ function StudentEventDetail() {
 
   const [selected, setSelected] = useState(0);
   const [chatMsg, setChatMsg] = useState("");
+  const [paymentOpen, setPaymentOpen] = useState(false);
   const queryClient = useQueryClient();
   const { formatPrice } = useRegion();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -229,11 +232,34 @@ function StudentEventDetail() {
       return { tier: tiers[selected].name, code: ticketCode };
     },
     onSuccess: (data) => {
+      setPaymentOpen(false);
       toast.success(`Success! ${data.tier} booked. Your code: ${data.code}`);
       queryClient.invalidateQueries({ queryKey: ["my-tickets"] });
       queryClient.invalidateQueries({ queryKey: ["has-ticket", event.id] });
     },
     onError: (error: any) => toast.error(error.message || "Failed to book ticket"),
+  });
+
+  const payWithWalletMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentUser) throw new Error("Please login to book tickets");
+      if (event.college_id && studentProfile?.college_id !== event.college_id) {
+        throw new Error(`This event is exclusive to students of ${event.college_name}.`);
+      }
+      const res = await payForTicketWithWallet({
+        data: { eventId: event.id, tier: tiers[selected].name }
+      });
+      if (!res.ok) throw new Error("Wallet payment failed");
+      return { tier: res.tier, code: res.ticketCode };
+    },
+    onSuccess: (data) => {
+      setPaymentOpen(false);
+      toast.success(`Success! ${data.tier} booked. Your code: ${data.code}`);
+      queryClient.invalidateQueries({ queryKey: ["my-tickets"] });
+      queryClient.invalidateQueries({ queryKey: ["has-ticket", event.id] });
+      queryClient.invalidateQueries({ queryKey: ["wallet"] });
+    },
+    onError: (error: any) => toast.error(error.message || "Failed to book ticket with wallet"),
   });
 
   return (
@@ -499,12 +525,12 @@ function StudentEventDetail() {
               </div>
             )}
             <Button 
-              onClick={() => buyMutation.mutate()} 
-              disabled={buyMutation.isPending || hasTicket || !isEligible}
+              onClick={() => setPaymentOpen(true)} 
+              disabled={buyMutation.isPending || payWithWalletMutation.isPending || hasTicket || !isEligible}
               size="lg" 
               className="mt-6 h-14 w-full rounded-xl bg-brand-gradient text-white font-bold text-base shadow-glow hover:opacity-90 disabled:opacity-50"
             >
-              {buyMutation.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : hasTicket ? "Ticket Booked ✅" : !isEligible ? "Restricted Access" : "Get Pass Now"}
+              {buyMutation.isPending || payWithWalletMutation.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : hasTicket ? "Ticket Booked ✅" : !isEligible ? "Restricted Access" : "Get Pass Now"}
             </Button>
             <p className="mt-3 text-center text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
               Instant QR • Secured via WeFest Escrow
@@ -512,6 +538,21 @@ function StudentEventDetail() {
           </div>
         </aside>
       </div>
+
+      <PaymentDialog
+        open={paymentOpen}
+        onOpenChange={setPaymentOpen}
+        amountInr={tiers[selected].price}
+        itemTitle={`${event.title} - ${tiers[selected].name}`}
+        itemDescription="Event Pass"
+        onPayWithWallet={() => {
+          payWithWalletMutation.mutate();
+        }}
+        onPayWithRazorpay={() => {
+          buyMutation.mutate();
+        }}
+        isProcessing={buyMutation.isPending || payWithWalletMutation.isPending}
+      />
     </div>
   );
 }

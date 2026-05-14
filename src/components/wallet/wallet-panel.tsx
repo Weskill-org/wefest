@@ -73,7 +73,7 @@ export function WalletPanel({ showTopup = true }: { showTopup?: boolean }) {
           {!tx.isLoading && (tx.data?.length ?? 0) === 0 && (
             <div className="p-8 text-center text-sm text-muted-foreground">No transactions yet. Add money to get started.</div>
           )}
-          {tx.data?.map((t) => {
+          {Array.isArray(tx.data) && tx.data.map((t) => {
             const credit = t.amount_coins > 0;
             return (
               <div key={t.id} className="flex items-center gap-3 p-4 hover:bg-white/[0.02]">

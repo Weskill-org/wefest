@@ -1,9 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { ShoppingBag, Star, Loader2 } from "lucide-react";
 import { useRegion } from "@/contexts/RegionContext";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useState } from "react";
+import { PaymentDialog } from "@/components/wallet/payment-dialog";
+import { payForProductWithWallet } from "@/lib/wallet.functions";
 
 export interface Product {
   id: string;
@@ -17,6 +20,66 @@ export interface Product {
 
 export function ProductCard({ product }: { product: Product }) {
   const { formatPrice } = useRegion();
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const { data: currentUser } = useQuery({
+    queryKey: ["current-user"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    }
+  });
+
+  const buyMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentUser) throw new Error("Please login to buy products");
+      const { data: order, error } = await supabase.from("orders").insert({
+        user_id: currentUser.id,
+        product_id: product.id,
+        quantity: 1,
+        total_amount: product.price,
+        shipping_address: "Pickup at Campus",
+        status: "paid"
+      }).select().single();
+      if (error) throw error;
+      
+      const { error: updateError } = await supabase.from("products").update({
+        stock: product.stock - 1
+      }).eq("id", product.id);
+      if (updateError) throw updateError;
+      
+      return order;
+    },
+    onSuccess: () => {
+      setPaymentOpen(false);
+      toast.success(`Success! ${product.name} ordered.`);
+      queryClient.invalidateQueries({ queryKey: ["shop-products"] });
+    },
+    onError: (error: any) => toast.error(error.message || "Failed to order product"),
+  });
+
+  const payWithWalletMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentUser) throw new Error("Please login to buy products");
+      const res = await payForProductWithWallet({
+        data: { 
+          productId: product.id, 
+          quantity: 1, 
+          shippingAddress: "Pickup at Campus" 
+        }
+      });
+      if (!res.ok) throw new Error("Wallet payment failed");
+      return res;
+    },
+    onSuccess: () => {
+      setPaymentOpen(false);
+      toast.success(`Success! ${product.name} ordered using WeCoins.`);
+      queryClient.invalidateQueries({ queryKey: ["shop-products"] });
+      queryClient.invalidateQueries({ queryKey: ["wallet"] });
+    },
+    onError: (error: any) => toast.error(error.message || "Failed to order product with wallet"),
+  });
 
   return (
     <div className="perspective-1000 group w-full h-full">
@@ -73,14 +136,30 @@ export function ProductCard({ product }: { product: Product }) {
               <span className="ml-1.5 text-muted-foreground font-bold text-xs">(12)</span>
             </div>
             <button 
-              disabled={product.stock === 0}
-              className="rounded-xl bg-primary/10 px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-primary transition-all hover:bg-brand-gradient hover:text-white disabled:opacity-50 disabled:hover:bg-primary/10 disabled:hover:text-primary shadow-sm hover:shadow-glow group-hover:scale-105"
+              onClick={() => setPaymentOpen(true)}
+              disabled={product.stock === 0 || buyMutation.isPending || payWithWalletMutation.isPending}
+              className="flex items-center gap-2 rounded-xl bg-primary/10 px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-primary transition-all hover:bg-brand-gradient hover:text-white disabled:opacity-50 disabled:hover:bg-primary/10 disabled:hover:text-primary shadow-sm hover:shadow-glow group-hover:scale-105"
             >
-              Add to bag
+              {(buyMutation.isPending || payWithWalletMutation.isPending) ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Buy Now"}
             </button>
           </div>
         </div>
       </div>
+
+      <PaymentDialog
+        open={paymentOpen}
+        onOpenChange={setPaymentOpen}
+        amountInr={product.price}
+        itemTitle={product.name}
+        itemDescription="Official Merchandise"
+        onPayWithWallet={() => {
+          payWithWalletMutation.mutate();
+        }}
+        onPayWithRazorpay={() => {
+          buyMutation.mutate();
+        }}
+        isProcessing={buyMutation.isPending || payWithWalletMutation.isPending}
+      />
     </div>
   );
 }

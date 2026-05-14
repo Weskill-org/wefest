@@ -108,7 +108,7 @@ function GlobalBroadcasts() {
     refetchInterval: 60000 // Refetch every minute
   });
 
-  if (!broadcasts || broadcasts.length === 0) return null;
+  if (!Array.isArray(broadcasts) || broadcasts.length === 0) return null;
 
   return (
     <div className="w-full">
