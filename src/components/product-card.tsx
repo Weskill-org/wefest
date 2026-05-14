@@ -1,12 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { ShoppingBag, Star, Loader2 } from "lucide-react";
 import { useRegion } from "@/contexts/RegionContext";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { useState } from "react";
 import { PaymentDialog } from "@/components/wallet/payment-dialog";
-import { payForProductWithWallet } from "@/lib/wallet.functions";
 
 export interface Product {
   id: string;
