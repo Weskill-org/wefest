@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { getAuthSession, getDashboardRedirect } from "@/lib/auth";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type SignupSearch = {
   redirect?: string;
@@ -197,17 +198,16 @@ function Signup() {
             {role === "student" && (
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Your College</Label>
-                <select 
-                  required
-                  className="flex h-11 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  value={collegeId}
-                  onChange={(e) => setCollegeId(e.target.value)}
-                >
-                  <option value="">Select your college</option>
-                  {colleges?.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+                <Select value={collegeId} onValueChange={setCollegeId}>
+                  <SelectTrigger className="h-11 rounded-xl bg-white/[0.03] border-white/10 text-sm">
+                    <SelectValue placeholder="Select your college" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px]">
+                    {colleges?.map(c => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             )}
             <div className="space-y-1.5">

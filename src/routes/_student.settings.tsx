@@ -71,6 +71,7 @@ function StudentSettings() {
           .insert({
             id: user!.id,
             full_name: user!.user_metadata?.full_name || "",
+            college_id: user!.user_metadata?.college_id || null,
           })
           .select()
           .single();
@@ -104,7 +105,7 @@ function StudentSettings() {
     if (profile) {
       setFullName(profile.full_name || user?.user_metadata?.full_name || "");
       setBio(profile.bio || "");
-      setCollegeId(profile.college_id || "none");
+      setCollegeId(profile.college_id || user?.user_metadata?.college_id || "none");
       setIsPublic(profile.is_public ?? true);
     }
   }, [profile, user]);
@@ -216,7 +217,11 @@ function StudentSettings() {
 
               <div className="space-y-1.5 pt-2">
                 <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">College Affiliation</Label>
-                <Select value={collegeId} onValueChange={(v) => { setCollegeId(v); setIsDirty(true); }}>
+                <Select 
+                  value={collegeId} 
+                  onValueChange={(v) => { setCollegeId(v); setIsDirty(true); }}
+                  disabled={collegeId !== "none" && collegeId !== null}
+                >
                   <SelectTrigger className="h-12 rounded-xl bg-background/50 border-border/50 font-medium">
                     <SelectValue placeholder="Select your college" />
                   </SelectTrigger>
@@ -229,7 +234,11 @@ function StudentSettings() {
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-[10px] text-muted-foreground mt-1">Linking your college unlocks campus-specific events and leaderboards.</p>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  {collegeId !== "none" 
+                    ? "Your college affiliation is locked. Contact support to change it." 
+                    : "Linking your college unlocks campus-specific events and leaderboards."}
+                </p>
               </div>
 
               <div className="flex items-center justify-between rounded-xl border border-border/40 bg-background/30 p-4 mt-6">

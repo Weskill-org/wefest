@@ -43,12 +43,28 @@ function CampusNetwork() {
     }
   });
 
+  const { data: myProfile } = useQuery({
+    queryKey: ["my-profile"],
+    enabled: !!currentUser?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("student_profiles")
+        .select("*, colleges(name)")
+        .eq("id", currentUser!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    }
+  });
+
   const { data: profiles, isLoading: loadingProfiles } = useQuery({
-    queryKey: ["student-profiles"],
+    queryKey: ["student-profiles", myProfile?.college_id],
+    enabled: !!myProfile?.college_id,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("student_profiles")
         .select("*, colleges(name, city)")
+        .eq("college_id", myProfile!.college_id)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -115,7 +131,11 @@ function CampusNetwork() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Campus Network</h1>
-          <p className="text-sm text-muted-foreground mt-1">Follow friends, discover creators, and build your inter-college network.</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {myProfile?.colleges?.name 
+              ? `Connecting with students from ${myProfile.colleges.name}.` 
+              : "Discover and connect with students from your college."}
+          </p>
         </div>
       </div>
 

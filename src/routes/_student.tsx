@@ -32,7 +32,7 @@ export const Route = createFileRoute("/_student")({
     // Fetch student profile to get college details
     let profile = null;
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("student_profiles")
         .select(`
           *,
@@ -40,8 +40,26 @@ export const Route = createFileRoute("/_student")({
         `)
         .eq("id", currentUser.id)
         .maybeSingle();
-      profile = data;
-    } catch (e) {}
+      
+      if (!data && !error) {
+        // Auto-create profile if missing, syncing from signup metadata
+        const { data: newProfile, error: insertError } = await supabase
+          .from("student_profiles")
+          .insert({
+            id: currentUser.id,
+            full_name: currentUser.user_metadata?.full_name || "",
+            college_id: currentUser.user_metadata?.college_id || null,
+          })
+          .select(`*, colleges (id, name)`)
+          .single();
+        
+        if (!insertError) profile = newProfile;
+      } else {
+        profile = data;
+      }
+    } catch (e) {
+      console.error("Error syncing student profile:", e);
+    }
 
     return {
       user: currentUser,
