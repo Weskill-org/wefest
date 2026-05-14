@@ -7,6 +7,16 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+const COINS_PER_INR = 10;
+const inrToCoins = (inr: number) => Math.round(inr * COINS_PER_INR);
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -23,68 +33,159 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
     const { data: userData, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userData.user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (userErr || !userData.user) return json({ error: "Unauthorized" }, 401);
     const userId = userData.user.id;
 
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = await req.json();
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      return new Response(JSON.stringify({ error: "Missing fields" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return json({ error: "Missing fields" }, 400);
     }
 
     const expected = createHmac("sha256", secret)
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest("hex");
-    if (expected !== razorpay_signature) {
-      return new Response(JSON.stringify({ error: "Invalid signature" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (expected !== razorpay_signature) return json({ error: "Invalid signature" }, 400);
 
     const admin = createClient(supaUrl, serviceKey);
     const { data: order, error } = await admin
       .from("razorpay_orders")
-      .select("id, user_id, status, coins_to_credit, purpose")
+      .select("id, user_id, status, coins_to_credit, purpose, notes, amount_paise")
       .eq("razorpay_order_id", razorpay_order_id)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    if (!order) throw new Error("Order not found");
-    if (order.user_id !== userId) throw new Error("Order does not belong to user");
-    if (order.status === "paid") {
-      return new Response(JSON.stringify({ ok: true, alreadyCredited: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (!order) return json({ error: "Order not found" }, 404);
+    if (order.user_id !== userId) return json({ error: "Order does not belong to user" }, 403);
+    if (order.status === "paid") return json({ ok: true, alreadyProcessed: true });
 
-    await admin.rpc("wallet_credit", {
-      _user_id: userId,
-      _amount_coins: order.coins_to_credit,
-      _type: "topup",
-      _description: "Razorpay top-up",
-      _reference_type: "razorpay",
-      _reference_id: razorpay_payment_id,
-    });
+    const purpose = order.purpose as string;
+    const notes = (order.notes ?? {}) as Record<string, any>;
 
+    // Mark as paid first to prevent duplicate processing if any sub-step fails partially.
     await admin.from("razorpay_orders").update({
       status: "paid",
       razorpay_payment_id,
       razorpay_signature,
       paid_at: new Date().toISOString(),
-      credited_at: new Date().toISOString(),
     }).eq("id", order.id);
 
-    return new Response(
-      JSON.stringify({ ok: true, coinsCredited: order.coins_to_credit }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    const result: Record<string, unknown> = { ok: true, purpose };
+
+    if (purpose === "wallet_topup") {
+      await admin.rpc("wallet_credit", {
+        _user_id: userId,
+        _amount_coins: order.coins_to_credit,
+        _type: "topup",
+        _description: "Razorpay top-up",
+        _reference_type: "razorpay",
+        _reference_id: razorpay_payment_id,
+      });
+      await admin.from("razorpay_orders").update({ credited_at: new Date().toISOString() }).eq("id", order.id);
+      result.coinsCredited = order.coins_to_credit;
+
+    } else if (purpose === "ticket_purchase") {
+      const totalInr = Number(notes.totalInr);
+      const organizerId = notes.organizerId as string;
+      const eventId = notes.eventId as string;
+      const tier = notes.tier as string;
+      const eventTitle = (notes.eventTitle as string) ?? "Event";
+      const walletCoinsToUse = Math.max(0, Number(notes.walletCoinsToUse ?? 0));
+      const totalCoins = inrToCoins(totalInr);
+
+      // Debit user wallet portion (if any)
+      if (walletCoinsToUse > 0) {
+        const { error: dErr } = await admin.rpc("wallet_debit", {
+          _user_id: userId,
+          _amount_coins: walletCoinsToUse,
+          _type: "purchase",
+          _description: `Ticket (wallet portion): ${eventTitle} (${tier})`,
+          _reference_type: "ticket",
+          _reference_id: eventId,
+          _counterparty: organizerId,
+        });
+        if (dErr) throw new Error(`Wallet debit failed: ${dErr.message}`);
+      }
+
+      // Credit organizer with full total coins (sale)
+      await admin.rpc("wallet_credit", {
+        _user_id: organizerId,
+        _amount_coins: totalCoins,
+        _type: "sale",
+        _description: `Sale: ${eventTitle} (${tier})`,
+        _reference_type: "ticket",
+        _reference_id: eventId,
+        _counterparty: userId,
+        _metadata: { tier, payment_id: razorpay_payment_id, wallet_portion_coins: walletCoinsToUse },
+      });
+
+      // Insert ticket
+      const code = `${eventTitle.substring(0, 3).toUpperCase()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+      const { error: tkErr } = await admin.from("tickets").insert({
+        user_id: userId, event_id: eventId, tier, code,
+      });
+      if (tkErr) throw new Error(`Ticket creation failed: ${tkErr.message}`);
+
+      await admin.from("razorpay_orders").update({ credited_at: new Date().toISOString() }).eq("id", order.id);
+      result.ticketCode = code;
+      result.tier = tier;
+
+    } else if (purpose === "product_purchase") {
+      const totalInr = Number(notes.totalInr);
+      const organizerId = notes.organizerId as string;
+      const productId = notes.productId as string;
+      const productName = (notes.productName as string) ?? "Product";
+      const quantity = Math.max(1, Number(notes.quantity ?? 1));
+      const shippingAddress = (notes.shippingAddress as string) ?? "Pickup at Campus";
+      const walletCoinsToUse = Math.max(0, Number(notes.walletCoinsToUse ?? 0));
+      const totalCoins = inrToCoins(totalInr);
+
+      if (walletCoinsToUse > 0) {
+        const { error: dErr } = await admin.rpc("wallet_debit", {
+          _user_id: userId,
+          _amount_coins: walletCoinsToUse,
+          _type: "purchase",
+          _description: `Shop (wallet portion): ${productName} x${quantity}`,
+          _reference_type: "order",
+          _reference_id: productId,
+          _counterparty: organizerId,
+        });
+        if (dErr) throw new Error(`Wallet debit failed: ${dErr.message}`);
+      }
+
+      await admin.rpc("wallet_credit", {
+        _user_id: organizerId,
+        _amount_coins: totalCoins,
+        _type: "sale",
+        _description: `Sale: ${productName} x${quantity}`,
+        _reference_type: "order",
+        _reference_id: productId,
+        _counterparty: userId,
+        _metadata: { quantity, payment_id: razorpay_payment_id, wallet_portion_coins: walletCoinsToUse },
+      });
+
+      const { data: orderRow, error: oErr } = await admin.from("orders").insert({
+        user_id: userId,
+        product_id: productId,
+        quantity,
+        total_amount: totalInr,
+        shipping_address: shippingAddress,
+        status: "paid",
+      }).select("id").single();
+      if (oErr) throw new Error(oErr.message);
+
+      // Decrement stock atomically-ish
+      const { data: prod } = await admin.from("products").select("stock").eq("id", productId).maybeSingle();
+      if (prod) {
+        await admin.from("products").update({
+          stock: Math.max(0, Number(prod.stock) - quantity),
+        }).eq("id", productId);
+      }
+
+      await admin.from("razorpay_orders").update({ credited_at: new Date().toISOString() }).eq("id", order.id);
+      result.orderId = orderRow.id;
+    }
+
+    return json(result);
   } catch (e) {
-    return new Response(JSON.stringify({ error: (e as Error).message }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return json({ error: (e as Error).message }, 500);
   }
 });
