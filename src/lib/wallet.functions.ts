@@ -310,3 +310,67 @@ export const getMyWithdrawals = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return data ?? [];
   });
+
+/** Redeem a gift card code. */
+const redeemGiftCardInput = z.object({
+  code: z.string().min(4).max(50),
+});
+export const redeemGiftCard = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => redeemGiftCardInput.parse(d))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    const { data: result, error } = await supabase.rpc("redeem_gift_card", {
+      _code: data.code,
+      _user_id: userId,
+    });
+    if (error) {
+      console.error("Redemption error:", error);
+      if (error.message?.includes("INVALID_OR_REDEEMED_CODE")) {
+        throw new Error("Invalid or already redeemed gift card code");
+      }
+      throw new Error(error.message);
+    }
+    return result as { success: boolean; amount: number; tx_id: string };
+  });
+
+/** Create a new gift card (Admin only). */
+const createGiftCardInput = z.object({
+  code: z.string().min(4).max(50),
+  amountCoins: z.number().int().min(1),
+});
+export const createGiftCard = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => createGiftCardInput.parse(d))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    // Check if user is admin
+    const { data: isAdmin } = await supabase.rpc("is_admin", { _user_id: userId });
+    if (!isAdmin) throw new Error("Unauthorized: Admin access required");
+
+    const { data: gc, error } = await supabase.from("gift_cards").insert({
+      code: data.code.toUpperCase(),
+      amount_coins: data.amountCoins,
+      created_by: userId,
+    }).select().single();
+
+    if (error) throw new Error(error.message);
+    return gc;
+  });
+
+/** List all gift cards (Admin only). */
+export const getAllGiftCards = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const { data: isAdmin } = await supabase.rpc("is_admin", { _user_id: userId });
+    if (!isAdmin) throw new Error("Unauthorized: Admin access required");
+
+    const { data, error } = await supabase
+      .from("gift_cards")
+      .select("*")
+      .order("created_at", { ascending: false });
+    
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });

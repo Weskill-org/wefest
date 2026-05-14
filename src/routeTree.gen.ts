@@ -52,6 +52,7 @@ import { Route as CollegesCollegeSlugRouteImport } from './routes/colleges.$coll
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminIntegrationsRouteImport } from './routes/admin.integrations'
+import { Route as AdminGiftCardsRouteImport } from './routes/admin.gift-cards'
 import { Route as AdminEventsRouteImport } from './routes/admin.events'
 import { Route as AdminCompaniesRouteImport } from './routes/admin.companies'
 import { Route as AdminCollegesRouteImport } from './routes/admin.colleges'
@@ -286,6 +287,11 @@ const AdminIntegrationsRoute = AdminIntegrationsRouteImport.update({
   path: '/integrations',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminGiftCardsRoute = AdminGiftCardsRouteImport.update({
+  id: '/gift-cards',
+  path: '/gift-cards',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminEventsRoute = AdminEventsRouteImport.update({
   id: '/events',
   path: '/events',
@@ -414,6 +420,7 @@ export interface FileRoutesByFullPath {
   '/admin/colleges': typeof AdminCollegesRoute
   '/admin/companies': typeof AdminCompaniesRoute
   '/admin/events': typeof AdminEventsRoute
+  '/admin/gift-cards': typeof AdminGiftCardsRoute
   '/admin/integrations': typeof AdminIntegrationsRoute
   '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -471,6 +478,7 @@ export interface FileRoutesByTo {
   '/admin/colleges': typeof AdminCollegesRoute
   '/admin/companies': typeof AdminCompaniesRoute
   '/admin/events': typeof AdminEventsRoute
+  '/admin/gift-cards': typeof AdminGiftCardsRoute
   '/admin/integrations': typeof AdminIntegrationsRoute
   '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -536,6 +544,7 @@ export interface FileRoutesById {
   '/admin/colleges': typeof AdminCollegesRoute
   '/admin/companies': typeof AdminCompaniesRoute
   '/admin/events': typeof AdminEventsRoute
+  '/admin/gift-cards': typeof AdminGiftCardsRoute
   '/admin/integrations': typeof AdminIntegrationsRoute
   '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -601,6 +610,7 @@ export interface FileRouteTypes {
     | '/admin/colleges'
     | '/admin/companies'
     | '/admin/events'
+    | '/admin/gift-cards'
     | '/admin/integrations'
     | '/admin/users'
     | '/blog/$slug'
@@ -658,6 +668,7 @@ export interface FileRouteTypes {
     | '/admin/colleges'
     | '/admin/companies'
     | '/admin/events'
+    | '/admin/gift-cards'
     | '/admin/integrations'
     | '/admin/users'
     | '/blog/$slug'
@@ -722,6 +733,7 @@ export interface FileRouteTypes {
     | '/admin/colleges'
     | '/admin/companies'
     | '/admin/events'
+    | '/admin/gift-cards'
     | '/admin/integrations'
     | '/admin/users'
     | '/blog/$slug'
@@ -1081,6 +1093,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIntegrationsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/gift-cards': {
+      id: '/admin/gift-cards'
+      path: '/gift-cards'
+      fullPath: '/admin/gift-cards'
+      preLoaderRoute: typeof AdminGiftCardsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/events': {
       id: '/admin/events'
       path: '/events'
@@ -1251,6 +1270,7 @@ interface AdminRouteChildren {
   AdminCollegesRoute: typeof AdminCollegesRoute
   AdminCompaniesRoute: typeof AdminCompaniesRoute
   AdminEventsRoute: typeof AdminEventsRoute
+  AdminGiftCardsRoute: typeof AdminGiftCardsRoute
   AdminIntegrationsRoute: typeof AdminIntegrationsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -1265,6 +1285,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCollegesRoute: AdminCollegesRoute,
   AdminCompaniesRoute: AdminCompaniesRoute,
   AdminEventsRoute: AdminEventsRoute,
+  AdminGiftCardsRoute: AdminGiftCardsRoute,
   AdminIntegrationsRoute: AdminIntegrationsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
@@ -1401,3 +1422,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

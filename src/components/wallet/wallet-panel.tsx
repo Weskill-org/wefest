@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useWallet, useWalletTransactions } from "@/hooks/use-wallet";
 import { WalletTopupDialog } from "./wallet-topup-dialog";
+import { RedeemGiftCardDialog } from "./redeem-gift-card-dialog";
 import { Button } from "@/components/ui/button";
 import { Coins, Plus, ArrowDownRight, ArrowUpRight, Loader2 } from "lucide-react";
 import { coinsToInr } from "@/lib/wallet.functions";
@@ -23,6 +24,7 @@ export function WalletPanel({ showTopup = true }: { showTopup?: boolean }) {
   const wallet = useWallet();
   const tx = useWalletTransactions(50);
   const [topupOpen, setTopupOpen] = useState(false);
+  const [redeemOpen, setRedeemOpen] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -44,9 +46,14 @@ export function WalletPanel({ showTopup = true }: { showTopup?: boolean }) {
 
           <div className="mt-5 flex flex-wrap gap-2">
             {showTopup && (
-              <Button onClick={() => setTopupOpen(true)} className="gap-2">
-                <Plus className="h-4 w-4" /> Add Money
-              </Button>
+              <>
+                <Button onClick={() => setTopupOpen(true)} className="gap-2">
+                  <Plus className="h-4 w-4" /> Add Money
+                </Button>
+                <Button onClick={() => setRedeemOpen(true)} variant="outline" className="gap-2 bg-rose-500/5 hover:bg-rose-500/10 border-rose-500/20 text-rose-500 hover:text-rose-400">
+                  <Plus className="h-4 w-4" /> Redeem Code
+                </Button>
+              </>
             )}
           </div>
 
@@ -100,6 +107,7 @@ export function WalletPanel({ showTopup = true }: { showTopup?: boolean }) {
       </div>
 
       <WalletTopupDialog open={topupOpen} onOpenChange={setTopupOpen} />
+      <RedeemGiftCardDialog open={redeemOpen} onOpenChange={setRedeemOpen} />
     </div>
   );
 }
