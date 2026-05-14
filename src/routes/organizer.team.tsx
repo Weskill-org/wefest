@@ -24,6 +24,7 @@ function AddMemberDialog({ collegeId, onClose }: { collegeId: string; onClose: (
   const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<string>("member");
+  const [position, setPosition] = useState("");
   const [searchResult, setSearchResult] = useState<any>(null);
   const [searching, setSearching] = useState(false);
   const [notFound, setNotFound] = useState(false);
@@ -68,9 +69,24 @@ function AddMemberDialog({ collegeId, onClose }: { collegeId: string; onClose: (
         college_id: collegeId,
         user_id: searchResult.user_id,
         role: role as any,
+        position: position.trim() || null,
         is_approved: true,
       });
       if (error) throw error;
+
+      // Send notification to the student
+      const { data: college } = await supabase
+        .from("colleges")
+        .select("name")
+        .eq("id", collegeId)
+        .single();
+
+      await supabase.from("notification_logs").insert({
+        user_id: searchResult.user_id,
+        title: "New Team Position",
+        body: `You have been selected as ${position.trim() || role} for ${college?.name || "the committee"}. Congratulations!`,
+        metadata: { type: "team_assignment", college_id: collegeId, role, position }
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["college-team"] });
@@ -169,6 +185,20 @@ function AddMemberDialog({ collegeId, onClose }: { collegeId: string; onClose: (
                 </div>
               </div>
 
+              {/* Position Input */}
+              <div className="space-y-2">
+                <Label className="text-sm font-bold">Position Title</Label>
+                <Input
+                  placeholder="e.g. Head of Marketing, Volunteer"
+                  value={position}
+                  onChange={(e) => setPosition(e.target.value)}
+                  className="h-11 rounded-xl border-border/50 bg-muted/5"
+                />
+                <p className="text-[10px] text-muted-foreground px-1">
+                  This will be displayed as their official title in the team list.
+                </p>
+              </div>
+
               <Button
                 onClick={() => addMutation.mutate()}
                 disabled={addMutation.isPending}
@@ -264,9 +294,19 @@ function TeamManagement() {
   });
 
   const updateMemberMutation = useMutation({
-    mutationFn: async ({ memberId, updates }: { memberId: string; updates: any }) => {
+    mutationFn: async ({ memberId, updates, memberUserId, collegeName }: { memberId: string; updates: any; memberUserId?: string; collegeName?: string }) => {
       const { error } = await supabase.from("college_members").update(updates).eq("id", memberId);
       if (error) throw error;
+
+      // If position or role is updated, notify the user
+      if (memberUserId && (updates.position !== undefined || updates.role !== undefined)) {
+        await supabase.from("notification_logs").insert({
+          user_id: memberUserId,
+          title: "Team Role Updated",
+          body: `Your position at ${collegeName || "the committee"} has been updated to: ${updates.position || updates.role || "Member"}.`,
+          metadata: { type: "team_update", role: updates.role, position: updates.position }
+        });
+      }
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["college-team"] }); toast.success("Member updated"); },
     onError: (e: any) => toast.error(e.message),
@@ -352,7 +392,12 @@ function TeamManagement() {
                     </div>
                     <div className="flex gap-1.5 shrink-0">
                       <Button size="sm" className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg h-8 w-8 p-0"
-                        onClick={() => updateMemberMutation.mutate({ memberId: request.id, updates: { is_approved: true } })}>
+                        onClick={() => updateMemberMutation.mutate({ 
+                          memberId: request.id, 
+                          updates: { is_approved: true },
+                          memberUserId: request.user_id,
+                          collegeName: myCollegeName
+                        })}>
                         <CheckCircle2 className="h-4 w-4" />
                       </Button>
                       <Button size="sm" variant="destructive" className="rounded-lg h-8 w-8 p-0"
@@ -399,8 +444,13 @@ function TeamManagement() {
                             <Badge variant="secondary" className="bg-primary/10 text-primary text-[8px] font-black tracking-widest uppercase px-1.5 py-0">You</Badge>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 mt-0.5">
+                        <div className="flex flex-wrap items-center gap-2 mt-0.5">
                           <RoleBadge role={member.role} />
+                          {member.position && (
+                            <span className="text-[10px] font-bold text-primary px-1.5 py-0.5 bg-primary/5 rounded-md border border-primary/10">
+                              {member.position}
+                            </span>
+                          )}
                           <span className="text-[10px] text-muted-foreground">{(member as any).profiles?.email}</span>
                         </div>
                       </div>
@@ -408,10 +458,35 @@ function TeamManagement() {
 
                     {isAdmin && member.user_id !== userData?.id && (
                       <div className="flex items-center gap-2 shrink-0">
+                        <Input
+                          placeholder="Position"
+                          className="h-8 w-32 text-[10px] font-bold bg-muted/20 border-border/40"
+                          defaultValue={member.position || ""}
+                          onBlur={(e) => {
+                            if (e.target.value !== (member.position || "")) {
+                              updateMemberMutation.mutate({ 
+                                memberId: member.id, 
+                                updates: { position: e.target.value },
+                                memberUserId: member.user_id,
+                                collegeName: myCollegeName
+                              });
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              (e.target as HTMLInputElement).blur();
+                            }
+                          }}
+                        />
                         <select
-                          className="bg-muted/30 border border-border/50 rounded-lg text-xs font-bold p-1.5 focus:ring-1 ring-primary"
+                          className="bg-muted/30 border border-border/50 rounded-lg text-[10px] font-bold p-1.5 focus:ring-1 ring-primary h-8"
                           value={member.role}
-                          onChange={(e) => updateMemberMutation.mutate({ memberId: member.id, updates: { role: e.target.value } })}
+                          onChange={(e) => updateMemberMutation.mutate({ 
+                            memberId: member.id, 
+                            updates: { role: e.target.value },
+                            memberUserId: member.user_id,
+                            collegeName: myCollegeName
+                          })}
                         >
                           <option value="member">Member</option>
                           <option value="coordinator">Coordinator</option>
