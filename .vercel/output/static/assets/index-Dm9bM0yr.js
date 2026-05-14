@@ -1,0 +1,1 @@
+import{a2 as e}from"./index-CO9uRJaT.js";var s=globalThis?.document?e.useLayoutEffect:()=>{};function f(t){const u=e.useRef(t);return e.useEffect(()=>{u.current=t}),e.useMemo(()=>(...a)=>u.current?.(...a),[])}export{s as a,f as u};

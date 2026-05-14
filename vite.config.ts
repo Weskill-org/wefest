@@ -17,4 +17,9 @@ export default defineConfig({
       preset: "vercel",
     },
   },
+  vite: {
+    ssr: {
+      noExternal: ["tslib"],
+    },
+  },
 });
