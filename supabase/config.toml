@@ -1,1 +1,10 @@
 project_id = "vpganqviwrtmnrfvrrrx"
+
+[functions.razorpay-key]
+verify_jwt = false
+
+[functions.razorpay-create-order]
+verify_jwt = false
+
+[functions.razorpay-verify]
+verify_jwt = false
