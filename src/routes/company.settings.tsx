@@ -184,53 +184,21 @@ function CompanySettings() {
       </section>
 
       {/* Brand Assets */}
-      <section className="glass rounded-2xl p-6 md:p-8 space-y-5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-              <ImageIcon className="h-5 w-5" />
-            </div>
-            <div>
-              <h2 className="font-display text-lg font-bold">Brand Assets & Creatives</h2>
-              <p className="text-xs text-muted-foreground">Upload assets for in-app banners and event marketing</p>
-            </div>
+      <section className="glass rounded-2xl p-6 md:p-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+            <ImageIcon className="h-5 w-5" />
           </div>
-          <Button size="sm" className="bg-brand-gradient text-white text-xs">
-            <Plus className="h-3.5 w-3.5 mr-1.5" /> Upload
+          <div>
+            <h2 className="font-display text-lg font-bold">Brand Assets & Creatives</h2>
+            <p className="text-xs text-muted-foreground">Manage your banners, logos, and guidelines from the dedicated assets page.</p>
+          </div>
+        </div>
+        <Link to="/company/brand-assets">
+          <Button size="sm" className="bg-brand-gradient text-white text-xs whitespace-nowrap">
+            Manage Assets <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
           </Button>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-          <div className="glass p-5 rounded-2xl flex flex-col items-center justify-center border-dashed border-2 border-white/10 hover:border-primary/30 transition-all cursor-pointer group h-40">
-            <div className="h-10 w-10 rounded-full bg-white/5 flex items-center justify-center mb-3 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-              <Plus className="h-5 w-5" />
-            </div>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Add Creative</div>
-          </div>
-          <div className="glass p-5 rounded-2xl h-40 flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                <ImageIcon className="h-4 w-4" />
-              </div>
-              <Badge variant="outline" className="text-[9px] bg-emerald-500/10 text-emerald-500 border-none">Approved</Badge>
-            </div>
-            <div>
-              <div className="text-sm font-bold">Main Logo (PNG)</div>
-              <div className="text-[9px] text-muted-foreground mt-1 uppercase font-bold tracking-widest">Transparency Enabled</div>
-            </div>
-          </div>
-          <div className="glass p-5 rounded-2xl h-40 flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                <Sparkles className="h-4 w-4" />
-              </div>
-              <Badge variant="outline" className="text-[9px] bg-blue-500/10 text-blue-500 border-none">In Review</Badge>
-            </div>
-            <div>
-              <div className="text-sm font-bold">Homepage Banner</div>
-              <div className="text-[9px] text-muted-foreground mt-1 uppercase font-bold tracking-widest">1200 × 600 px</div>
-            </div>
-          </div>
-        </div>
+        </Link>
       </section>
 
       {/* Subscription Plans */}

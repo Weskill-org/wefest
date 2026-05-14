@@ -37,6 +37,7 @@ import { Route as SponsorPricingRouteImport } from './routes/sponsor.pricing'
 import { Route as SponsorDashboardRouteImport } from './routes/sponsor.dashboard'
 import { Route as OrganizerWalletRouteImport } from './routes/organizer.wallet'
 import { Route as OrganizerTeamRouteImport } from './routes/organizer.team'
+import { Route as OrganizerSponsorAssetsRouteImport } from './routes/organizer.sponsor-assets'
 import { Route as OrganizerSettingsRouteImport } from './routes/organizer.settings'
 import { Route as OrganizerScanRouteImport } from './routes/organizer.scan'
 import { Route as OrganizerNewRouteImport } from './routes/organizer.new'
@@ -46,6 +47,7 @@ import { Route as CompanySettingsRouteImport } from './routes/company.settings'
 import { Route as CompanyScanRouteImport } from './routes/company.scan'
 import { Route as CompanyProposalsRouteImport } from './routes/company.proposals'
 import { Route as CompanyMarketplaceRouteImport } from './routes/company.marketplace'
+import { Route as CompanyBrandAssetsRouteImport } from './routes/company.brand-assets'
 import { Route as CollegesCollegeSlugRouteImport } from './routes/colleges.$collegeSlug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
@@ -209,6 +211,11 @@ const OrganizerTeamRoute = OrganizerTeamRouteImport.update({
   path: '/team',
   getParentRoute: () => OrganizerRoute,
 } as any)
+const OrganizerSponsorAssetsRoute = OrganizerSponsorAssetsRouteImport.update({
+  id: '/sponsor-assets',
+  path: '/sponsor-assets',
+  getParentRoute: () => OrganizerRoute,
+} as any)
 const OrganizerSettingsRoute = OrganizerSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -252,6 +259,11 @@ const CompanyProposalsRoute = CompanyProposalsRouteImport.update({
 const CompanyMarketplaceRoute = CompanyMarketplaceRouteImport.update({
   id: '/marketplace',
   path: '/marketplace',
+  getParentRoute: () => CompanyRoute,
+} as any)
+const CompanyBrandAssetsRoute = CompanyBrandAssetsRouteImport.update({
+  id: '/brand-assets',
+  path: '/brand-assets',
   getParentRoute: () => CompanyRoute,
 } as any)
 const CollegesCollegeSlugRoute = CollegesCollegeSlugRouteImport.update({
@@ -406,6 +418,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/colleges/$collegeSlug': typeof CollegesCollegeSlugRoute
+  '/company/brand-assets': typeof CompanyBrandAssetsRoute
   '/company/marketplace': typeof CompanyMarketplaceRoute
   '/company/proposals': typeof CompanyProposalsRoute
   '/company/scan': typeof CompanyScanRoute
@@ -415,6 +428,7 @@ export interface FileRoutesByFullPath {
   '/organizer/new': typeof OrganizerNewRoute
   '/organizer/scan': typeof OrganizerScanRoute
   '/organizer/settings': typeof OrganizerSettingsRoute
+  '/organizer/sponsor-assets': typeof OrganizerSponsorAssetsRoute
   '/organizer/team': typeof OrganizerTeamRoute
   '/organizer/wallet': typeof OrganizerWalletRoute
   '/sponsor/dashboard': typeof SponsorDashboardRoute
@@ -461,6 +475,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/colleges/$collegeSlug': typeof CollegesCollegeSlugRoute
+  '/company/brand-assets': typeof CompanyBrandAssetsRoute
   '/company/marketplace': typeof CompanyMarketplaceRoute
   '/company/proposals': typeof CompanyProposalsRoute
   '/company/scan': typeof CompanyScanRoute
@@ -470,6 +485,7 @@ export interface FileRoutesByTo {
   '/organizer/new': typeof OrganizerNewRoute
   '/organizer/scan': typeof OrganizerScanRoute
   '/organizer/settings': typeof OrganizerSettingsRoute
+  '/organizer/sponsor-assets': typeof OrganizerSponsorAssetsRoute
   '/organizer/team': typeof OrganizerTeamRoute
   '/organizer/wallet': typeof OrganizerWalletRoute
   '/sponsor/dashboard': typeof SponsorDashboardRoute
@@ -524,6 +540,7 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/colleges/$collegeSlug': typeof CollegesCollegeSlugRoute
+  '/company/brand-assets': typeof CompanyBrandAssetsRoute
   '/company/marketplace': typeof CompanyMarketplaceRoute
   '/company/proposals': typeof CompanyProposalsRoute
   '/company/scan': typeof CompanyScanRoute
@@ -533,6 +550,7 @@ export interface FileRoutesById {
   '/organizer/new': typeof OrganizerNewRoute
   '/organizer/scan': typeof OrganizerScanRoute
   '/organizer/settings': typeof OrganizerSettingsRoute
+  '/organizer/sponsor-assets': typeof OrganizerSponsorAssetsRoute
   '/organizer/team': typeof OrganizerTeamRoute
   '/organizer/wallet': typeof OrganizerWalletRoute
   '/sponsor/dashboard': typeof SponsorDashboardRoute
@@ -587,6 +605,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/blog/$slug'
     | '/colleges/$collegeSlug'
+    | '/company/brand-assets'
     | '/company/marketplace'
     | '/company/proposals'
     | '/company/scan'
@@ -596,6 +615,7 @@ export interface FileRouteTypes {
     | '/organizer/new'
     | '/organizer/scan'
     | '/organizer/settings'
+    | '/organizer/sponsor-assets'
     | '/organizer/team'
     | '/organizer/wallet'
     | '/sponsor/dashboard'
@@ -642,6 +662,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/blog/$slug'
     | '/colleges/$collegeSlug'
+    | '/company/brand-assets'
     | '/company/marketplace'
     | '/company/proposals'
     | '/company/scan'
@@ -651,6 +672,7 @@ export interface FileRouteTypes {
     | '/organizer/new'
     | '/organizer/scan'
     | '/organizer/settings'
+    | '/organizer/sponsor-assets'
     | '/organizer/team'
     | '/organizer/wallet'
     | '/sponsor/dashboard'
@@ -704,6 +726,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/blog/$slug'
     | '/colleges/$collegeSlug'
+    | '/company/brand-assets'
     | '/company/marketplace'
     | '/company/proposals'
     | '/company/scan'
@@ -713,6 +736,7 @@ export interface FileRouteTypes {
     | '/organizer/new'
     | '/organizer/scan'
     | '/organizer/settings'
+    | '/organizer/sponsor-assets'
     | '/organizer/team'
     | '/organizer/wallet'
     | '/sponsor/dashboard'
@@ -952,6 +976,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrganizerTeamRouteImport
       parentRoute: typeof OrganizerRoute
     }
+    '/organizer/sponsor-assets': {
+      id: '/organizer/sponsor-assets'
+      path: '/sponsor-assets'
+      fullPath: '/organizer/sponsor-assets'
+      preLoaderRoute: typeof OrganizerSponsorAssetsRouteImport
+      parentRoute: typeof OrganizerRoute
+    }
     '/organizer/settings': {
       id: '/organizer/settings'
       path: '/settings'
@@ -1013,6 +1044,13 @@ declare module '@tanstack/react-router' {
       path: '/marketplace'
       fullPath: '/company/marketplace'
       preLoaderRoute: typeof CompanyMarketplaceRouteImport
+      parentRoute: typeof CompanyRoute
+    }
+    '/company/brand-assets': {
+      id: '/company/brand-assets'
+      path: '/brand-assets'
+      fullPath: '/company/brand-assets'
+      preLoaderRoute: typeof CompanyBrandAssetsRouteImport
       parentRoute: typeof CompanyRoute
     }
     '/colleges/$collegeSlug': {
@@ -1261,6 +1299,7 @@ const CollegesRouteWithChildren = CollegesRoute._addFileChildren(
 )
 
 interface CompanyRouteChildren {
+  CompanyBrandAssetsRoute: typeof CompanyBrandAssetsRoute
   CompanyMarketplaceRoute: typeof CompanyMarketplaceRoute
   CompanyProposalsRoute: typeof CompanyProposalsRoute
   CompanyScanRoute: typeof CompanyScanRoute
@@ -1270,6 +1309,7 @@ interface CompanyRouteChildren {
 }
 
 const CompanyRouteChildren: CompanyRouteChildren = {
+  CompanyBrandAssetsRoute: CompanyBrandAssetsRoute,
   CompanyMarketplaceRoute: CompanyMarketplaceRoute,
   CompanyProposalsRoute: CompanyProposalsRoute,
   CompanyScanRoute: CompanyScanRoute,
@@ -1312,6 +1352,7 @@ interface OrganizerRouteChildren {
   OrganizerNewRoute: typeof OrganizerNewRoute
   OrganizerScanRoute: typeof OrganizerScanRoute
   OrganizerSettingsRoute: typeof OrganizerSettingsRoute
+  OrganizerSponsorAssetsRoute: typeof OrganizerSponsorAssetsRoute
   OrganizerTeamRoute: typeof OrganizerTeamRoute
   OrganizerWalletRoute: typeof OrganizerWalletRoute
   OrganizerIndexRoute: typeof OrganizerIndexRoute
@@ -1323,6 +1364,7 @@ const OrganizerRouteChildren: OrganizerRouteChildren = {
   OrganizerNewRoute: OrganizerNewRoute,
   OrganizerScanRoute: OrganizerScanRoute,
   OrganizerSettingsRoute: OrganizerSettingsRoute,
+  OrganizerSponsorAssetsRoute: OrganizerSponsorAssetsRoute,
   OrganizerTeamRoute: OrganizerTeamRoute,
   OrganizerWalletRoute: OrganizerWalletRoute,
   OrganizerIndexRoute: OrganizerIndexRoute,

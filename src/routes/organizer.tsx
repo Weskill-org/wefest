@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect, Link, useMatchRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { getAuthSession } from "@/lib/auth";
-import { Clock, LayoutDashboard, CalendarPlus, CalendarRange, ScanLine, Users, BadgeCheck, Menu, X, LogOut, ChevronLeft, ChevronRight, Settings, BarChart3, IndianRupee, ShoppingBag, Zap } from "lucide-react";
+import { Clock, LayoutDashboard, CalendarPlus, CalendarRange, ScanLine, Users, BadgeCheck, Menu, X, LogOut, ChevronLeft, ChevronRight, Settings, BarChart3, IndianRupee, ShoppingBag, Zap, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -91,6 +91,7 @@ const sidebarLinks = [
   { to: "/organizer/new", label: "Create Event", icon: CalendarPlus },
   { to: "/organizer/scan", label: "Scan Tickets", icon: ScanLine },
   { to: "/organizer/team", label: "Team", icon: Users },
+  { to: "/organizer/sponsor-assets", label: "Sponsor Assets", icon: ImageIcon },
 ];
 
 function OrganizerLayout() {
