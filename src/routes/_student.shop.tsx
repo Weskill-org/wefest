@@ -33,14 +33,22 @@ export const Route = createFileRoute("/_student/shop")({
 function Shop() {
   const [q, setQ] = useState("");
   const [activeTab, setActiveTab] = useState("All");
+  const { profile } = Route.useRouteContext() as any;
+  const collegeId = profile?.college_id;
 
   const { data: products, isLoading } = useQuery({
-    queryKey: ["shop-products"],
+    queryKey: ["shop-products", collegeId],
     queryFn: async () => {
+      // If no college is selected, we might want to return nothing or all products
+      // But the requirement says "another college student should not see another college product"
+      if (!collegeId) return [];
+
       const { data, error } = await supabase
         .from("products")
-        .select("*, event:event_id(title)")
+        .select("*, event:event_id!inner(title, college_id)")
+        .eq("event.college_id", collegeId)
         .order("created_at", { ascending: false });
+
       if (error) throw error;
       return data.map(p => ({
         ...p,

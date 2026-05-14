@@ -1,16 +1,16 @@
 # Graph Report - wefest  (2026-05-14)
 
 ## Corpus Check
-- 180 files · ~96,716 words
+- 187 files · ~103,327 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 782 nodes · 1596 edges · 65 communities (49 shown, 16 thin omitted)
+- 815 nodes · 1693 edges · 67 communities (49 shown, 18 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 1 edges (avg confidence: 0.95)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `305811ac`
+- Built from commit: `8e3265e5`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -65,22 +65,24 @@
 - [[_COMMUNITY_Sponsor Matching|Sponsor Matching]]
 - [[_COMMUNITY_Community 48|Community 48]]
 - [[_COMMUNITY_Community 49|Community 49]]
-- [[_COMMUNITY_Community 61|Community 61]]
-- [[_COMMUNITY_Community 62|Community 62]]
+- [[_COMMUNITY_Community 50|Community 50]]
+- [[_COMMUNITY_Community 51|Community 51]]
 - [[_COMMUNITY_Community 63|Community 63]]
 - [[_COMMUNITY_Community 64|Community 64]]
+- [[_COMMUNITY_Community 65|Community 65]]
+- [[_COMMUNITY_Community 66|Community 66]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `cn()` - 102 edges
-2. `Button` - 61 edges
-3. `supabase` - 61 edges
-4. `Input` - 37 edges
-5. `Badge()` - 20 edges
-6. `useRegion()` - 17 edges
-7. `Label` - 15 edges
-8. `DialogContent` - 9 edges
-9. `getAuthSession()` - 9 edges
-10. `DialogHeader()` - 8 edges
+1. `cn()` - 104 edges
+2. `Button` - 64 edges
+3. `supabase` - 64 edges
+4. `Input` - 40 edges
+5. `Badge()` - 23 edges
+6. `Label` - 18 edges
+7. `useRegion()` - 17 edges
+8. `DialogContent` - 13 edges
+9. `DialogHeader()` - 12 edges
+10. `DialogTitle` - 11 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `AlertDialogHeader()` --calls--> `cn()`  [EXTRACTED]
@@ -94,15 +96,15 @@
 - `CommandShortcut()` --calls--> `cn()`  [EXTRACTED]
   src/components/ui/command.tsx → src/lib/utils.ts
 
-## Communities (65 total, 16 thin omitted)
+## Communities (67 total, 18 thin omitted)
 
 ### Community 0 - "Routing & Navigation"
 Cohesion: 0.05
-Nodes (42): Rank, RANKS, College, Route, Route, sponsorshipTiers, categories, LoginSearch (+34 more)
+Nodes (45): EventsHeroProps, Rank, RANKS, College, Route, Route, sponsorshipTiers, Proposal (+37 more)
 
 ### Community 1 - "Forms & User Interface"
 Cohesion: 0.02
-Nodes (111): Route, Route, Route, Route, Route, Route, Route, Route (+103 more)
+Nodes (117): Route, Route, Route, Route, Route, Route, Route, Route (+109 more)
 
 ### Community 2 - "Event & College Cards"
 Cohesion: 0.06
@@ -113,40 +115,40 @@ Cohesion: 0.06
 Nodes (36): useIsMobile(), Separator, SheetContent, SheetContentProps, SheetDescription, SheetFooter(), SheetHeader(), SheetOverlay (+28 more)
 
 ### Community 4 - "Sidebar & Layout"
-Cohesion: 0.07
-Nodes (19): AdBanner(), AdBannerProps, Event, EventCard(), CategoryFilter(), CategoryFilterProps, EmptyState(), EmptyStateProps (+11 more)
+Cohesion: 0.08
+Nodes (18): AdBanner(), AdBannerProps, Event, EventCard(), CategoryFilter(), CategoryFilterProps, EmptyState(), EmptyStateProps (+10 more)
 
 ### Community 5 - "Admin Management"
-Cohesion: 0.13
-Nodes (20): cn(), DashboardStatTile(), DashboardStatTileProps, EditEvent(), normalizeMembers(), NewEvent(), ButtonProps, buttonVariants (+12 more)
+Cohesion: 0.09
+Nodes (18): OrganizerEmptyState(), OrganizerEventCard(), OrganizerEventCardProps, Activity, iconMap, RecentActivity(), Route, Route (+10 more)
 
 ### Community 6 - "Region & Global State"
-Cohesion: 0.09
-Nodes (13): AccordionContent, AccordionItem, AccordionTrigger, Checkbox, HoverCardContent, PopoverContent, Progress, RadioGroup (+5 more)
+Cohesion: 0.08
+Nodes (16): AccordionContent, AccordionItem, AccordionTrigger, Checkbox, HoverCardContent, PopoverContent, Progress, RadioGroup (+8 more)
 
 ### Community 7 - "Organizer Dashboard"
+Cohesion: 0.12
+Nodes (21): cn(), DashboardStatTile(), DashboardStatTileProps, CompanyProposals(), EditEvent(), normalizeMembers(), NewEvent(), ButtonProps (+13 more)
+
+### Community 8 - "Stat Tiles & Pagination"
 Cohesion: 0.15
 Nodes (14): OrganizerHeaderProps, BoothVisit, COLORS, CompanyDashboard(), KpiCard(), Proposal, Route, OrganizerLayout() (+6 more)
 
-### Community 8 - "Stat Tiles & Pagination"
-Cohesion: 0.2
-Nodes (10): CertificateProps, CertificateTemplate(), Route, Route, Route, Route, Route, TabsContent (+2 more)
-
 ### Community 9 - "UI Primitives"
-Cohesion: 0.16
-Nodes (8): OrganizerEmptyState(), OrganizerEventCard(), Activity, iconMap, RecentActivity(), Route, Route, Skeleton()
-
-### Community 10 - "Menubar & Toolbars"
 Cohesion: 0.14
 Nodes (8): LoadingScreen(), Route, getRouter(), queryClient, Register, routeTree, Toaster(), ToasterProps
 
-### Community 11 - "Carousel Components"
+### Community 10 - "Menubar & Toolbars"
 Cohesion: 0.14
 Nodes (12): AuthSession, getAuthSession(), UserRole, adminLinks, Route, bottomLinks, CompanyLayout(), Route (+4 more)
 
-### Community 12 - "Form Controls"
+### Community 11 - "Carousel Components"
 Cohesion: 0.12
 Nodes (11): Menubar, MenubarCheckboxItem, MenubarContent, MenubarItem, MenubarLabel, MenubarRadioItem, MenubarSeparator, MenubarShortcut() (+3 more)
+
+### Community 12 - "Form Controls"
+Cohesion: 0.23
+Nodes (9): CertificateProps, CertificateTemplate(), Route, Route, Route, Route, TabsContent, TabsList (+1 more)
 
 ### Community 13 - "Charting & Data Viz"
 Cohesion: 0.14
@@ -165,56 +167,56 @@ Cohesion: 0.17
 Nodes (9): FormControl, FormDescription, FormFieldContext, FormFieldContextValue, FormItem, FormItemContext, FormItemContextValue, FormLabel (+1 more)
 
 ### Community 17 - "Table Components"
-Cohesion: 0.21
-Nodes (10): OrganizerEventCardProps, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuShortcut() (+2 more)
-
-### Community 18 - "Blog & Content"
 Cohesion: 0.18
 Nodes (7): ChartConfig, ChartContainer, ChartContext, ChartContextProps, ChartLegendContent, ChartTooltipContent, THEMES
 
-### Community 19 - "Student Dashboard"
+### Community 18 - "Blog & Content"
 Cohesion: 0.2
 Nodes (8): Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut()
 
-### Community 20 - "Drawer Components"
+### Community 19 - "Student Dashboard"
 Cohesion: 0.2
 Nodes (9): ContextMenuCheckboxItem, ContextMenuContent, ContextMenuItem, ContextMenuLabel, ContextMenuRadioItem, ContextMenuSeparator, ContextMenuShortcut(), ContextMenuSubContent (+1 more)
 
-### Community 21 - "Breadcrumbs"
+### Community 20 - "Drawer Components"
 Cohesion: 0.25
 Nodes (7): marketingNav, organizerNav, SiteFooter(), SiteHeader(), sponsorNav, studentNav, getDashboardRedirect()
 
-### Community 22 - "Navigation Menus"
+### Community 21 - "Breadcrumbs"
 Cohesion: 0.22
 Nodes (8): Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow
 
-### Community 23 - "Toggles & Buttons"
+### Community 22 - "Navigation Menus"
 Cohesion: 0.22
 Nodes (8): AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter(), AlertDialogHeader(), AlertDialogOverlay, AlertDialogTitle
 
+### Community 23 - "Toggles & Buttons"
+Cohesion: 0.32
+Nodes (3): BLOG_POSTS, Route, Route
+
 ### Community 24 - "Card Layouts"
 Cohesion: 0.25
-Nodes (6): DrawerContent, DrawerDescription, DrawerFooter(), DrawerHeader(), DrawerOverlay, DrawerTitle
+Nodes (7): Breadcrumb, BreadcrumbEllipsis(), BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator()
 
 ### Community 25 - "Quick Actions"
 Cohesion: 0.25
-Nodes (7): NavigationMenu, NavigationMenuContent, NavigationMenuIndicator, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle, NavigationMenuViewport
+Nodes (6): DrawerContent, DrawerDescription, DrawerFooter(), DrawerHeader(), DrawerOverlay, DrawerTitle
 
 ### Community 26 - "Alert Components"
 Cohesion: 0.25
-Nodes (7): Breadcrumb, BreadcrumbEllipsis(), BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator()
+Nodes (7): NavigationMenu, NavigationMenuContent, NavigationMenuIndicator, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle, NavigationMenuViewport
 
 ### Community 27 - "OTP Input"
 Cohesion: 0.25
 Nodes (3): forecastData, revenueData, Route
 
 ### Community 28 - "Admin Layout"
-Cohesion: 0.32
-Nodes (3): BLOG_POSTS, Route, Route
-
-### Community 29 - "Student Layout"
 Cohesion: 0.29
 Nodes (5): DashboardSection(), getGreeting(), Route, StatCard(), StudentDashboard()
+
+### Community 29 - "Student Layout"
+Cohesion: 0.25
+Nodes (7): admin, amountInr, coins, corsHeaders, keyId, keySecret, userClient
 
 ### Community 30 - "Scripts & Utilities"
 Cohesion: 0.29
@@ -222,23 +224,23 @@ Nodes (6): Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle
 
 ### Community 31 - "Refund Policy"
 Cohesion: 0.33
-Nodes (5): ToggleGroup, ToggleGroupContext, ToggleGroupItem, Toggle, toggleVariants
-
-### Community 32 - "College Directory"
-Cohesion: 0.33
 Nodes (4): Role, roles, Route, SignupSearch
 
-### Community 33 - "Cookie Policy"
+### Community 32 - "College Directory"
 Cohesion: 0.4
 Nodes (4): CollegeProfilePage(), gradientPalette, hashGradient(), Route
 
+### Community 33 - "Cookie Policy"
+Cohesion: 0.33
+Nodes (5): admin, corsHeaders, expected, secret, userClient
+
 ### Community 34 - "Privacy Policy"
 Cohesion: 0.4
-Nodes (4): Alert, AlertDescription, AlertTitle, alertVariants
+Nodes (4): InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot
 
 ### Community 35 - "Terms & Conditions"
 Cohesion: 0.4
-Nodes (4): InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot
+Nodes (4): Alert, AlertDescription, AlertTitle, alertVariants
 
 ### Community 36 - "Performance Snapshot"
 Cohesion: 0.4
@@ -249,21 +251,21 @@ Cohesion: 0.5
 Nodes (4): loadRazorpayScript(), OpenCheckoutOptions, openRazorpayCheckout(), Window
 
 ## Knowledge Gaps
-- **340 isolated node(s):** `supabase`, `Register`, `TermsRoute`, `TalentRoute`, `SponsorsRoute` (+335 more)
+- **358 isolated node(s):** `supabase`, `Register`, `TermsRoute`, `TalentRoute`, `SponsorsRoute` (+353 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **16 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **18 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cn()` connect `Admin Management` to `Routing & Navigation`, `Event & College Cards`, `Supabase & Auth`, `Sidebar & Layout`, `Region & Global State`, `Organizer Dashboard`, `Stat Tiles & Pagination`, `UI Primitives`, `Carousel Components`, `Form Controls`, `Charting & Data Viz`, `Alert Dialogs`, `Table Components`, `Blog & Content`, `Student Dashboard`, `Drawer Components`, `Navigation Menus`, `Toggles & Buttons`, `Card Layouts`, `Quick Actions`, `Alert Components`, `Student Layout`, `Scripts & Utilities`, `Refund Policy`, `College Directory`, `Privacy Policy`, `Terms & Conditions`, `Performance Snapshot`?**
-  _High betweenness centrality (0.238) - this node is a cross-community bridge._
-- **Why does `Button` connect `Routing & Navigation` to `College Directory`, `Cookie Policy`, `Event & College Cards`, `Supabase & Auth`, `Sidebar & Layout`, `Admin Management`, `Blog System`, `Organizer Dashboard`, `Stat Tiles & Pagination`, `UI Primitives`, `Charting & Data Viz`, `Command Palette`, `Table Components`, `Breadcrumbs`, `OTP Input`, `Admin Layout`, `Student Layout`?**
-  _High betweenness centrality (0.049) - this node is a cross-community bridge._
-- **Why does `supabase` connect `Routing & Navigation` to `College Directory`, `Cookie Policy`, `Event & College Cards`, `Sidebar & Layout`, `Organizer Dashboard`, `Stat Tiles & Pagination`, `UI Primitives`, `Vite Config`, `Carousel Components`, `Menubar & Toolbars`, `Command Palette`, `Table Components`, `Breadcrumbs`, `OTP Input`, `Student Layout`?**
-  _High betweenness centrality (0.036) - this node is a cross-community bridge._
+- **Why does `cn()` connect `Organizer Dashboard` to `Routing & Navigation`, `Event & College Cards`, `Supabase & Auth`, `Sidebar & Layout`, `Admin Management`, `Region & Global State`, `Stat Tiles & Pagination`, `Menubar & Toolbars`, `Carousel Components`, `Form Controls`, `Charting & Data Viz`, `Alert Dialogs`, `Table Components`, `Blog & Content`, `Student Dashboard`, `Breadcrumbs`, `Navigation Menus`, `Card Layouts`, `Quick Actions`, `Alert Components`, `Admin Layout`, `Scripts & Utilities`, `Refund Policy`, `Privacy Policy`, `Terms & Conditions`, `Performance Snapshot`, `Sponsor Matching`?**
+  _High betweenness centrality (0.224) - this node is a cross-community bridge._
+- **Why does `Button` connect `Routing & Navigation` to `College Directory`, `Event & College Cards`, `Supabase & Auth`, `Sidebar & Layout`, `Admin Management`, `Blog System`, `Organizer Dashboard`, `Stat Tiles & Pagination`, `Form Controls`, `Charting & Data Viz`, `Command Palette`, `Drawer Components`, `Toggles & Buttons`, `OTP Input`, `Admin Layout`, `Refund Policy`?**
+  _High betweenness centrality (0.046) - this node is a cross-community bridge._
+- **Why does `supabase` connect `Routing & Navigation` to `College Directory`, `Event & College Cards`, `Sidebar & Layout`, `Admin Management`, `Stat Tiles & Pagination`, `UI Primitives`, `Menubar & Toolbars`, `Collapsible UI`, `Form Controls`, `Command Palette`, `Drawer Components`, `OTP Input`, `Admin Layout`, `Refund Policy`?**
+  _High betweenness centrality (0.034) - this node is a cross-community bridge._
 - **What connects `supabase`, `Register`, `TermsRoute` to the rest of the system?**
-  _340 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _358 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Routing & Navigation` be split into smaller, more focused modules?**
   _Cohesion score 0.05 - nodes in this community are weakly interconnected._
 - **Should `Forms & User Interface` be split into smaller, more focused modules?**

@@ -35,6 +35,7 @@ export const Route = createFileRoute("/_student/dashboard")({
 });
 
 function StudentDashboard() {
+  const { profile } = Route.useRouteContext();
   const queryClient = useQueryClient();
 
   const { data: currentUser } = useQuery({
@@ -46,7 +47,7 @@ function StudentDashboard() {
   });
 
   const { data: tickets, isLoading } = useQuery({
-    queryKey: ["dashboard-tickets"],
+    queryKey: ["dashboard-tickets", profile?.college_id],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Please login");
@@ -78,10 +79,46 @@ function StudentDashboard() {
         notifications = data || [];
       } catch (_) {}
 
+      // College Activity
+      let campusActivity: any[] = [];
+      if (profile?.college_id) {
+        try {
+          const { data: activityData } = await supabase
+            .from("recent_activity")
+            .select(`
+              *,
+              events!inner (
+                college_id
+              )
+            `)
+            .eq("events.college_id", profile.college_id)
+            .order("created_at", { ascending: false })
+            .limit(10);
+          
+          if (activityData) {
+            campusActivity = activityData.map(a => ({
+              id: a.id,
+              title: a.title,
+              body: a.description,
+              created_at: a.created_at,
+              type: a.type,
+              is_read: true,
+              is_campus: true
+            }));
+          }
+        } catch (_) {}
+      }
+
+      const combinedFeed = [
+        ...notifications.map(n => ({ ...n, is_campus: false })),
+        ...campusActivity
+      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 10);
+
       return {
         tickets: ticketsData || [],
         visits: visits || [],
-        notifications: notifications || [],
+        notifications: combinedFeed,
       };
     },
   });
@@ -268,7 +305,14 @@ function StudentDashboard() {
                           <Bell className="h-3 w-3" />
                         </div>
                         <div className="min-w-0">
-                          <div className="text-xs font-semibold leading-tight">{n.title}</div>
+                          <div className="flex items-center gap-2">
+                            <div className="text-xs font-semibold leading-tight">{n.title}</div>
+                            {n.is_campus && (
+                              <span className="text-[8px] font-bold uppercase tracking-tight px-1.5 py-0.5 rounded-sm bg-primary/10 text-primary border border-primary/20">
+                                Campus
+                              </span>
+                            )}
+                          </div>
                           <p className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">{n.body}</p>
                           <div className="text-[9px] text-muted-foreground/50 mt-1 font-medium">
                             {format(new Date(n.created_at), "MMM dd, hh:mm a")}

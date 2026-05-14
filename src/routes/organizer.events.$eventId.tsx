@@ -11,6 +11,9 @@ import { format, parseISO, subDays, eachDayOfInterval } from "date-fns";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 export const Route = createFileRoute("/organizer/events/$eventId")({
   validateSearch: (search: Record<string, unknown>) => {
@@ -43,6 +46,8 @@ export const Route = createFileRoute("/organizer/events/$eventId")({
 
 function OrganizerEventDashboard() {
   const event = Route.useLoaderData();
+  if (!event) return null;
+
   const { tab } = Route.useSearch();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -51,33 +56,68 @@ function OrganizerEventDashboard() {
   const [selectedProposal, setSelectedProposal] = useState<any>(null);
   const [acceptNotes, setAcceptNotes] = useState("");
 
+  const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [productForm, setProductForm] = useState({
+    name: "",
+    description: "",
+    price: "",
+    stock: "",
+    image_url: ""
+  });
+
+  const [isCampaignDialogOpen, setIsCampaignDialogOpen] = useState(false);
+  const [campaignForm, setCampaignForm] = useState({
+    title: "",
+    message_content: "",
+    channel: "email",
+    target_segment: "ticket_holders",
+    scheduled_at: ""
+  });
+
+  const [isBudgetDialogOpen, setIsBudgetDialogOpen] = useState(false);
+  const [budgetForm, setBudgetForm] = useState({
+    category: "",
+    allocated_amount: "",
+    currency: "INR"
+  });
+
+  const [isProgramDialogOpen, setIsProgramDialogOpen] = useState(false);
+  const [programForm, setProgramForm] = useState({
+    title: "",
+    description: "",
+    requirements: "",
+    perks: "",
+    status: "active"
+  });
+
   // Only show the dashboard if we are at the base event URL
   const isBaseRoute = !!matchRoute({ to: "/organizer/events/$eventId", fuzzy: false });
 
-  if (!isBaseRoute) {
-    return <Outlet />;
-  }
-
   const { data: volunteers, isLoading: loadingVols } = useQuery({
-    queryKey: ["volunteers", event.id],
+    queryKey: ["volunteers", event?.id],
+
     queryFn: async () => {
       const { data, error } = await supabase
         .from("volunteers")
         .select("*, user:user_id(email, raw_user_meta_data)")
-        .eq("event_id", event.id);
+        .eq("event_id", event?.id);
+
       if (error) throw error;
       return data;
     }
   });
 
   const { data: proposals, isLoading: loadingProposals } = useQuery({
-    queryKey: ["proposals", event.id],
+    queryKey: ["proposals", event?.id],
+
     queryFn: async () => {
       // 1. Fetch proposals
       const { data: proposalsData, error: proposalsError } = await supabase
         .from("sponsorship_proposals")
         .select("*")
-        .eq("event_id", event.id);
+        .eq("event_id", event?.id);
+
       
       if (proposalsError) throw proposalsError;
       if (!proposalsData || proposalsData.length === 0) return [];
@@ -119,51 +159,62 @@ function OrganizerEventDashboard() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [event.id, queryClient]);
+  }, [event?.id, queryClient]);
+
 
   const { data: tickets, isLoading: loadingTickets } = useQuery({
-    queryKey: ["event-tickets-sold", event.id],
+    queryKey: ["event-tickets-sold", event?.id],
+
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tickets")
         .select("*")
-        .eq("event_id", event.id);
+        .eq("event_id", event?.id);
+
       if (error) throw error;
       return data;
     }
   });
 
   const { data: eventProducts } = useQuery({
-    queryKey: ["event-products", event.id],
+    queryKey: ["event-products", event?.id],
+
     queryFn: async () => {
-      const { data, error } = await supabase.from("products").select("*").eq("event_id", event.id);
+      const { data, error } = await supabase.from("products").select("*").eq("event_id", event?.id);
+
       if (error) throw error;
       return data;
     }
   });
 
   const { data: eventPrograms } = useQuery({
-    queryKey: ["event-programs", event.id],
+    queryKey: ["event-programs", event?.id],
+
     queryFn: async () => {
-      const { data, error } = await supabase.from("ambassador_programs").select("*").eq("event_id", event.id);
+      const { data, error } = await supabase.from("ambassador_programs").select("*").eq("event_id", event?.id);
+
       if (error) throw error;
       return data;
     }
   });
 
   const { data: budgets } = useQuery({
-    queryKey: ["event-budgets", event.id],
+    queryKey: ["event-budgets", event?.id],
+
     queryFn: async () => {
-      const { data, error } = await supabase.from("event_budgets").select("*").eq("event_id", event.id);
+      const { data, error } = await supabase.from("event_budgets").select("*").eq("event_id", event?.id);
+
       if (error) throw error;
       return data;
     }
   });
 
   const { data: campaigns } = useQuery({
-    queryKey: ["marketing-campaigns", event.college_id],
+    queryKey: ["marketing-campaigns", event?.college_id],
+
     queryFn: async () => {
-      const { data, error } = await supabase.from("marketing_campaigns").select("*").eq("college_id", event.college_id ?? "");
+      const { data, error } = await supabase.from("marketing_campaigns").select("*").eq("college_id", event?.college_id ?? "");
+
       if (error) throw error;
       return data;
     }
@@ -173,6 +224,30 @@ function OrganizerEventDashboard() {
     queryKey: ["vendor-payouts", event.id],
     queryFn: async () => {
       const { data, error } = await supabase.from("vendor_payouts").select("*").eq("event_id", event.id);
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const { data: eventOrders } = useQuery({
+    queryKey: ["event-orders", event.id],
+    enabled: !!eventProducts?.length,
+    queryFn: async () => {
+      const productIds = eventProducts?.map(p => p.id) || [];
+      if (productIds.length === 0) return [];
+      const { data, error } = await supabase.from("orders").select("*").in("product_id", productIds);
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const { data: ambassadorApplications } = useQuery({
+    queryKey: ["ambassador-applications", event.id],
+    enabled: !!eventPrograms?.length,
+    queryFn: async () => {
+      const programIds = eventPrograms?.map(p => p.id) || [];
+      if (programIds.length === 0) return [];
+      const { data, error } = await supabase.from("ambassador_applications").select("*").in("program_id", programIds);
       if (error) throw error;
       return data;
     }
@@ -200,11 +275,168 @@ function OrganizerEventDashboard() {
     }
   });
 
-  const totalRevenue = tickets?.length ? tickets.length * event.price_from : 0;
+  const saveProductMutation = useMutation({
+    mutationFn: async (data: typeof productForm) => {
+      const payload = {
+        name: data.name,
+        description: data.description,
+        price: Number(data.price), // Store in Rupees
+        stock: Number(data.stock),
+        image_url: data.image_url || null,
+        event_id: event.id
+      };
+      
+      if (editingProduct) {
+        const { error } = await supabase.from("products").update(payload).eq("id", editingProduct.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("products").insert([payload]);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success(editingProduct ? "Product updated successfully" : "Product added successfully");
+      queryClient.invalidateQueries({ queryKey: ["event-products", event.id] });
+      setIsProductDialogOpen(false);
+      setEditingProduct(null);
+      setProductForm({ name: "", description: "", price: "", stock: "", image_url: "" });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to save product");
+    }
+  });
+
+  const saveCampaignMutation = useMutation({
+    mutationFn: async (data: typeof campaignForm) => {
+      const payload = {
+        title: data.title,
+        message_content: data.message_content,
+        channel: data.channel,
+        target_segment: data.target_segment,
+        scheduled_at: data.scheduled_at ? new Date(data.scheduled_at).toISOString() : null,
+        college_id: event.college_id,
+        status: data.scheduled_at ? 'scheduled' : 'sent'
+      };
+      
+      const { error } = await supabase.from("marketing_campaigns").insert([payload]);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Campaign created successfully");
+      queryClient.invalidateQueries({ queryKey: ["marketing-campaigns", event.college_id] });
+      setIsCampaignDialogOpen(false);
+      setCampaignForm({
+        title: "",
+        message_content: "",
+        channel: "email",
+        target_segment: "ticket_holders",
+        scheduled_at: ""
+      });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to create campaign");
+    }
+  });
+
+  const saveBudgetMutation = useMutation({
+    mutationFn: async (data: typeof budgetForm) => {
+      const payload = {
+        category: data.category,
+        allocated_amount: Number(data.allocated_amount),
+        currency: data.currency,
+        event_id: event.id,
+        spent_amount: 0
+      };
+      
+      const { error } = await supabase.from("event_budgets").insert([payload]);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Budget added successfully");
+      queryClient.invalidateQueries({ queryKey: ["event-budgets", event.id] });
+      setIsBudgetDialogOpen(false);
+      setBudgetForm({ category: "", allocated_amount: "", currency: "INR" });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to add budget");
+    }
+  });
+
+  const saveProgramMutation = useMutation({
+    mutationFn: async (data: typeof programForm) => {
+      const payload = {
+        title: data.title,
+        description: data.description,
+        requirements: data.requirements,
+        perks: data.perks.split(",").map(p => p.trim()).filter(Boolean),
+        status: data.status,
+        event_id: event.id
+      };
+      
+      const { error } = await supabase.from("ambassador_programs").insert([payload]);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Program created successfully");
+      queryClient.invalidateQueries({ queryKey: ["event-programs", event.id] });
+      setIsProgramDialogOpen(false);
+      setProgramForm({
+        title: "",
+        description: "",
+        requirements: "",
+        perks: "",
+        status: "active"
+      });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to create program");
+    }
+  });
+
+  const handleOpenProductDialog = (product?: any) => {
+
+    if (product) {
+      setEditingProduct(product);
+      setProductForm({
+        name: product.name,
+        description: product.description || "",
+        price: product.price.toString(), // Already in Rupees
+        stock: product.stock.toString(),
+        image_url: product.image_url || ""
+      });
+    } else {
+      setEditingProduct(null);
+      setProductForm({ name: "", description: "", price: "", stock: "", image_url: "" });
+    }
+    setIsProductDialogOpen(true);
+  };
+
+  const ticketRevenue = (tickets || []).reduce((acc, ticket) => {
+    const passSettings = event.pass_settings as any;
+    if (!passSettings) return acc + event.price_from;
+    
+    // Check if it matches a specific tier price
+    const tier = ticket.tier?.toLowerCase();
+    if (tier === 'vip' && passSettings.vip?.enabled) {
+      return acc + (passSettings.vip.price || event.price_from);
+    } else if (tier === 'normal' && passSettings.normal?.enabled) {
+      return acc + (passSettings.normal.price || event.price_from);
+    }
+    
+    return acc + event.price_from;
+  }, 0);
+
+  const merchRevenue = (eventOrders || []).reduce((acc, order) => acc + order.total_amount, 0);
+  const totalRevenue = ticketRevenue + merchRevenue;
+
   const pendingVols = volunteers?.filter(v => v.status === "pending") || [];
   const activeVols = volunteers?.filter(v => v.status === "approved") || [];
   const pendingProposals = proposals?.filter(p => p.status === "pending") || [];
   const activeProposals = proposals?.filter(p => p.status === "accepted") || [];
+
+  if (!isBaseRoute) {
+    return <Outlet />;
+  }
 
   return (
     <div className="px-6 py-8 lg:px-10 lg:py-10">
@@ -362,7 +594,7 @@ function OrganizerEventDashboard() {
               <h3 className="font-semibold text-lg">Event Budget Tracking</h3>
               <p className="text-sm text-muted-foreground">Monitor allocated vs. spent amounts across categories</p>
             </div>
-            <Button size="sm" className="bg-brand-gradient text-white"><Plus className="h-4 w-4 mr-2" /> New Budget</Button>
+            <Button size="sm" className="bg-brand-gradient text-white" onClick={() => setIsBudgetDialogOpen(true)}><Plus className="h-4 w-4 mr-2" /> New Budget</Button>
           </div>
 
           <div className="grid gap-4 md:grid-cols-4">
@@ -478,7 +710,8 @@ function OrganizerEventDashboard() {
               <h3 className="font-semibold text-lg">Marketing & Notifications</h3>
               <p className="text-sm text-muted-foreground">Automate reach-out to students via Email, SMS, or Push</p>
             </div>
-            <Button size="sm" className="bg-brand-gradient text-white"><Send className="h-4 w-4 mr-2" /> Create Campaign</Button>
+            <Button size="sm" className="bg-brand-gradient text-white" onClick={() => setIsCampaignDialogOpen(true)}><Send className="h-4 w-4 mr-2" /> Create Campaign</Button>
+
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
@@ -629,27 +862,31 @@ function OrganizerEventDashboard() {
         <TabsContent value="merch" className="space-y-8">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-lg">Merchandise Drop</h3>
-            <Button size="sm" className="bg-brand-gradient text-white">Add Product</Button>
+            <Button size="sm" className="bg-brand-gradient text-white" onClick={() => handleOpenProductDialog()}>Add Product</Button>
           </div>
           <div className="grid gap-4 md:grid-cols-3">
-            {eventProducts?.map(p => (
-              <div key={p.id} className="glass p-6 rounded-2xl flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <ShoppingBag className="h-5 w-5 text-primary" />
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${p.stock > 0 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
-                      {p.stock > 0 ? `${p.stock} in stock` : 'Out of stock'}
-                    </span>
+            {eventProducts?.map(p => {
+              const soldCount = (eventOrders || []).filter(o => o.product_id === p.id).reduce((acc, o) => acc + (o.quantity || 1), 0);
+              return (
+                <div key={p.id} className="glass p-6 rounded-2xl flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <ShoppingBag className="h-5 w-5 text-primary" />
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${p.stock > 0 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                        {p.stock > 0 ? `${p.stock} in stock` : 'Out of stock'}
+                      </span>
+                    </div>
+                    <h4 className="font-bold">{p.name}</h4>
+                    <div className="text-xl font-black mt-2 text-primary">₹{p.price.toLocaleString()}</div>
                   </div>
-                  <h4 className="font-bold">{p.name}</h4>
-                  <div className="text-xl font-black mt-2 text-primary">₹{(p.price / 100).toLocaleString()}</div>
+                  <div className="mt-6 pt-6 border-t border-border/40 flex justify-between items-center">
+                    <div className="text-xs text-muted-foreground">{soldCount} Sold</div>
+                    <Button variant="ghost" size="sm" onClick={() => handleOpenProductDialog(p)}>Edit</Button>
+                  </div>
                 </div>
-                <div className="mt-6 pt-6 border-t border-border/40 flex justify-between items-center">
-                  <div className="text-xs text-muted-foreground">8 Sold</div>
-                  <Button variant="ghost" size="sm">Edit</Button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
+
             {(!eventProducts || eventProducts.length === 0) && (
               <div className="col-span-full py-12 glass rounded-2xl text-center text-muted-foreground">
                 No products added to this event yet.
@@ -661,33 +898,38 @@ function OrganizerEventDashboard() {
         <TabsContent value="ambassadors" className="space-y-8">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-lg">Ambassador Programs</h3>
-            <Button size="sm" className="bg-brand-gradient text-white">Create Program</Button>
+            <Button size="sm" className="bg-brand-gradient text-white" onClick={() => setIsProgramDialogOpen(true)}>Create Program</Button>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
-            {eventPrograms?.map(prog => (
-              <div key={prog.id} className="glass p-6 rounded-2xl">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                    <Zap className="h-5 w-5" />
+            {eventPrograms?.map(prog => {
+              const applicants = (ambassadorApplications || []).filter(a => a.program_id === prog.id);
+              const approvedCount = applicants.filter(a => a.status === 'approved').length;
+              return (
+                <div key={prog.id} className="glass p-6 rounded-2xl">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                      <Zap className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold">{prog.title}</h4>
+                      <div className="text-xs text-muted-foreground capitalize">{prog.status}</div>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-bold">{prog.title}</h4>
-                    <div className="text-xs text-muted-foreground capitalize">{prog.status}</div>
+                  <div className="mt-4 flex gap-4 text-sm">
+                    <div>
+                      <div className="text-muted-foreground text-xs uppercase tracking-widest font-bold">Applicants</div>
+                      <div className="text-lg font-bold">{applicants.length}</div>
+                    </div>
+                    <div>
+                      <div className="text-muted-foreground text-xs uppercase tracking-widest font-bold">Approved</div>
+                      <div className="text-lg font-bold">{approvedCount}</div>
+                    </div>
                   </div>
+                  <Button variant="outline" size="sm" className="mt-6 w-full">Manage Applications</Button>
                 </div>
-                <div className="mt-4 flex gap-4 text-sm">
-                  <div>
-                    <div className="text-muted-foreground text-xs uppercase tracking-widest font-bold">Applicants</div>
-                    <div className="text-lg font-bold">24</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground text-xs uppercase tracking-widest font-bold">Approved</div>
-                    <div className="text-lg font-bold">5</div>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm" className="mt-6 w-full">Manage Applications</Button>
-              </div>
-            ))}
+              );
+            })}
+
             {(!eventPrograms || eventPrograms.length === 0) && (
               <div className="col-span-full py-12 glass rounded-2xl text-center text-muted-foreground">
                 No ambassador programs active for this event.
@@ -896,6 +1138,350 @@ function OrganizerEventDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Product Add/Edit Dialog */}
+      <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
+        <DialogContent className="sm:max-w-[500px] glass border-border/60">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+              <ShoppingBag className="h-6 w-6 text-primary" />
+              {editingProduct ? "Edit Product" : "Add New Product"}
+            </DialogTitle>
+            <DialogDescription>
+              {editingProduct ? "Update the product details below." : "Fill in the details to add a new merchandise item to your event."}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Product Name</Label>
+              <Input 
+                id="name" 
+                placeholder="E.g., Event T-Shirt" 
+                className="bg-background/50 border-border/40"
+                value={productForm.name}
+                onChange={(e) => setProductForm(prev => ({ ...prev, name: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Description</Label>
+              <Textarea 
+                id="description" 
+                placeholder="Describe your product..." 
+                className="resize-none bg-background/50 border-border/40"
+                value={productForm.description}
+                onChange={(e) => setProductForm(prev => ({ ...prev, description: e.target.value }))}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="price" className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Price (₹)</Label>
+                <Input 
+                  id="price" 
+                  type="number"
+                  placeholder="0.00" 
+                  className="bg-background/50 border-border/40"
+                  value={productForm.price}
+                  onChange={(e) => setProductForm(prev => ({ ...prev, price: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="stock" className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Initial Stock</Label>
+                <Input 
+                  id="stock" 
+                  type="number"
+                  placeholder="100" 
+                  className="bg-background/50 border-border/40"
+                  value={productForm.stock}
+                  onChange={(e) => setProductForm(prev => ({ ...prev, stock: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="image_url" className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Image URL (Optional)</Label>
+              <Input 
+                id="image_url" 
+                placeholder="https://..." 
+                className="bg-background/50 border-border/40"
+                value={productForm.image_url}
+                onChange={(e) => setProductForm(prev => ({ ...prev, image_url: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="ghost" onClick={() => setIsProductDialogOpen(false)}>Cancel</Button>
+            <Button 
+              className="bg-brand-gradient text-white" 
+              onClick={() => saveProductMutation.mutate(productForm)}
+              disabled={saveProductMutation.isPending || !productForm.name || !productForm.price || !productForm.stock}
+            >
+              {saveProductMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
+              {editingProduct ? "Update Product" : "Add Product"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Campaign Create Dialog */}
+      <Dialog open={isCampaignDialogOpen} onOpenChange={setIsCampaignDialogOpen}>
+        <DialogContent className="sm:max-w-[500px] glass border-border/60">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+              <Send className="h-6 w-6 text-primary" />
+              Create Marketing Campaign
+            </DialogTitle>
+            <DialogDescription>
+              Launch a new notification campaign to reach your audience.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="campaign-title" className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Campaign Title</Label>
+              <Input 
+                id="campaign-title" 
+                placeholder="E.g., Early Bird Discount Ending Soon!" 
+                className="bg-background/50 border-border/40"
+                value={campaignForm.title}
+                onChange={(e) => setCampaignForm(prev => ({ ...prev, title: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="campaign-message" className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Message Content</Label>
+              <Textarea 
+                id="campaign-message" 
+                placeholder="Write your campaign message here..." 
+                className="resize-none h-32 bg-background/50 border-border/40"
+                value={campaignForm.message_content}
+                onChange={(e) => setCampaignForm(prev => ({ ...prev, message_content: e.target.value }))}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Channel</Label>
+                <Select 
+                  value={campaignForm.channel} 
+                  onValueChange={(val) => setCampaignForm(prev => ({ ...prev, channel: val }))}
+                >
+                  <SelectTrigger className="bg-background/50 border-border/40">
+                    <SelectValue placeholder="Select channel" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="email">Email</SelectItem>
+                    <SelectItem value="sms">SMS</SelectItem>
+                    <SelectItem value="push">Push Notification</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Target Segment</Label>
+                <Select 
+                  value={campaignForm.target_segment} 
+                  onValueChange={(val) => setCampaignForm(prev => ({ ...prev, target_segment: val }))}
+                >
+                  <SelectTrigger className="bg-background/50 border-border/40">
+                    <SelectValue placeholder="Select segment" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all_students">All Students</SelectItem>
+                    <SelectItem value="ticket_holders">Ticket Holders</SelectItem>
+                    <SelectItem value="past_attendees">Past Attendees</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="scheduled-at" className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Schedule (Optional)</Label>
+              <Input 
+                id="scheduled-at" 
+                type="datetime-local"
+                className="bg-background/50 border-border/40"
+                value={campaignForm.scheduled_at}
+                onChange={(e) => setCampaignForm(prev => ({ ...prev, scheduled_at: e.target.value }))}
+              />
+              <p className="text-[10px] text-muted-foreground">Leave empty to send immediately.</p>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="ghost" onClick={() => setIsCampaignDialogOpen(false)}>Cancel</Button>
+            <Button 
+              className="bg-brand-gradient text-white" 
+              onClick={() => saveCampaignMutation.mutate(campaignForm)}
+              disabled={saveCampaignMutation.isPending || !campaignForm.title || !campaignForm.message_content}
+            >
+              {saveCampaignMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
+              {campaignForm.scheduled_at ? "Schedule Campaign" : "Send Campaign Now"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isBudgetDialogOpen} onOpenChange={setIsBudgetDialogOpen}>
+        <DialogContent className="sm:max-w-md bg-background/95 backdrop-blur-xl border-border/40">
+          <DialogHeader>
+            <DialogTitle>Add New Budget</DialogTitle>
+            <DialogDescription>
+              Create a new budget category for tracking event expenses.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="budget-category" className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Category Name</Label>
+              <Input 
+                id="budget-category" 
+                placeholder="e.g. Venue, Marketing, Talent"
+                className="bg-background/50 border-border/40"
+                value={budgetForm.category}
+                onChange={(e) => setBudgetForm(prev => ({ ...prev, category: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="budget-amount" className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Allocated Amount</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-2.5 text-muted-foreground">₹</span>
+                <Input 
+                  id="budget-amount" 
+                  type="number"
+                  placeholder="0.00"
+                  className="bg-background/50 border-border/40 pl-8"
+                  value={budgetForm.allocated_amount}
+                  onChange={(e) => setBudgetForm(prev => ({ ...prev, allocated_amount: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Currency</Label>
+              <Select 
+                value={budgetForm.currency} 
+                onValueChange={(val) => setBudgetForm(prev => ({ ...prev, currency: val }))}
+              >
+                <SelectTrigger className="bg-background/50 border-border/40">
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="INR">INR (₹)</SelectItem>
+                  <SelectItem value="USD">USD ($)</SelectItem>
+                  <SelectItem value="EUR">EUR (€)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="ghost" onClick={() => setIsBudgetDialogOpen(false)}>Cancel</Button>
+            <Button 
+              className="bg-brand-gradient text-white" 
+              onClick={() => saveBudgetMutation.mutate(budgetForm)}
+              disabled={saveBudgetMutation.isPending || !budgetForm.category || !budgetForm.allocated_amount}
+            >
+              {saveBudgetMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
+              Save Budget
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Program Create Dialog */}
+      <Dialog open={isProgramDialogOpen} onOpenChange={setIsProgramDialogOpen}>
+        <DialogContent className="sm:max-w-[500px] glass border-border/60">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+              <Zap className="h-6 w-6 text-primary" />
+              Create Ambassador Program
+            </DialogTitle>
+            <DialogDescription>
+              Launch a new program to recruit campus ambassadors for your event.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="program-title" className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Program Title</Label>
+              <Input 
+                id="program-title" 
+                placeholder="E.g., Campus Leader Program" 
+                className="bg-background/50 border-border/40"
+                value={programForm.title}
+                onChange={(e) => setProgramForm(prev => ({ ...prev, title: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="program-desc" className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Description</Label>
+              <Textarea 
+                id="program-desc" 
+                placeholder="What is this program about? What are the responsibilities?" 
+                className="resize-none h-24 bg-background/50 border-border/40"
+                value={programForm.description}
+                onChange={(e) => setProgramForm(prev => ({ ...prev, description: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="program-req" className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Requirements</Label>
+              <Textarea 
+                id="program-req" 
+                placeholder="E.g., Active on social media, strong communication skills..." 
+                className="resize-none h-20 bg-background/50 border-border/40"
+                value={programForm.requirements}
+                onChange={(e) => setProgramForm(prev => ({ ...prev, requirements: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="program-perks" className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Perks (Comma Separated)</Label>
+              <Input 
+                id="program-perks" 
+                placeholder="E.g., Free Ticket, VIP Access, Certificate" 
+                className="bg-background/50 border-border/40"
+                value={programForm.perks}
+                onChange={(e) => setProgramForm(prev => ({ ...prev, perks: e.target.value }))}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Status</Label>
+              <Select 
+                value={programForm.status} 
+                onValueChange={(val) => setProgramForm(prev => ({ ...prev, status: val }))}
+              >
+                <SelectTrigger className="bg-background/50 border-border/40">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active (Visible to public)</SelectItem>
+                  <SelectItem value="draft">Draft (Hidden)</SelectItem>
+                  <SelectItem value="closed">Closed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="ghost" onClick={() => setIsProgramDialogOpen(false)}>Cancel</Button>
+            <Button 
+              className="bg-brand-gradient text-white" 
+              onClick={() => saveProgramMutation.mutate(programForm)}
+              disabled={saveProgramMutation.isPending || !programForm.title || !programForm.description}
+            >
+              {saveProgramMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Zap className="h-4 w-4 mr-2" />}
+              Create Program
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }

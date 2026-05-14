@@ -75,6 +75,7 @@ function CompanyBrandAssets() {
   const [uploading, setUploading] = useState(false);
   const [newAssetType, setNewAssetType] = useState("banner");
   const [newAssetName, setNewAssetName] = useState("");
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
 
   const [guidelineColors, setGuidelineColors] = useState({ primary: "#000000", secondary: "#ffffff" });
   const [guidelineInstructions, setGuidelineInstructions] = useState("");
@@ -100,9 +101,12 @@ function CompanyBrandAssets() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Asset uploaded successfully");
+      toast.success("Asset uploaded successfully", {
+        description: `Name: ${newAssetName || "Untitled Asset"} • Type: ${newAssetType}`
+      });
       qc.invalidateQueries({ queryKey: ["brand-assets"] });
       setNewAssetName("");
+      setIsUploadOpen(false);
     },
     onError: (e: any) => toast.error(e.message),
     onSettled: () => setUploading(false)
@@ -192,7 +196,13 @@ function CompanyBrandAssets() {
               <h2 className="font-display text-xl font-bold flex items-center gap-2">
                 <LucideImage className="h-5 w-5 text-primary" /> Brand Assets
               </h2>
-              <Dialog>
+              <Dialog open={isUploadOpen} onOpenChange={(open) => {
+                setIsUploadOpen(open);
+                if (!open) {
+                  setNewAssetName("");
+                  setNewAssetType("banner");
+                }
+              }}>
                 <DialogTrigger asChild>
                   <Button size="sm" className="bg-brand-gradient text-white shadow-glow">
                     <Upload className="h-4 w-4 mr-2" /> Upload Asset
@@ -254,7 +264,7 @@ function CompanyBrandAssets() {
                 <p className="text-sm text-muted-foreground max-w-sm mb-6">
                   Upload your brand logos and marketing banners to share with college organizers.
                 </p>
-                <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+                <Button variant="outline" onClick={() => setIsUploadOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" /> Quick Upload
                 </Button>
               </div>
