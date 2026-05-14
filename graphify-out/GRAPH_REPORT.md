@@ -1,16 +1,16 @@
 # Graph Report - wefest  (2026-05-15)
 
 ## Corpus Check
-- 195 files · ~109,521 words
+- 195 files · ~109,537 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 966 nodes · 2506 edges · 78 communities (59 shown, 19 thin omitted)
+- 966 nodes · 2506 edges · 77 communities (58 shown, 19 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 1 edges (avg confidence: 0.95)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `c84e28e4`
+- Built from commit: `b9f596cd`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -70,11 +70,10 @@
 - [[_COMMUNITY_Community 52|Community 52]]
 - [[_COMMUNITY_Community 53|Community 53]]
 - [[_COMMUNITY_Community 54|Community 54]]
-- [[_COMMUNITY_Community 55|Community 55]]
+- [[_COMMUNITY_Community 73|Community 73]]
 - [[_COMMUNITY_Community 74|Community 74]]
 - [[_COMMUNITY_Community 75|Community 75]]
 - [[_COMMUNITY_Community 76|Community 76]]
-- [[_COMMUNITY_Community 77|Community 77]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `cn()` - 153 edges
@@ -89,6 +88,8 @@
 10. `DialogTitle` - 17 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `DashboardStatTile()` --calls--> `cn()`  [EXTRACTED]
+  src/components/organizer/dashboard-stat-tile.tsx → C:/Users/sharm/OneDrive/Documents/GitHub/wefest/src/lib/utils.ts
 - `RoleBadge()` --calls--> `cn()`  [EXTRACTED]
   src/routes/organizer.team.tsx → C:/Users/sharm/OneDrive/Documents/GitHub/wefest/src/lib/utils.ts
 - `RoleDetail()` --calls--> `cn()`  [EXTRACTED]
@@ -97,10 +98,8 @@
   src/routes/organizer.tsx → C:/Users/sharm/OneDrive/Documents/GitHub/wefest/src/lib/utils.ts
 - `DashboardSection()` --calls--> `cn()`  [EXTRACTED]
   src/routes/_student.dashboard.tsx → C:/Users/sharm/OneDrive/Documents/GitHub/wefest/src/lib/utils.ts
-- `StatCard()` --calls--> `cn()`  [EXTRACTED]
-  src/routes/_student.dashboard.tsx → C:/Users/sharm/OneDrive/Documents/GitHub/wefest/src/lib/utils.ts
 
-## Communities (78 total, 19 thin omitted)
+## Communities (77 total, 19 thin omitted)
 
 ### Community 0 - "Routing & Navigation"
 Cohesion: 0.02
@@ -127,12 +126,12 @@ Cohesion: 0.08
 Nodes (19): AdminCompanies(), Route, Route, Route, CollegeProfilePage(), gradientPalette, hashGradient(), Route (+11 more)
 
 ### Community 6 - "Region & Global State"
-Cohesion: 0.11
-Nodes (15): cn(), DashboardStatTile(), DashboardStatTileProps, CompanyProposals(), Checkbox, HoverCardContent, PopoverContent, Progress (+7 more)
-
-### Community 7 - "Organizer Dashboard"
 Cohesion: 0.1
 Nodes (18): OrganizerEmptyState(), OrganizerEventCard(), OrganizerEventCardProps, Activity, iconMap, RecentActivity(), Route, Route (+10 more)
+
+### Community 7 - "Organizer Dashboard"
+Cohesion: 0.17
+Nodes (12): CertificateProps, CertificateTemplate(), AdminDashboard(), Route, Proposal, Role, roles, Route (+4 more)
 
 ### Community 8 - "Stat Tiles & Pagination"
 Cohesion: 0.14
@@ -147,108 +146,108 @@ Cohesion: 0.16
 Nodes (21): a, admin, amountInr, balance, Body, coins, corsHeaders, inrToCoins() (+13 more)
 
 ### Community 11 - "Carousel Components"
+Cohesion: 0.18
+Nodes (12): Product, ProductCard(), Currency, RegionContext, RegionContextType, useRegion(), payForTicketWithWallet, PublicEventDetail() (+4 more)
+
+### Community 12 - "Form Controls"
 Cohesion: 0.1
 Nodes (19): code:bash (git clone https://github.com/Weskill-org/wefest.git), code:bash (bun install), code:env (VITE_SUPABASE_URL=your_supabase_url), code:bash (bun run dev), code:text (src/), 🛡️ For Admins, 🏢 For Organizers, 🤝 For Sponsors (+11 more)
 
-### Community 12 - "Form Controls"
+### Community 13 - "Charting & Data Viz"
 Cohesion: 0.19
 Nodes (18): admin, corsHeaders, eventId, expected, inrToCoins(), json(), notes, organizerId (+10 more)
 
-### Community 13 - "Charting & Data Viz"
-Cohesion: 0.26
-Nodes (10): payForTicketWithWallet, AdminDashboard(), Route, Proposal, Route, StudentEventDetail(), TabsContent, TabsList (+2 more)
-
 ### Community 14 - "Command Palette"
+Cohesion: 0.26
+Nodes (14): cn(), CompanyProposals(), ButtonProps, buttonVariants, Calendar(), CalendarDayButton(), Pagination(), PaginationContent (+6 more)
+
+### Community 15 - "Context Menus"
+Cohesion: 0.11
+Nodes (8): DashboardStatTile(), DashboardStatTileProps, actions, QuickAction, QuickActionsProps, Checkbox, PopoverContent, Slider
+
+### Community 16 - "Alert Dialogs"
 Cohesion: 0.21
 Nodes (16): Menubar, MenubarCheckboxItem, MenubarContent, MenubarGroup(), MenubarItem, MenubarLabel, MenubarMenu(), MenubarPortal() (+8 more)
 
-### Community 15 - "Context Menus"
+### Community 17 - "Table Components"
 Cohesion: 0.19
 Nodes (10): AdBanner(), AdBannerProps, Event, EventCard(), categories, Route, Feature(), Home() (+2 more)
 
-### Community 16 - "Alert Dialogs"
+### Community 18 - "Blog & Content"
 Cohesion: 0.13
 Nodes (9): EmptyState(), EmptyStateProps, categories, cats, PublicEventCard(), Route, CATEGORIES, cats (+1 more)
 
-### Community 17 - "Table Components"
-Cohesion: 0.23
-Nodes (12): ButtonProps, buttonVariants, Calendar(), CalendarDayButton(), Pagination(), PaginationContent, PaginationEllipsis(), PaginationItem (+4 more)
+### Community 19 - "Student Dashboard"
+Cohesion: 0.14
+Nodes (6): HoverCardContent, Progress, ResizableHandle(), ResizablePanelGroup(), ScrollArea, ScrollBar
 
-### Community 18 - "Blog & Content"
+### Community 20 - "Drawer Components"
 Cohesion: 0.25
 Nodes (13): Carousel, CarouselApi, CarouselContent, CarouselContext, CarouselContextProps, CarouselItem, CarouselNext, CarouselOptions (+5 more)
 
-### Community 19 - "Student Dashboard"
-Cohesion: 0.22
-Nodes (8): Product, ProductCard(), Currency, RegionContext, RegionContextType, useRegion(), PublicEventDetail(), StudentEventDetail()
-
-### Community 20 - "Drawer Components"
+### Community 21 - "Breadcrumbs"
 Cohesion: 0.28
 Nodes (11): FormControl, FormDescription, FormField(), FormFieldContext, FormFieldContextValue, FormItem, FormItemContext, FormItemContextValue (+3 more)
 
-### Community 21 - "Breadcrumbs"
+### Community 22 - "Navigation Menus"
 Cohesion: 0.15
 Nodes (12): 1. SEO & Trust Infrastructure (Immediate Priority), 2. Content & Authority Strategy, 3. Growth Channels, 4. Email & Lifecycle Marketing, 5. Analytics & Performance Tracking, Campus Ambassador Program (CAP), Legal Pages Implementation, SEO Optimization (+4 more)
 
-### Community 22 - "Navigation Menus"
+### Community 23 - "Toggles & Buttons"
 Cohesion: 0.3
 Nodes (10): ChartConfig, ChartContainer, ChartContext, ChartContextProps, ChartLegendContent, ChartStyle(), ChartTooltipContent, getPayloadConfigFromPayload() (+2 more)
 
-### Community 23 - "Toggles & Buttons"
+### Community 24 - "Card Layouts"
 Cohesion: 0.33
 Nodes (9): Command, CommandDialog(), CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator (+1 more)
 
-### Community 24 - "Card Layouts"
+### Community 25 - "Quick Actions"
 Cohesion: 0.33
 Nodes (9): ContextMenuCheckboxItem, ContextMenuContent, ContextMenuItem, ContextMenuLabel, ContextMenuRadioItem, ContextMenuSeparator, ContextMenuShortcut(), ContextMenuSubContent (+1 more)
 
-### Community 25 - "Quick Actions"
+### Community 26 - "Alert Components"
 Cohesion: 0.24
 Nodes (6): CategoryFilter(), CategoryFilterProps, EventsHero(), EventsHeroProps, cats, Route
 
-### Community 26 - "Alert Components"
+### Community 27 - "OTP Input"
 Cohesion: 0.36
 Nodes (8): AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter(), AlertDialogHeader(), AlertDialogOverlay, AlertDialogTitle
 
-### Community 27 - "OTP Input"
+### Community 28 - "Admin Layout"
 Cohesion: 0.36
 Nodes (8): Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow
 
-### Community 28 - "Admin Layout"
-Cohesion: 0.39
-Nodes (7): Drawer(), DrawerContent, DrawerDescription, DrawerFooter(), DrawerHeader(), DrawerOverlay, DrawerTitle
-
 ### Community 29 - "Student Layout"
-Cohesion: 0.39
-Nodes (5): ToggleGroup, ToggleGroupContext, ToggleGroupItem, Toggle, toggleVariants
-
-### Community 30 - "Scripts & Utilities"
-Cohesion: 0.39
-Nodes (7): Breadcrumb, BreadcrumbEllipsis(), BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator()
-
-### Community 31 - "Refund Policy"
 Cohesion: 0.39
 Nodes (7): NavigationMenu, NavigationMenuContent, NavigationMenuIndicator, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle, NavigationMenuViewport
 
+### Community 30 - "Scripts & Utilities"
+Cohesion: 0.39
+Nodes (7): Drawer(), DrawerContent, DrawerDescription, DrawerFooter(), DrawerHeader(), DrawerOverlay, DrawerTitle
+
+### Community 31 - "Refund Policy"
+Cohesion: 0.39
+Nodes (5): ToggleGroup, ToggleGroupContext, ToggleGroupItem, Toggle, toggleVariants
+
 ### Community 32 - "College Directory"
+Cohesion: 0.39
+Nodes (7): Breadcrumb, BreadcrumbEllipsis(), BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator()
+
+### Community 33 - "Cookie Policy"
 Cohesion: 0.39
 Nodes (7): AdminAnalytics(), Badge(), forecastData, MetricCard(), RegionStat(), revenueData, Route
 
-### Community 33 - "Cookie Policy"
+### Community 34 - "Privacy Policy"
 Cohesion: 0.32
 Nodes (3): BLOG_POSTS, Route, Route
 
-### Community 34 - "Privacy Policy"
+### Community 35 - "Terms & Conditions"
 Cohesion: 0.43
 Nodes (6): Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle
 
-### Community 35 - "Terms & Conditions"
+### Community 36 - "Performance Snapshot"
 Cohesion: 0.29
 Nodes (5): DashboardSection(), getGreeting(), Route, StatCard(), StudentDashboard()
-
-### Community 36 - "Performance Snapshot"
-Cohesion: 0.33
-Nodes (4): Role, roles, Route, SignupSearch
 
 ### Community 37 - "Student Events"
 Cohesion: 0.53
@@ -258,13 +257,9 @@ Nodes (4): Alert, AlertDescription, AlertTitle, alertVariants
 Cohesion: 0.53
 Nodes (4): InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot
 
-### Community 40 - "ESLint Config"
+### Community 39 - "WeFest Vision & Model"
 Cohesion: 0.6
 Nodes (3): AccordionContent, AccordionItem, AccordionTrigger
-
-### Community 41 - "Vite Config"
-Cohesion: 0.4
-Nodes (3): actions, QuickAction, QuickActionsProps
 
 ## Knowledge Gaps
 - **177 isolated node(s):** `supabase`, `TermsRoute`, `TalentRoute`, `SponsorsRoute`, `SignupRoute` (+172 more)
@@ -274,11 +269,11 @@ Nodes (3): actions, QuickAction, QuickActionsProps
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cn()` connect `Region & Global State` to `Forms & User Interface`, `Event & College Cards`, `Supabase & Auth`, `Sidebar & Layout`, `Admin Management`, `Organizer Dashboard`, `Stat Tiles & Pagination`, `UI Primitives`, `Charting & Data Viz`, `Command Palette`, `Alert Dialogs`, `Table Components`, `Blog & Content`, `Drawer Components`, `Navigation Menus`, `Toggles & Buttons`, `Card Layouts`, `Alert Components`, `OTP Input`, `Admin Layout`, `Student Layout`, `Scripts & Utilities`, `Refund Policy`, `Privacy Policy`, `Terms & Conditions`, `Performance Snapshot`, `Student Events`, `Blog System`, `WeFest Vision & Model`, `ESLint Config`, `Vite Config`, `Collapsible UI`?**
+- **Why does `cn()` connect `Command Palette` to `Forms & User Interface`, `Event & College Cards`, `Supabase & Auth`, `Sidebar & Layout`, `Admin Management`, `Region & Global State`, `Organizer Dashboard`, `Stat Tiles & Pagination`, `UI Primitives`, `Carousel Components`, `Context Menus`, `Alert Dialogs`, `Blog & Content`, `Student Dashboard`, `Drawer Components`, `Breadcrumbs`, `Toggles & Buttons`, `Card Layouts`, `Quick Actions`, `OTP Input`, `Admin Layout`, `Student Layout`, `Scripts & Utilities`, `Refund Policy`, `College Directory`, `Terms & Conditions`, `Performance Snapshot`, `Student Events`, `Blog System`, `WeFest Vision & Model`, `ESLint Config`, `Aspect Ratio UI`?**
   _High betweenness centrality (0.262) - this node is a cross-community bridge._
-- **Why does `Button` connect `Forms & User Interface` to `Event & College Cards`, `Supabase & Auth`, `Sidebar & Layout`, `Admin Management`, `Organizer Dashboard`, `Stat Tiles & Pagination`, `UI Primitives`, `Charting & Data Viz`, `Context Menus`, `Alert Dialogs`, `Table Components`, `Blog & Content`, `Student Dashboard`, `Quick Actions`, `College Directory`, `Cookie Policy`, `Terms & Conditions`, `Performance Snapshot`, `WeFest Vision & Model`, `Aspect Ratio UI`, `Collapsible UI`?**
+- **Why does `Button` connect `Forms & User Interface` to `Event & College Cards`, `Supabase & Auth`, `Sidebar & Layout`, `Admin Management`, `Region & Global State`, `Organizer Dashboard`, `Stat Tiles & Pagination`, `UI Primitives`, `Carousel Components`, `Command Palette`, `Table Components`, `Blog & Content`, `Drawer Components`, `Alert Components`, `Cookie Policy`, `Privacy Policy`, `Performance Snapshot`, `ESLint Config`, `Vite Config`?**
   _High betweenness centrality (0.055) - this node is a cross-community bridge._
-- **Why does `supabase` connect `Stat Tiles & Pagination` to `College Directory`, `Forms & User Interface`, `Event & College Cards`, `Supabase & Auth`, `Performance Snapshot`, `Admin Management`, `Terms & Conditions`, `Organizer Dashboard`, `WeFest Vision & Model`, `UI Primitives`, `Collapsible UI`, `Charting & Data Viz`, `Context Menus`, `Alert Dialogs`, `Student Dashboard`, `Community 51`, `Quick Actions`?**
+- **Why does `supabase` connect `Stat Tiles & Pagination` to `Forms & User Interface`, `Event & College Cards`, `Supabase & Auth`, `Cookie Policy`, `Admin Management`, `Region & Global State`, `Organizer Dashboard`, `ESLint Config`, `UI Primitives`, `Performance Snapshot`, `Carousel Components`, `Sponsor Matching`, `Table Components`, `Blog & Content`, `Alert Components`?**
   _High betweenness centrality (0.046) - this node is a cross-community bridge._
 - **What connects `supabase`, `TermsRoute`, `TalentRoute` to the rest of the system?**
   _177 weakly-connected nodes found - possible documentation gaps or missing edges._
