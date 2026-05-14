@@ -1,5 +1,4 @@
-import { Link } from "@tanstack/react-router";
-import { ShoppingBag, Star, Loader2 } from "lucide-react";
+import { ShoppingBag, Star } from "lucide-react";
 import { useRegion } from "@/contexts/RegionContext";
 import { useState } from "react";
 import { PaymentDialog } from "@/components/wallet/payment-dialog";
@@ -17,65 +16,6 @@ export interface Product {
 export function ProductCard({ product }: { product: Product }) {
   const { formatPrice } = useRegion();
   const [paymentOpen, setPaymentOpen] = useState(false);
-  const queryClient = useQueryClient();
-
-  const { data: currentUser } = useQuery({
-    queryKey: ["current-user"],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      return user;
-    }
-  });
-
-  const buyMutation = useMutation({
-    mutationFn: async () => {
-      if (!currentUser) throw new Error("Please login to buy products");
-      const { data: order, error } = await supabase.from("orders").insert({
-        user_id: currentUser.id,
-        product_id: product.id,
-        quantity: 1,
-        total_amount: product.price,
-        shipping_address: "Pickup at Campus",
-        status: "paid"
-      }).select().single();
-      if (error) throw error;
-      
-      const { error: updateError } = await supabase.from("products").update({
-        stock: product.stock - 1
-      }).eq("id", product.id);
-      if (updateError) throw updateError;
-      
-      return order;
-    },
-    onSuccess: () => {
-      setPaymentOpen(false);
-      toast.success(`Success! ${product.name} ordered.`);
-      queryClient.invalidateQueries({ queryKey: ["shop-products"] });
-    },
-    onError: (error: any) => toast.error(error.message || "Failed to order product"),
-  });
-
-  const payWithWalletMutation = useMutation({
-    mutationFn: async () => {
-      if (!currentUser) throw new Error("Please login to buy products");
-      const res = await payForProductWithWallet({
-        data: { 
-          productId: product.id, 
-          quantity: 1, 
-          shippingAddress: "Pickup at Campus" 
-        }
-      });
-      if (!res.ok) throw new Error("Wallet payment failed");
-      return res;
-    },
-    onSuccess: () => {
-      setPaymentOpen(false);
-      toast.success(`Success! ${product.name} ordered using WeCoins.`);
-      queryClient.invalidateQueries({ queryKey: ["shop-products"] });
-      queryClient.invalidateQueries({ queryKey: ["wallet"] });
-    },
-    onError: (error: any) => toast.error(error.message || "Failed to order product with wallet"),
-  });
 
   return (
     <div className="perspective-1000 group w-full h-full">
@@ -83,10 +23,10 @@ export function ProductCard({ product }: { product: Product }) {
         <div className="relative h-64 overflow-hidden bg-black/5 dark:bg-white/5 border-b border-white/5 shrink-0">
           <div className="absolute inset-0 bg-brand-gradient opacity-0 group-hover:opacity-10 transition-opacity duration-500 z-0" />
           {product.image_url ? (
-            <img 
-              src={product.image_url} 
-              alt={product.name} 
-              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110 relative z-10" 
+            <img
+              src={product.image_url}
+              alt={product.name}
+              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110 relative z-10"
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-brand-gradient opacity-20 transition-transform duration-700 group-hover:scale-110 group-hover:opacity-30 relative z-10">
@@ -94,11 +34,11 @@ export function ProductCard({ product }: { product: Product }) {
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 transition-opacity duration-500 z-10" />
-          
+
           <span className="absolute left-4 top-4 rounded-full border border-white/20 bg-background/50 backdrop-blur-md px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-foreground shadow-sm z-20">
             {product.event_name}
           </span>
-          
+
           {product.stock <= 5 && product.stock > 0 && (
             <span className="absolute right-4 top-4 rounded-full bg-red-500/90 backdrop-blur px-3 py-1.5 text-[9px] font-black text-white uppercase tracking-widest animate-pulse shadow-sm z-20">
               Only {product.stock} left
@@ -110,18 +50,17 @@ export function ProductCard({ product }: { product: Product }) {
             </span>
           )}
 
-          {/* Floating Price Tag on Image */}
           <div className="absolute bottom-4 right-4 z-20 bg-background/80 backdrop-blur-xl border border-white/20 rounded-2xl px-4 py-2 shadow-xl transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-             <div className="text-xl font-black text-foreground">{formatPrice(product.price)}</div>
+            <div className="text-xl font-black text-foreground">{formatPrice(product.price)}</div>
           </div>
         </div>
-        
+
         <div className="p-6 flex flex-col flex-1 relative z-10 bg-gradient-to-b from-transparent to-black/5 dark:to-white/5">
           <div className="flex-1">
             <h3 className="font-display text-2xl font-bold leading-tight group-hover:text-primary transition-colors line-clamp-2">{product.name}</h3>
             <p className="mt-3 line-clamp-2 text-sm text-muted-foreground leading-relaxed">{product.description}</p>
           </div>
-          
+
           <div className="mt-6 flex items-center justify-between pt-6 border-t border-white/5">
             <div className="flex items-center gap-1 text-[10px] text-amber-400">
               <Star className="h-3.5 w-3.5 fill-current" />
@@ -131,12 +70,12 @@ export function ProductCard({ product }: { product: Product }) {
               <Star className="h-3.5 w-3.5 fill-current opacity-30" />
               <span className="ml-1.5 text-muted-foreground font-bold text-xs">(12)</span>
             </div>
-            <button 
+            <button
               onClick={() => setPaymentOpen(true)}
-              disabled={product.stock === 0 || buyMutation.isPending || payWithWalletMutation.isPending}
+              disabled={product.stock === 0}
               className="flex items-center gap-2 rounded-xl bg-primary/10 px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-primary transition-all hover:bg-brand-gradient hover:text-white disabled:opacity-50 disabled:hover:bg-primary/10 disabled:hover:text-primary shadow-sm hover:shadow-glow group-hover:scale-105"
             >
-              {(buyMutation.isPending || payWithWalletMutation.isPending) ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Buy Now"}
+              Buy Now
             </button>
           </div>
         </div>
@@ -148,13 +87,12 @@ export function ProductCard({ product }: { product: Product }) {
         amountInr={product.price}
         itemTitle={product.name}
         itemDescription="Official Merchandise"
-        onPayWithWallet={() => {
-          payWithWalletMutation.mutate();
+        purchase={{
+          kind: "product",
+          productId: product.id,
+          quantity: 1,
+          shippingAddress: "Pickup at Campus",
         }}
-        onPayWithRazorpay={() => {
-          buyMutation.mutate();
-        }}
-        isProcessing={buyMutation.isPending || payWithWalletMutation.isPending}
       />
     </div>
   );
