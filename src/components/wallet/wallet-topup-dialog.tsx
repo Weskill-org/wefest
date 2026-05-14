@@ -4,8 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
-import { createWalletTopupOrder, verifyTopupAndCredit, getRazorpayKeyId } from "@/lib/razorpay.functions";
 import { openRazorpayCheckout } from "@/lib/razorpay-checkout";
 import { toast } from "sonner";
 import { Loader2, Coins, Sparkles } from "lucide-react";
@@ -23,28 +21,22 @@ const QUICK = [100, 250, 500, 1000, 2500, 5000];
 export function WalletTopupDialog({ open, onOpenChange, defaultAmount = 500 }: Props) {
   const [amount, setAmount] = useState(defaultAmount);
   const qc = useQueryClient();
-  const createOrder = useServerFn(createWalletTopupOrder);
-  const verify = useServerFn(verifyTopupAndCredit);
-  const getKey = useServerFn(getRazorpayKeyId);
 
   const m = useMutation({
     mutationFn: async (amountInr: number) => {
       if (amountInr < 10) throw new Error("Minimum top-up is ₹10");
       const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token ? `Bearer ${session.access_token}` : "";
-      
-      const [{ keyId }, order] = await Promise.all([
-        getKey(),
-        createOrder({ 
-          data: { amountInr },
-          headers: { Authorization: token }
-        }),
-      ]);
-      const user = session?.user;
+      if (!session) throw new Error("Please sign in to top up");
+      const user = session.user;
+
+      const { data: order, error: orderErr } = await supabase.functions.invoke<{
+        orderId: string; amount: number; currency: string; keyId: string;
+      }>("razorpay-create-order", { body: { amountInr } });
+      if (orderErr || !order) throw new Error(orderErr?.message || "Failed to create order");
 
       return new Promise<{ ok: boolean }>((resolve, reject) => {
         openRazorpayCheckout({
-          keyId,
+          keyId: order.keyId,
           orderId: order.orderId,
           amount: order.amount,
           currency: order.currency,
@@ -55,15 +47,9 @@ export function WalletTopupDialog({ open, onOpenChange, defaultAmount = 500 }: P
             name: (user?.user_metadata as any)?.full_name,
           },
           onSuccess: async (resp) => {
-            try {
-              await verify({ 
-                data: resp,
-                headers: { Authorization: token }
-              });
-              resolve({ ok: true });
-            } catch (e: any) {
-              reject(e);
-            }
+            const { error: vErr } = await supabase.functions.invoke("razorpay-verify", { body: resp });
+            if (vErr) return reject(new Error(vErr.message || "Verification failed"));
+            resolve({ ok: true });
           },
           onDismiss: () => reject(new Error("Payment cancelled")),
         }).catch(reject);
