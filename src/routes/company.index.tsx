@@ -616,7 +616,7 @@ function CompanyDashboard() {
           <section className="space-y-6">
             <div className="flex items-center justify-between px-2">
               <h2 className="font-display text-xl font-bold">Smart Matches</h2>
-              <Button variant="ghost" size="xs" asChild className="text-[10px] font-black uppercase tracking-widest text-primary hover:bg-transparent">
+              <Button variant="ghost" size="sm" asChild className="text-[10px] font-black uppercase tracking-widest text-primary hover:bg-transparent">
                 <Link to="/company/marketplace">Marketplace</Link>
               </Button>
             </div>
