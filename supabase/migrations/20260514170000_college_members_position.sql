@@ -1,0 +1,1 @@
+ALTER TABLE public.college_members ADD COLUMN IF NOT EXISTS position text;
