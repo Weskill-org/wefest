@@ -215,52 +215,7 @@ function StudentEventDetail() {
     onError: (err: any) => toast.error(err.message || "One vote per student allowed."),
   });
 
-  const buyMutation = useMutation({
-    mutationFn: async () => {
-      if (!currentUser) throw new Error("Please login to book tickets");
-      if (event.college_id && studentProfile?.college_id !== event.college_id) {
-        throw new Error(`This event is exclusive to students of ${event.college_name}.`);
-      }
-      const ticketCode = `${event.title.substring(0, 3).toUpperCase()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
-      const { error } = await supabase.from("tickets").insert({
-        user_id: currentUser.id,
-        event_id: event.id,
-        tier: tiers[selected].name,
-        code: ticketCode,
-      });
-      if (error) throw error;
-      return { tier: tiers[selected].name, code: ticketCode };
-    },
-    onSuccess: (data) => {
-      setPaymentOpen(false);
-      toast.success(`Success! ${data.tier} booked. Your code: ${data.code}`);
-      queryClient.invalidateQueries({ queryKey: ["my-tickets"] });
-      queryClient.invalidateQueries({ queryKey: ["has-ticket", event.id] });
-    },
-    onError: (error: any) => toast.error(error.message || "Failed to book ticket"),
-  });
-
-  const payWithWalletMutation = useMutation({
-    mutationFn: async () => {
-      if (!currentUser) throw new Error("Please login to book tickets");
-      if (event.college_id && studentProfile?.college_id !== event.college_id) {
-        throw new Error(`This event is exclusive to students of ${event.college_name}.`);
-      }
-      const res = await payForTicketWithWallet({
-        data: { eventId: event.id, tier: tiers[selected].name }
-      });
-      if (!res.ok) throw new Error("Wallet payment failed");
-      return { tier: res.tier, code: res.ticketCode };
-    },
-    onSuccess: (data) => {
-      setPaymentOpen(false);
-      toast.success(`Success! ${data.tier} booked. Your code: ${data.code}`);
-      queryClient.invalidateQueries({ queryKey: ["my-tickets"] });
-      queryClient.invalidateQueries({ queryKey: ["has-ticket", event.id] });
-      queryClient.invalidateQueries({ queryKey: ["wallet"] });
-    },
-    onError: (error: any) => toast.error(error.message || "Failed to book ticket with wallet"),
-  });
+  // Purchase flow is fully owned by <PaymentDialog/> (wallet-only / split / razorpay).
 
   return (
     <div className="animate-in fade-in duration-500">
@@ -524,13 +479,13 @@ function StudentEventDetail() {
                 </p>
               </div>
             )}
-            <Button 
-              onClick={() => setPaymentOpen(true)} 
-              disabled={buyMutation.isPending || payWithWalletMutation.isPending || hasTicket || !isEligible}
-              size="lg" 
+            <Button
+              onClick={() => setPaymentOpen(true)}
+              disabled={hasTicket || !isEligible}
+              size="lg"
               className="mt-6 h-14 w-full rounded-xl bg-brand-gradient text-white font-bold text-base shadow-glow hover:opacity-90 disabled:opacity-50"
             >
-              {buyMutation.isPending || payWithWalletMutation.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : hasTicket ? "Ticket Booked ✅" : !isEligible ? "Restricted Access" : "Get Pass Now"}
+              {hasTicket ? "Ticket Booked ✅" : !isEligible ? "Restricted Access" : "Get Pass Now"}
             </Button>
             <p className="mt-3 text-center text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
               Instant QR • Secured via WeFest Escrow
@@ -545,13 +500,7 @@ function StudentEventDetail() {
         amountInr={tiers[selected].price}
         itemTitle={`${event.title} - ${tiers[selected].name}`}
         itemDescription="Event Pass"
-        onPayWithWallet={() => {
-          payWithWalletMutation.mutate();
-        }}
-        onPayWithRazorpay={() => {
-          buyMutation.mutate();
-        }}
-        isProcessing={buyMutation.isPending || payWithWalletMutation.isPending}
+        purchase={{ kind: "ticket", eventId: event.id, tier: tiers[selected].name }}
       />
     </div>
   );
