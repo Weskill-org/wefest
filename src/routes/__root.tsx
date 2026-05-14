@@ -101,9 +101,23 @@ function GlobalBroadcasts() {
   const { data: broadcasts } = useQuery({
     queryKey: ["global-broadcasts"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("broadcast_messages").select("*").eq("active", true).order("created_at", { ascending: false });
-      if (error && error.code !== "42P01") throw error; // Ignore if table missing initially
-      return data || [];
+      try {
+        const { data, error } = await supabase
+          .from("broadcast_messages")
+          .select("*")
+          .eq("active", true)
+          .order("created_at", { ascending: false });
+        
+        if (error) {
+          // If table is missing or policy fails, just log and return empty
+          console.warn("Broadcast fetch error:", error.message);
+          return [];
+        }
+        return data || [];
+      } catch (e) {
+        console.error("Broadcast fetch exception:", e);
+        return [];
+      }
     },
     refetchInterval: 60000 // Refetch every minute
   });
