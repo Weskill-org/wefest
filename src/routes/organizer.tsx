@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect, Link, useMatchRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { getAuthSession } from "@/lib/auth";
-import { Clock, LayoutDashboard, CalendarPlus, CalendarRange, ScanLine, Users, BadgeCheck, Menu, X, LogOut, ChevronLeft, ChevronRight, Settings } from "lucide-react";
+import { Clock, LayoutDashboard, CalendarPlus, CalendarRange, ScanLine, Users, BadgeCheck, Menu, X, LogOut, ChevronLeft, ChevronRight, Settings, BarChart3, IndianRupee, ShoppingBag, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -178,6 +178,77 @@ function OrganizerLayout() {
             </Link>
           );
         })}
+
+        {/* Contextual Event Link */}
+        {(() => {
+          const match = matchRoute({ to: "/organizer/events/$eventId", fuzzy: true });
+          if (match) {
+            const eventId = (match as any).eventId;
+            const isConsoleActive = matchRoute({ to: "/organizer/events/$eventId", fuzzy: false });
+            const search = (Route.useSearch() as any);
+            const activeTab = search?.tab || "analytics";
+            
+            const eventSubLinks = [
+              { tab: "analytics", label: "Analytics", icon: BarChart3 },
+              { tab: "sponsors", label: "Sponsors", icon: Zap },
+              { tab: "volunteers", label: "Volunteers", icon: Users },
+              { tab: "finance", label: "Finance", icon: IndianRupee },
+              { tab: "merch", label: "Merchandise", icon: ShoppingBag },
+            ];
+
+            return (
+              <div className="pt-4 mt-4 border-t border-border/40">
+                {!collapsed && (
+                  <div className="px-3 mb-2 text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                    Current Fest
+                  </div>
+                )}
+                <Link
+                  to="/organizer/events/$eventId"
+                  params={{ eventId }}
+                  search={{ tab: "analytics" }}
+                  onClick={() => setMobileOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                    collapsed && "justify-center px-2",
+                    isConsoleActive && activeTab === "analytics"
+                      ? "bg-primary/10 text-primary font-bold"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                  )}
+                >
+                  <LayoutDashboard className={cn("h-[18px] w-[18px] shrink-0", isConsoleActive && activeTab === "analytics" && "text-primary")} />
+                  {!collapsed && <span>Event Console</span>}
+                </Link>
+
+                {!collapsed && (
+                  <div className="mt-1 space-y-1 ml-4 pl-4 border-l border-border/40">
+                    {eventSubLinks.map((sub) => {
+                      const isSubActive = isConsoleActive && activeTab === sub.tab;
+                      return (
+                        <Link
+                          key={sub.tab}
+                          to="/organizer/events/$eventId"
+                          params={{ eventId }}
+                          search={{ tab: sub.tab }}
+                          className={cn(
+                            "flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium transition-all duration-200",
+                            isSubActive
+                              ? "text-primary bg-primary/5 font-bold"
+                              : "text-muted-foreground hover:text-foreground hover:bg-muted/20"
+                          )}
+                        >
+                          <sub.icon className={cn("h-3.5 w-3.5", isSubActive && "text-primary")} />
+                          {sub.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          }
+          return null;
+        })()}
       </nav>
 
       {/* Settings Link */}

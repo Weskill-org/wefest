@@ -1,5 +1,5 @@
-import { createFileRoute, Link, notFound, redirect, Outlet, useMatchRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link, notFound, redirect, Outlet, useMatchRoute, useNavigate } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,8 +8,16 @@ import { ArrowLeft, Users, IndianRupee, Activity, Check, X, Ticket, Loader2, Sho
 import { toast } from "sonner";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, PieChart, Pie, Cell } from "recharts";
 import { format, parseISO, subDays, eachDayOfInterval } from "date-fns";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/organizer/events/$eventId")({
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      tab: (search.tab as string) || "analytics",
+    };
+  },
   loader: async ({ params, context }) => {
     // Access membership from parent context
     const { membership } = context as any;
@@ -35,9 +43,14 @@ export const Route = createFileRoute("/organizer/events/$eventId")({
 
 function OrganizerEventDashboard() {
   const event = Route.useLoaderData();
+  const { tab } = Route.useSearch();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const matchRoute = useMatchRoute();
   
+  const [selectedProposal, setSelectedProposal] = useState<any>(null);
+  const [acceptNotes, setAcceptNotes] = useState("");
+
   // Only show the dashboard if we are at the base event URL
   const isBaseRoute = !!matchRoute({ to: "/organizer/events/$eventId", fuzzy: false });
 
@@ -60,14 +73,53 @@ function OrganizerEventDashboard() {
   const { data: proposals, isLoading: loadingProposals } = useQuery({
     queryKey: ["proposals", event.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // 1. Fetch proposals
+      const { data: proposalsData, error: proposalsError } = await supabase
         .from("sponsorship_proposals")
-        .select("*, company:company_user_id(email, raw_user_meta_data)")
+        .select("*")
         .eq("event_id", event.id);
-      if (error) throw error;
-      return data;
+      
+      if (proposalsError) throw proposalsError;
+      if (!proposalsData || proposalsData.length === 0) return [];
+
+      // 2. Fetch profiles for these companies
+      const companyIds = [...new Set(proposalsData.map(p => p.company_user_id))];
+      const { data: profilesData, error: profilesError } = await supabase
+        .from("profiles")
+        .select("user_id, email, full_name")
+        .in("user_id", companyIds);
+
+      if (profilesError) {
+        console.error("Error fetching company profiles:", profilesError);
+        // Still return proposals, just without company metadata
+        return proposalsData.map(p => ({ ...p, company: null }));
+      }
+
+      // 3. Merge profile data into proposals
+      return proposalsData.map(p => ({
+        ...p,
+        company: profilesData.find(profile => profile.user_id === p.company_user_id) || null
+      }));
     }
   });
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('proposals_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'sponsorship_proposals', filter: `event_id=eq.${event.id}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["proposals", event.id] });
+          toast.info("New sponsorship proposal received");
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [event.id, queryClient]);
 
   const { data: tickets, isLoading: loadingTickets } = useQuery({
     queryKey: ["event-tickets-sold", event.id],
@@ -178,7 +230,7 @@ function OrganizerEventDashboard() {
         </div>
       </div>
 
-      <Tabs defaultValue="analytics" className="">
+      <Tabs value={tab} onValueChange={(val) => navigate({ search: { tab: val } })} className="">
         <TabsList className="mb-6 flex-wrap h-auto gap-1 bg-muted/30 p-1 rounded-xl border border-border/40">
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="finance">Finance</TabsTrigger>
@@ -524,11 +576,11 @@ function OrganizerEventDashboard() {
                   <div key={p.id} className="glass p-4 rounded-xl flex flex-col gap-3">
                     <div className="flex items-start justify-between">
                       <div>
-                        <div className="font-medium">{(p.company as any)?.raw_user_meta_data?.full_name || (p.company as any)?.email || 'Sponsor'}</div>
+                        <div className="font-bold">{(p.company as any)?.full_name || (p.company as any)?.email || 'Anonymous Brand'}</div>
                         <div className="text-xs text-muted-foreground">{p.tier} Tier • ₹{(p.amount / 100000).toFixed(1)}L</div>
                       </div>
                       <div className="flex gap-2">
-                        <Button size="icon" variant="ghost" className="text-emerald-500 h-8 w-8" onClick={() => updateProposalMutation.mutate({ id: p.id, status: 'accepted' })}><Check className="h-4 w-4" /></Button>
+                        <Button size="icon" variant="ghost" className="text-emerald-500 h-8 w-8" onClick={() => setSelectedProposal(p)}><Check className="h-4 w-4" /></Button>
                         <Button size="icon" variant="ghost" className="text-red-500 h-8 w-8" onClick={() => updateProposalMutation.mutate({ id: p.id, status: 'rejected' })}><X className="h-4 w-4" /></Button>
                       </div>
                     </div>
@@ -561,7 +613,7 @@ function OrganizerEventDashboard() {
                   <tbody className="divide-y divide-border/60">
                     {activeProposals.map(p => (
                       <tr key={p.id}>
-                        <td className="p-4 font-medium">{(p.company as any)?.raw_user_meta_data?.full_name || (p.company as any)?.email || 'Sponsor'}</td>
+                        <td className="p-4 font-medium">{(p.company as any)?.full_name || (p.company as any)?.email || 'Anonymous Brand'}</td>
                         <td className="p-4 capitalize text-primary font-medium">{p.tier}</td>
                         <td className="p-4 font-semibold">₹{(p.amount / 100000).toFixed(1)}L</td>
                         <td className="p-4"><span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] font-medium text-emerald-500">Active</span></td>
@@ -771,6 +823,79 @@ function OrganizerEventDashboard() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Acceptance Dialog */}
+      <Dialog open={!!selectedProposal} onOpenChange={(open) => !open && setSelectedProposal(null)}>
+        <DialogContent className="sm:max-w-[500px] glass border-border/60">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+              <Check className="h-6 w-6 text-emerald-500" /> Accept Sponsorship
+            </DialogTitle>
+            <DialogDescription>
+              Review the details before formally accepting this sponsorship. This will notify the sponsor and lock in the commitment.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedProposal && (
+            <div className="space-y-6 py-4">
+              <div className="bg-muted/30 border border-border/40 rounded-xl p-4 space-y-3">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-1">Company</div>
+                    <div className="font-medium">{(selectedProposal.company as any)?.raw_user_meta_data?.full_name || (selectedProposal.company as any)?.email || 'Sponsor'}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-1">Tier</div>
+                    <div className="font-medium text-primary capitalize">{selectedProposal.tier}</div>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-1">Amount Committed</div>
+                  <div className="text-xl font-black">₹{(selectedProposal.amount / 100000).toFixed(1)}L <span className="text-sm font-medium text-muted-foreground">(₹{selectedProposal.amount.toLocaleString()})</span></div>
+                </div>
+                {selectedProposal.message && (
+                  <div>
+                    <div className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-1">Message from Sponsor</div>
+                    <div className="text-sm italic text-muted-foreground">"{selectedProposal.message}"</div>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="notes" className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Internal Notes (Optional)</Label>
+                <Textarea 
+                  id="notes" 
+                  placeholder="E.g., Payment received via wire transfer on..." 
+                  className="resize-none bg-background/50 border-border/40"
+                  value={acceptNotes}
+                  onChange={(e) => setAcceptNotes(e.target.value)}
+                />
+              </div>
+
+              <div className="bg-amber-500/10 border border-amber-500/20 text-amber-600 rounded-lg p-3 text-xs flex items-start gap-2">
+                <Activity className="h-4 w-4 mt-0.5 shrink-0" />
+                <p>Accepting this proposal confirms you have verified the funds or agreed to the payment terms offline. This action cannot be easily undone.</p>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="ghost" onClick={() => setSelectedProposal(null)}>Cancel</Button>
+            <Button 
+              className="bg-emerald-500 hover:bg-emerald-600 text-white" 
+              onClick={() => {
+                updateProposalMutation.mutate({ id: selectedProposal.id, status: 'accepted' });
+                setSelectedProposal(null);
+                setAcceptNotes("");
+              }}
+              disabled={updateProposalMutation.isPending}
+            >
+              {updateProposalMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
+              Confirm Acceptance
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

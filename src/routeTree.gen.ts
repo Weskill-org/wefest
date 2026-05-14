@@ -44,6 +44,7 @@ import { Route as EventsEventIdRouteImport } from './routes/events.$eventId'
 import { Route as CompanyWalletRouteImport } from './routes/company.wallet'
 import { Route as CompanySettingsRouteImport } from './routes/company.settings'
 import { Route as CompanyScanRouteImport } from './routes/company.scan'
+import { Route as CompanyProposalsRouteImport } from './routes/company.proposals'
 import { Route as CompanyMarketplaceRouteImport } from './routes/company.marketplace'
 import { Route as CollegesCollegeSlugRouteImport } from './routes/colleges.$collegeSlug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
@@ -243,6 +244,11 @@ const CompanyScanRoute = CompanyScanRouteImport.update({
   path: '/scan',
   getParentRoute: () => CompanyRoute,
 } as any)
+const CompanyProposalsRoute = CompanyProposalsRouteImport.update({
+  id: '/proposals',
+  path: '/proposals',
+  getParentRoute: () => CompanyRoute,
+} as any)
 const CompanyMarketplaceRoute = CompanyMarketplaceRouteImport.update({
   id: '/marketplace',
   path: '/marketplace',
@@ -401,6 +407,7 @@ export interface FileRoutesByFullPath {
   '/blog/$slug': typeof BlogSlugRoute
   '/colleges/$collegeSlug': typeof CollegesCollegeSlugRoute
   '/company/marketplace': typeof CompanyMarketplaceRoute
+  '/company/proposals': typeof CompanyProposalsRoute
   '/company/scan': typeof CompanyScanRoute
   '/company/settings': typeof CompanySettingsRoute
   '/company/wallet': typeof CompanyWalletRoute
@@ -455,6 +462,7 @@ export interface FileRoutesByTo {
   '/blog/$slug': typeof BlogSlugRoute
   '/colleges/$collegeSlug': typeof CollegesCollegeSlugRoute
   '/company/marketplace': typeof CompanyMarketplaceRoute
+  '/company/proposals': typeof CompanyProposalsRoute
   '/company/scan': typeof CompanyScanRoute
   '/company/settings': typeof CompanySettingsRoute
   '/company/wallet': typeof CompanyWalletRoute
@@ -517,6 +525,7 @@ export interface FileRoutesById {
   '/blog/$slug': typeof BlogSlugRoute
   '/colleges/$collegeSlug': typeof CollegesCollegeSlugRoute
   '/company/marketplace': typeof CompanyMarketplaceRoute
+  '/company/proposals': typeof CompanyProposalsRoute
   '/company/scan': typeof CompanyScanRoute
   '/company/settings': typeof CompanySettingsRoute
   '/company/wallet': typeof CompanyWalletRoute
@@ -579,6 +588,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/colleges/$collegeSlug'
     | '/company/marketplace'
+    | '/company/proposals'
     | '/company/scan'
     | '/company/settings'
     | '/company/wallet'
@@ -633,6 +643,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/colleges/$collegeSlug'
     | '/company/marketplace'
+    | '/company/proposals'
     | '/company/scan'
     | '/company/settings'
     | '/company/wallet'
@@ -694,6 +705,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/colleges/$collegeSlug'
     | '/company/marketplace'
+    | '/company/proposals'
     | '/company/scan'
     | '/company/settings'
     | '/company/wallet'
@@ -989,6 +1001,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CompanyScanRouteImport
       parentRoute: typeof CompanyRoute
     }
+    '/company/proposals': {
+      id: '/company/proposals'
+      path: '/proposals'
+      fullPath: '/company/proposals'
+      preLoaderRoute: typeof CompanyProposalsRouteImport
+      parentRoute: typeof CompanyRoute
+    }
     '/company/marketplace': {
       id: '/company/marketplace'
       path: '/marketplace'
@@ -1243,6 +1262,7 @@ const CollegesRouteWithChildren = CollegesRoute._addFileChildren(
 
 interface CompanyRouteChildren {
   CompanyMarketplaceRoute: typeof CompanyMarketplaceRoute
+  CompanyProposalsRoute: typeof CompanyProposalsRoute
   CompanyScanRoute: typeof CompanyScanRoute
   CompanySettingsRoute: typeof CompanySettingsRoute
   CompanyWalletRoute: typeof CompanyWalletRoute
@@ -1251,6 +1271,7 @@ interface CompanyRouteChildren {
 
 const CompanyRouteChildren: CompanyRouteChildren = {
   CompanyMarketplaceRoute: CompanyMarketplaceRoute,
+  CompanyProposalsRoute: CompanyProposalsRoute,
   CompanyScanRoute: CompanyScanRoute,
   CompanySettingsRoute: CompanySettingsRoute,
   CompanyWalletRoute: CompanyWalletRoute,

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -26,19 +26,29 @@ function CompanyScan() {
     }
   });
 
-  const { data: sponsorships, isLoading: loadingSponsorships } = useQuery({
+  const { data: sponsorships, isLoading: loadingSponsorships, error: sponsorshipsError } = useQuery({
     queryKey: ["my-active-sponsorships", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("sponsorship_proposals")
-        .select("*, event:event_id(*)")
+        .select("*, event:events(*)")
         .eq("company_user_id", user!.id)
         .eq("status", "accepted");
       if (error) throw error;
       return data;
     }
   });
+
+  // Auto-select first event if available
+  useEffect(() => {
+    if (!selectedEventId && sponsorships && sponsorships.length > 0) {
+      const firstEventId = sponsorships[0].event_id;
+      if (firstEventId) {
+        setSelectedEventId(firstEventId);
+      }
+    }
+  }, [sponsorships, selectedEventId]);
 
   const scanMutation = useMutation({
     mutationFn: async ({ ticketCode, eventId }: { ticketCode: string; eventId: string }) => {
@@ -107,14 +117,21 @@ function CompanyScan() {
               <SelectValue placeholder={loadingSponsorships ? "Loading events…" : "Select an event"} />
             </SelectTrigger>
             <SelectContent>
-              {sponsorships?.map((s) => (
-                <SelectItem key={s.event_id} value={s.event_id}>
-                  {(s.event as any).title}
-                </SelectItem>
-              ))}
-              {!loadingSponsorships && sponsorships?.length === 0 && (
-                <SelectItem value="none" disabled>No active sponsorships found</SelectItem>
-              )}
+               {sponsorships?.map((s) => {
+                 const eventData = Array.isArray(s.event) ? s.event[0] : s.event;
+                 if (!eventData) return null;
+                 return (
+                   <SelectItem key={s.event_id} value={s.event_id}>
+                     {(eventData as any).title}
+                   </SelectItem>
+                 );
+               })}
+               {!loadingSponsorships && (!sponsorships || sponsorships.length === 0) && (
+                 <SelectItem value="none" disabled>No active sponsorships found</SelectItem>
+               )}
+               {sponsorshipsError && (
+                 <SelectItem value="error" disabled className="text-destructive">Error loading fests</SelectItem>
+               )}
             </SelectContent>
           </Select>
         </div>

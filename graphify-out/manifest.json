@@ -16,7 +16,7 @@
     "hash": "5622542c835e74c8a5a414b879d4b53b"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routeTree.gen.ts": {
-    "mtime": 1778684355.4623446,
+    "mtime": 1778741058.038989,
     "hash": "909713dff26bbd5c6ef7a6d8a6af069d"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\ad-banner.tsx": {
@@ -36,8 +36,12 @@
     "hash": "960fa3a34833a55e4b6444f26d0d5e3a"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\site-header.tsx": {
-    "mtime": 1778673732.775802,
-    "hash": "9c21df1031f4e2702b49253036258f3a"
+    "mtime": 1778740791.9935925,
+    "hash": "989d9c2d4258bce698ba3006b65689b8"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\auth\\LoadingScreen.tsx": {
+    "mtime": 1778740706.1344495,
+    "hash": "563bf4300ddcc8a6d4616c0a86385e60"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\events\\category-filter.tsx": {
     "mtime": 1778493632.197872,
@@ -268,12 +272,12 @@
     "hash": "246be7979eeafbcd086aed35db947d8d"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\wallet\\wallet-panel.tsx": {
-    "mtime": 1778684351.7407146,
-    "hash": "84d545d3b5b36dd1a66c2c366cb97b9a"
+    "mtime": 1778685985.5567553,
+    "hash": "5d572cff5f4f83f955cf3ec80c69fd57"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\wallet\\wallet-topup-dialog.tsx": {
-    "mtime": 1778684351.7420073,
-    "hash": "41ec4b936d0a72420c6ebf702afb3430"
+    "mtime": 1778685994.8304296,
+    "hash": "8e7e221c9776f7507318010496a646dc"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\contexts\\RegionContext.tsx": {
     "mtime": 1778155103.5570972,
@@ -284,8 +288,12 @@
     "hash": "1bb3ebac7752b497a78d34e341975bbd"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\hooks\\use-wallet.ts": {
-    "mtime": 1778684351.7425232,
-    "hash": "adaedf1637f16c63c88514fe25699098"
+    "mtime": 1778685978.9312694,
+    "hash": "4f7efdd3f88a0f26f4bf3e1d7b300232"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\integrations\\supabase\\auth-attacher.ts": {
+    "mtime": 1778741056.3682594,
+    "hash": "c229b19c0b170ba70e2fe39a5b6e192f"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\integrations\\supabase\\auth-middleware.ts": {
     "mtime": 1778138463.7967503,
@@ -300,8 +308,12 @@
     "hash": "08e3aa30d5ad892ea214152849404282"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\integrations\\supabase\\types.ts": {
-    "mtime": 1778684351.7467208,
-    "hash": "de4ba8ca56909a1e023e60af4bb1e877"
+    "mtime": 1778741056.3704505,
+    "hash": "a1f4c7546abad18ffc17319eb368401f"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\lib\\auth.ts": {
+    "mtime": 1778740697.92716,
+    "hash": "7cb36d171f4d54f6741ddbd9a884ea80"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\lib\\blog-data.ts": {
     "mtime": 1778247337.6487603,
@@ -364,8 +376,8 @@
     "hash": "98dbf184d711df22d01653fe7a5f15a7"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\admin.tsx": {
-    "mtime": 1778506156.9703596,
-    "hash": "5fff8931eae58bc1a10aa47e0c6e022f"
+    "mtime": 1778740757.2741435,
+    "hash": "23b21bfcd2402caf5db253318af641aa"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\admin.users.tsx": {
     "mtime": 1778152458.5348864,
@@ -400,24 +412,24 @@
     "hash": "92a600958cfea6bac02a6d3ba0cdbc8f"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\company.index.tsx": {
-    "mtime": 1778671938.037812,
-    "hash": "4aa39c2cfb3464820887f870843a903d"
+    "mtime": 1778741056.3732176,
+    "hash": "43c58c3cc085ff867bc1191018706c3f"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\company.marketplace.tsx": {
     "mtime": 1778671995.5640972,
     "hash": "3058c4b6579502d778359a245e0afc53"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\company.scan.tsx": {
-    "mtime": 1778672032.954167,
-    "hash": "0422793f6694312d94fc1b49b18cbdda"
+    "mtime": 1778741866.4454207,
+    "hash": "fda019c77a243cf08e9a455e28108603"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\company.settings.tsx": {
     "mtime": 1778675280.1299171,
     "hash": "c397f8aef1f253524e7910176089f6e8"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\company.tsx": {
-    "mtime": 1778684351.758472,
-    "hash": "8ca4a9a3b08c13048382850daedd52be"
+    "mtime": 1778740772.172698,
+    "hash": "c39f16f3855b382121f8d7cf00575da3"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\company.wallet.tsx": {
     "mtime": 1778684351.758979,
@@ -444,8 +456,8 @@
     "hash": "9f9b8060e39bf9fe2c6513c2a2da9531"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\login.tsx": {
-    "mtime": 1778672115.8287742,
-    "hash": "9a5036b43bb5005e31832e847b5baf57"
+    "mtime": 1778740730.8907008,
+    "hash": "ef694cd4506574b7d8c2d038de670e24"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.events.$eventId.edit.tsx": {
     "mtime": 1778594785.773743,
@@ -480,8 +492,8 @@
     "hash": "b09648bf7403d98b260d4e422b54bf34"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.tsx": {
-    "mtime": 1778509868.2440028,
-    "hash": "1f1779ec9773b37e1d145cfbe84eaf8f"
+    "mtime": 1778740764.8317773,
+    "hash": "0708a39a6da7d2093a3853149071311f"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.wallet.tsx": {
     "mtime": 1778684351.7648585,
@@ -496,8 +508,8 @@
     "hash": "daaffb85be860765cd44c931effd290a"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\signup.tsx": {
-    "mtime": 1778672117.8477075,
-    "hash": "bc4403ef08a951275994affb093b3145"
+    "mtime": 1778740738.0257356,
+    "hash": "7ff578ee2903d2536289d10102814ff7"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\sponsor.dashboard.tsx": {
     "mtime": 1778311632.72126,
@@ -552,16 +564,16 @@
     "hash": "935a44c434649973fd83801eb3a219cb"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\_student.tsx": {
-    "mtime": 1778684351.7560894,
-    "hash": "d900733519fee0b8d7f55803c1e91617"
+    "mtime": 1778740746.3465009,
+    "hash": "64bfb6a54df90799617bed73760c989d"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\_student.wallet.tsx": {
     "mtime": 1778684351.7560894,
     "hash": "41e8661ff929aff6ff743622e66818cc"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\__root.tsx": {
-    "mtime": 1778673674.872832,
-    "hash": "74718782a55b09129a1b0899d6071d39"
+    "mtime": 1778740714.4066656,
+    "hash": "c8d84b707e841fe618d306addf7a5b4a"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\supabase\\migrations\\20260507071702_fe39b9f3-7f64-4ab8-82b6-f7103e10fc71.sql": {
     "mtime": 1778141327.9830444,
@@ -664,8 +676,16 @@
     "hash": "b3e5cc39f053c8a468540e0063e44224"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\supabase\\migrations\\20260513144026_3030ea2d-a587-48f7-af45-2b1c22ba227e.sql": {
-    "mtime": 1778684351.7668686,
-    "hash": "b1a699ac89290ee561093b4b6860af02"
+    "mtime": 1778739273.8297112,
+    "hash": "7ec62d86ef1c14dd6c1b32024495b2ed"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\supabase\\migrations\\20260514120000_repair_admin_schema.sql": {
+    "mtime": 1778739708.2018168,
+    "hash": "cc749729911f48806a5a81d484c88e1f"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\supabase\\migrations\\20260514120500_fix_admin_recursion.sql": {
+    "mtime": 1778739881.0652847,
+    "hash": "231615d2fa0f75bc9b4ff9e8e8d8937e"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\allfeatures.md": {
     "mtime": 1778219526.5087645,

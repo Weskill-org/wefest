@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getAuthSession } from "@/lib/auth";
 import {
   LayoutDashboard, Search, ScanLine, Settings, Menu, X,
-  LogOut, ChevronLeft, ChevronRight, Building2, Briefcase
+  LogOut, ChevronLeft, ChevronRight, Building2, Briefcase, Handshake
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -41,6 +41,7 @@ export const Route = createFileRoute("/company")({
 
 const sidebarLinks = [
   { to: "/company", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/company/proposals", label: "Proposals", icon: Handshake },
   { to: "/company/marketplace", label: "Marketplace", icon: Search },
   { to: "/company/scan", label: "Booth Scanner", icon: ScanLine },
 ];
