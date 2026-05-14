@@ -1,16 +1,12 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "wefest",
-  "compatibility_date": "2025-09-24",
+  "compatibility_date": "2026-05-14",
   "compatibility_flags": [
     "nodejs_compat"
   ],
   "main": "@tanstack/react-start/server-entry",
-  "build": {
-    "command": "bun run build"
-  },
-  "assets": {
-    "directory": ".output/public",
-    "binding": "ASSETS"
+  "observability": {
+    "enabled": true
   }
 }
