@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -41,11 +41,15 @@ function CompanyBrandAssets() {
     }
   });
 
-  const { data: assets, isLoading: assetsLoading } = useQuery({
+  const { data: assets, isLoading: assetsLoading, refetch: refetchAssets } = useQuery({
     queryKey: ["brand-assets", companyProfile?.id],
     enabled: !!companyProfile?.id,
     queryFn: async () => {
-      const { data } = await supabase.from("brand_assets").select("*").eq("company_id", companyProfile!.id).order('created_at', { ascending: false });
+      const { data, error } = await supabase.from("brand_assets").select("*").eq("company_id", companyProfile!.id).order('created_at', { ascending: false });
+      if (error) {
+        toast.error("Failed to fetch assets: " + error.message);
+        throw error;
+      }
       return data || [];
     }
   });
@@ -63,11 +67,16 @@ function CompanyBrandAssets() {
     queryKey: ["company-accepted-events", companyProfile?.id],
     enabled: !!companyProfile?.id,
     queryFn: async () => {
-      const { data: proposals } = await supabase
+      const { data: proposals, error } = await supabase
         .from("sponsorship_proposals")
         .select("event_id, events(title, college_name)")
-        .eq("company_id", companyProfile!.id)
+        .eq("company_user_id", user!.id)
         .eq("status", "accepted");
+      
+      if (error) {
+        console.error("Error fetching accepted sponsorships:", error);
+        return [];
+      }
       return proposals || [];
     }
   });
@@ -82,29 +91,38 @@ function CompanyBrandAssets() {
   const [isEditingGuidelines, setIsEditingGuidelines] = useState(false);
 
   // Initialize guidelines from DB
-  useState(() => {
+  useEffect(() => {
     if (guidelines) {
       setGuidelineColors(guidelines.colors as any || { primary: "#000000", secondary: "#ffffff" });
       setGuidelineInstructions(guidelines.instructions || "");
     }
-  });
+  }, [guidelines]);
 
   const uploadAsset = useMutation({
     mutationFn: async (fileDataUrl: string) => {
       if (!companyProfile?.id) throw new Error("No company profile");
-      const { error } = await supabase.from("brand_assets").insert({
+      const { data, error } = await supabase.from("brand_assets").insert({
         company_id: companyProfile.id,
         name: newAssetName || "Untitled Asset",
         type: newAssetType,
-        file_url: fileDataUrl, // In a real app, this would be a Supabase Storage URL
-      });
+        file_url: fileDataUrl,
+      }).select().single();
+      
       if (error) throw error;
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (newAsset) => {
       toast.success("Asset uploaded successfully", {
-        description: `Name: ${newAssetName || "Untitled Asset"} • Type: ${newAssetType}`
+        description: `Name: ${newAsset.name} • Type: ${newAsset.type}`
       });
+      
+      // Manually update the cache for instant UI feedback
+      qc.setQueryData(["brand-assets", companyProfile?.id], (old: any[] | undefined) => {
+        return [newAsset, ...(old || [])];
+      });
+
       qc.invalidateQueries({ queryKey: ["brand-assets"] });
+      refetchAssets();
       setNewAssetName("");
       setIsUploadOpen(false);
     },
@@ -138,6 +156,7 @@ function CompanyBrandAssets() {
     onSuccess: () => {
       toast.success("Asset deleted");
       qc.invalidateQueries({ queryKey: ["brand-assets"] });
+      refetchAssets();
     }
   });
 
