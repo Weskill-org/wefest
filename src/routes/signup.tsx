@@ -8,6 +8,7 @@ import { GraduationCap, Building2, Briefcase, ArrowLeft, Loader2 } from "lucide-
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { getAuthSession, getDashboardRedirect } from "@/lib/auth";
 
 type SignupSearch = {
   redirect?: string;
@@ -20,24 +21,14 @@ export const Route = createFileRoute("/signup")({
     };
   },
   head: () => ({ meta: [{ title: "Sign up — WeFest" }, { name: "description", content: "Create your WeFest account as a Student, College, or Company." }] }),
-  beforeLoad: async () => {
+  beforeLoad: async ({ search }) => {
     if (typeof window === 'undefined') return;
-    const { data: { session } } = await supabase.auth.getSession();
-    let userId = session?.user?.id;
-    if (!userId) {
-      const { data: { user } } = await supabase.auth.getUser();
-      userId = user?.id;
-    }
-    if (userId) {
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .maybeSingle();
-      const role = roleData?.role || "student";
-      if (role === "company") throw redirect({ to: "/company" });
-      if (role === "college") throw redirect({ to: "/organizer" });
-      throw redirect({ to: "/dashboard" });
+    const session = await getAuthSession();
+    if (session) {
+      if (search.redirect) {
+        throw redirect({ to: search.redirect });
+      }
+      throw redirect({ to: getDashboardRedirect(session.role, session.isAdmin) });
     }
   },
   component: Signup,

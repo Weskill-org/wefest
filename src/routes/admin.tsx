@@ -3,14 +3,15 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, LayoutDashboard, CalendarCheck, Users, Megaphone, TrendingUp, Share2, MapPin, Building2, ShieldCheck, ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
+import { getAuthSession } from "@/lib/auth";
 
 export const Route = createFileRoute("/admin")({
   beforeLoad: async () => {
     // Skip redirect on server to prevent redirect-on-refresh bug
     if (typeof window === 'undefined') return;
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    const session = await getAuthSession();
+    if (!session || !session.isAdmin) {
       throw redirect({ to: "/login" });
     }
   },

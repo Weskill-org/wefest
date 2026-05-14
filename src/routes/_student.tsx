@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect, Link, useMatchRoute, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthSession } from "@/lib/auth";
 import { 
   LayoutDashboard, CalendarRange, Ticket, Users, 
   ShoppingBag, Settings, Menu, X, LogOut, 
@@ -13,21 +14,20 @@ export const Route = createFileRoute("/_student")({
   beforeLoad: async ({ location }) => {
     if (typeof window === 'undefined') return;
 
-    // Try session first, fall back to getUser for reliability
-    const { data: { session } } = await supabase.auth.getSession();
-    let currentUser = session?.user ?? null;
-    
-    if (!currentUser) {
-      const { data: { user } } = await supabase.auth.getUser();
-      currentUser = user;
-    }
+    const session = await getAuthSession();
 
-    if (!currentUser) {
+    if (!session) {
       throw redirect({
         to: '/login',
         search: { redirect: location.href },
       });
     }
+
+    if (session.role !== "student") {
+      throw redirect({ to: "/" });
+    }
+
+    const currentUser = session.user;
 
     // Fetch student profile to get college details
     let profile = null;

@@ -3,6 +3,8 @@ import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRegion } from "@/contexts/RegionContext";
 import { Globe } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getAuthSession, getDashboardRedirect } from "@/lib/auth";
 
 // Public marketing navigation — only shown to non-logged-in visitors
 const marketingNav = [
@@ -13,6 +15,12 @@ const marketingNav = [
 ];
 
 export function SiteHeader() {
+  const [session, setSession] = useState<any>(null);
+
+  useEffect(() => {
+    getAuthSession().then(setSession);
+  }, []);
+
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/70 backdrop-blur-xl">
       <div className="container mx-auto flex h-16 items-center justify-between px-6">
@@ -39,12 +47,22 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/login">Sign in</Link>
-          </Button>
-          <Button asChild size="sm" className="bg-brand-gradient text-primary-foreground hover:opacity-90">
-            <Link to="/signup">Get started</Link>
-          </Button>
+          {session ? (
+            <Button asChild size="sm" className="bg-brand-gradient text-primary-foreground hover:opacity-90 font-bold px-5">
+              <Link to={getDashboardRedirect(session.role, session.isAdmin)}>
+                Dashboard
+              </Link>
+            </Button>
+          ) : (
+            <>
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/login">Sign in</Link>
+              </Button>
+              <Button asChild size="sm" className="bg-brand-gradient text-primary-foreground hover:opacity-90">
+                <Link to="/signup">Get started</Link>
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </header>

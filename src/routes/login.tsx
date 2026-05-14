@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, ArrowLeft } from "lucide-react";
+import { getAuthSession, getDashboardRedirect } from "@/lib/auth";
 
 type LoginSearch = {
   redirect?: string;
@@ -21,29 +22,13 @@ export const Route = createFileRoute("/login")({
   beforeLoad: async ({ search }) => {
     if (typeof window === 'undefined') return;
     
-    // If user is already logged in, send them to their dashboard
-    const { data: { session } } = await supabase.auth.getSession();
-    let userId = session?.user?.id;
-    if (!userId) {
-      const { data: { user } } = await supabase.auth.getUser();
-      userId = user?.id;
-    }
+    const session = await getAuthSession();
     
-    if (userId) {
-      // If there's a redirect param, honor it
-      if ((search as any)?.redirect) {
-        throw redirect({ to: (search as any).redirect });
+    if (session) {
+      if (search.redirect) {
+        throw redirect({ to: search.redirect });
       }
-      // Otherwise go to dashboard based on role
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .maybeSingle();
-      const role = roleData?.role || "student";
-      if (role === "company") throw redirect({ to: "/company" });
-      if (role === "college") throw redirect({ to: "/organizer" });
-      throw redirect({ to: "/dashboard" });
+      throw redirect({ to: getDashboardRedirect(session.role, session.isAdmin) });
     }
   },
   component: Login,
@@ -84,35 +69,20 @@ function Login() {
       }
     }
 
-    // Check if admin first — admins always go to the portal
-    const { data: adminRow } = await supabase
-      .from("admin_users")
-      .select("id")
-      .eq("user_id", uid!)
-      .maybeSingle();
-
-    // Fetch the user's role to determine redirect
-    const { data: roleData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", uid)
-      .maybeSingle();
-
+    const session = await getAuthSession();
     setLoading(false);
+    
+    if (!session) {
+      toast.error("Failed to retrieve user session");
+      return;
+    }
+
     toast.success("Welcome back");
 
-    const role = roleData?.role || "student";
-
-    if (adminRow) {
-      navigate({ to: "/admin" });
-    } else if (search.redirect) {
+    if (search.redirect) {
       navigate({ to: search.redirect });
-    } else if (role === "company") {
-      navigate({ to: "/company" });
-    } else if (role === "college") {
-      navigate({ to: "/organizer" });
     } else {
-      navigate({ to: "/dashboard" });
+      navigate({ to: getDashboardRedirect(session.role, session.isAdmin) });
     }
   };
 

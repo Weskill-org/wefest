@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect, Link, useMatchRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthSession } from "@/lib/auth";
 import { Clock, LayoutDashboard, CalendarPlus, CalendarRange, ScanLine, Users, BadgeCheck, Menu, X, LogOut, ChevronLeft, ChevronRight, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -16,27 +17,21 @@ export const Route = createFileRoute("/organizer")({
     ] 
   }),
   beforeLoad: async ({ location }) => {
-    // Skip redirect on server to prevent redirect-on-refresh bug
     if (typeof window === 'undefined') return;
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) {
+    const session = await getAuthSession();
+    if (!session) {
       throw redirect({
         to: '/login',
         search: { redirect: location.href },
       });
     }
     
-    // Fetch role from user_roles table
-    const { data: roleData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", session.user.id)
-      .maybeSingle();
-      
-    if (roleData?.role !== "college") {
+    if (session.role !== "college") {
       throw redirect({ to: '/' });
     }
+
+    const currentUser = session.user;
 
     // Fetch college membership
     let { data: membership } = await supabase

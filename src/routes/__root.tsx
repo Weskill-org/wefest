@@ -5,6 +5,8 @@ import { SiteHeader, SiteFooter } from "@/components/site-header";
 import { Toaster } from "@/components/ui/sonner";
 import { queryClient } from "../router";
 import { RegionProvider } from "@/contexts/RegionContext";
+import { LoadingScreen } from "@/components/auth/LoadingScreen";
+import { getAuthSession } from "@/lib/auth";
 
 import appCss from "../styles.css?url";
 
@@ -66,6 +68,23 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const routerState = useRouterState();
   const pathname = routerState.location.pathname;
+  const [isAuthChecking, setIsAuthChecking] = React.useState(true);
+
+  React.useEffect(() => {
+    // Initial session check to prevent flickering on protected routes
+    const checkSession = async () => {
+      try {
+        await getAuthSession();
+      } finally {
+        setIsAuthChecking(false);
+      }
+    };
+    checkSession();
+  }, []);
+
+  if (isAuthChecking) {
+    return <LoadingScreen />;
+  }
   
   // Routes that shouldn't show the global header/footer because they have their own layouts
   const isOrganizerRoute = pathname.startsWith("/organizer");

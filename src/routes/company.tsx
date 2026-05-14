@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect, Link, useMatchRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthSession } from "@/lib/auth";
 import {
   LayoutDashboard, Search, ScanLine, Settings, Menu, X,
   LogOut, ChevronLeft, ChevronRight, Building2, Briefcase
@@ -21,21 +22,15 @@ export const Route = createFileRoute("/company")({
   beforeLoad: async ({ location }) => {
     if (typeof window === 'undefined') return;
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) {
+    const session = await getAuthSession();
+    if (!session) {
       throw redirect({
         to: '/login',
         search: { redirect: location.href },
       });
     }
 
-    const { data: roleData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", session.user.id)
-      .maybeSingle();
-
-    if (roleData?.role !== "company") {
+    if (session.role !== "company") {
       throw redirect({ to: '/' });
     }
 
