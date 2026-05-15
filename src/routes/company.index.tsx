@@ -76,7 +76,7 @@ function CompanyDashboard() {
   });
 
   const { data: proposals, isLoading: loadingProposals } = useQuery({
-    queryKey: ["my-proposals"],
+    queryKey: ["my-proposals", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
       const { data, error } = await supabase

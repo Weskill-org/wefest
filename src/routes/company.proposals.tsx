@@ -57,7 +57,7 @@ function CompanyProposals() {
   });
 
   const { data: proposals, isLoading } = useQuery({
-    queryKey: ["my-proposals-detailed"],
+    queryKey: ["my-proposals", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -65,33 +65,50 @@ function CompanyProposals() {
         .select("*, event:event_id(*)")
         .eq("company_user_id", user!.id)
         .order("created_at", { ascending: false });
-      if (error) throw error;
+      
+      if (error) {
+        console.error("Error fetching proposals:", error);
+        throw error;
+      }
+      
+      console.log("Proposals data received:", data);
       return data as Proposal[];
-    }
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   useEffect(() => {
     if (!user?.id) return;
     
+    console.log("Setting up real-time subscription for company_user_id:", user.id);
     const channel = supabase
-      .channel('company_proposals_updates')
+      .channel(`company_proposals_${user.id}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'sponsorship_proposals', filter: `company_user_id=eq.${user.id}` },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["my-proposals-detailed"] });
-          queryClient.invalidateQueries({ queryKey: ["my-proposals"] }); // Also invalidate dashboard
-          toast.success("Proposal status updated in real-time!");
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'sponsorship_proposals', 
+          filter: `company_user_id=eq.${user.id}` 
+        },
+        (payload) => {
+          console.log("Real-time update received for proposals:", payload);
+          queryClient.invalidateQueries({ queryKey: ["my-proposals", user.id] });
+          toast.success("Proposal updated!", {
+            description: "The status of one of your proposals has changed."
+          });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log("Subscription status:", status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
   }, [user?.id, queryClient]);
 
-  if (isLoading) {
+  if (isLoading || !user) {
     return (
       <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
         <div className="relative">

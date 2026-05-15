@@ -46,7 +46,9 @@ Deno.serve(async (req) => {
       .digest("hex");
     if (expected !== razorpay_signature) return json({ error: "Invalid signature" }, 400);
 
-    const admin = createClient(supaUrl, serviceKey);
+    const admin = createClient(supaUrl, serviceKey, {
+      auth: { persistSession: false }
+    });
     const { data: order, error } = await admin
       .from("razorpay_orders")
       .select("id, user_id, status, coins_to_credit, purpose, notes, amount_paise")
@@ -106,16 +108,20 @@ Deno.serve(async (req) => {
       }
 
       // Credit organizer with full total coins (sale)
-      await admin.rpc("wallet_credit", {
-        _user_id: organizerId,
-        _amount_coins: totalCoins,
-        _type: "sale",
-        _description: `Sale: ${eventTitle} (${tier})`,
-        _reference_type: "ticket",
-        _reference_id: eventId,
-        _counterparty: userId,
-        _metadata: { tier, payment_id: razorpay_payment_id, wallet_portion_coins: walletCoinsToUse },
-      });
+      console.log(`[Verify] Crediting organizer ${organizerId} with ${totalCoins} coins`);
+      if (totalCoins > 0) {
+        const { error: cErr } = await admin.rpc("wallet_credit", {
+          _user_id: organizerId,
+          _amount_coins: totalCoins,
+          _type: "sale",
+          _description: `Sale: ${eventTitle} (${tier})`,
+          _reference_type: "ticket",
+          _reference_id: eventId,
+          _counterparty: userId,
+          _metadata: { tier, payment_id: razorpay_payment_id, wallet_portion_coins: walletCoinsToUse },
+        });
+        if (cErr) throw new Error(`Organizer credit failed: ${cErr.message}`);
+      }
 
       // Insert ticket
       const code = `${eventTitle.substring(0, 3).toUpperCase()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
@@ -138,7 +144,10 @@ Deno.serve(async (req) => {
       const walletCoinsToUse = Math.max(0, Number(notes.walletCoinsToUse ?? 0));
       const totalCoins = inrToCoins(totalInr);
 
+      console.log(`[Verify] Processing product purchase. Total: ${totalInr} INR, Coins: ${totalCoins}, Wallet Use: ${walletCoinsToUse}`);
+
       if (walletCoinsToUse > 0) {
+        console.log(`[Verify] Debiting user ${userId} for ${walletCoinsToUse} coins`);
         const { error: dErr } = await admin.rpc("wallet_debit", {
           _user_id: userId,
           _amount_coins: walletCoinsToUse,
@@ -151,17 +160,22 @@ Deno.serve(async (req) => {
         if (dErr) throw new Error(`Wallet debit failed: ${dErr.message}`);
       }
 
-      await admin.rpc("wallet_credit", {
-        _user_id: organizerId,
-        _amount_coins: totalCoins,
-        _type: "sale",
-        _description: `Sale: ${productName} x${quantity}`,
-        _reference_type: "order",
-        _reference_id: productId,
-        _counterparty: userId,
-        _metadata: { quantity, payment_id: razorpay_payment_id, wallet_portion_coins: walletCoinsToUse },
-      });
+      if (totalCoins > 0) {
+        console.log(`[Verify] Crediting organizer ${organizerId} for ${totalCoins} coins`);
+        const { error: cErr } = await admin.rpc("wallet_credit", {
+          _user_id: organizerId,
+          _amount_coins: totalCoins,
+          _type: "sale",
+          _description: `Sale: ${productName} x${quantity}`,
+          _reference_type: "order",
+          _reference_id: productId,
+          _counterparty: userId,
+          _metadata: { quantity, payment_id: razorpay_payment_id, wallet_portion_coins: walletCoinsToUse },
+        });
+        if (cErr) throw new Error(`Organizer credit failed: ${cErr.message}`);
+      }
 
+      console.log(`[Verify] Creating order for user ${userId}, product ${productId}`);
       const { data: orderRow, error: oErr } = await admin.from("orders").insert({
         user_id: userId,
         product_id: productId,
@@ -214,6 +228,14 @@ Deno.serve(async (req) => {
       await admin.from("razorpay_orders").update({ credited_at: new Date().toISOString() }).eq("id", order.id);
       result.planType = planType;
     }
+
+    // Mark razorpay order as completed
+    console.log(`[Verify] Marking razorpay_order ${order.id} as completed`);
+    const { error: finalUpErr } = await admin.from("razorpay_orders").update({
+      status: "completed",
+      verified_at: new Date().toISOString(),
+    }).eq("id", order.id);
+    if (finalUpErr) console.error("[Verify] Final update error:", finalUpErr);
 
     return json(result);
   } catch (e) {

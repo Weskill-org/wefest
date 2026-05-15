@@ -54,7 +54,9 @@ Deno.serve(async (req) => {
     const { data: userData, error: userErr } = await userClient.auth.getUser();
     if (userErr || !userData.user) return json({ error: "Unauthorized" }, 401);
     const userId = userData.user.id;
-    const admin = createClient(supaUrl, serviceKey);
+    const admin = createClient(supaUrl, serviceKey, {
+      auth: { persistSession: false }
+    });
 
     const body = (await req.json()) as Body;
     const purpose: Purpose = body.purpose ?? "wallet_topup";
@@ -103,27 +105,62 @@ Deno.serve(async (req) => {
       const qty = Math.floor(Number(body.quantity));
       if (qty < 1 || qty > 20) return json({ error: "Invalid quantity" }, 400);
 
-      const { data: product, error } = await admin
+      console.log(`[CreateOrder] Querying product ID: ${body.productId}`);
+      const { data: product, error: pErr } = await admin
         .from("products")
-        .select("id, name, price, stock, event_id, events:event_id(organizer_user_id, title)")
+        .select(`
+          *,
+          event:event_id (
+            id,
+            title,
+            organizer_user_id
+          )
+        `)
         .eq("id", body.productId)
         .maybeSingle();
-      if (error) throw new Error(error.message);
-      if (!product) return json({ error: "Product not found" }, 404);
-      if (product.stock < qty) return json({ error: "Insufficient stock" }, 400);
 
-      organizerId = (product.events as any)?.organizer_user_id ?? null;
-      if (!organizerId) return json({ error: "Product has no seller wallet" }, 400);
+      if (pErr) {
+        console.error("[CreateOrder] Product fetch error:", pErr);
+        return json({ error: `Database error: ${pErr.message}` }, 500);
+      }
+      if (!product) {
+        console.error("[CreateOrder] Product not found in DB for ID:", body.productId);
+        return json({ error: "Product not found. Please refresh the page." }, 404);
+      }
+
+      console.log("[CreateOrder] Product data:", JSON.stringify(product));
+      
+      if (product.stock < qty) {
+        return json({ error: "Insufficient stock" }, 400);
+      }
+
+      organizerId = (product.event as any)?.organizer_user_id;
+      if (!organizerId) {
+        // Fallback: check if it's an array (sometimes joins return arrays in older client versions)
+        const eventData = product.event;
+        if (Array.isArray(eventData) && eventData.length > 0) {
+          organizerId = (eventData[0] as any).organizer_user_id;
+        } else if (typeof eventData === 'object' && eventData !== null) {
+          organizerId = (eventData as any).organizer_user_id;
+        }
+      }
+
+      if (!organizerId) {
+        console.error("[CreateOrder] Seller ID missing for product:", body.productId, "Event:", JSON.stringify(product.event));
+        return json({ error: "This product's seller is not correctly configured." }, 400);
+      }
 
       totalInr = Math.round(Number(product.price) * qty);
+      console.log(`[CreateOrder] Total INR: ${totalInr} (Price: ${product.price}, Qty: ${qty})`);
+      
       notes = {
         purpose,
-        productId: product.id,
+        productId: body.productId,
         productName: product.name,
         quantity: qty,
         organizerId,
-        shippingAddress: body.shippingAddress ?? "Pickup at Campus",
         totalInr,
+        shippingAddress: body.shippingAddress ?? "Pickup at Campus",
       };
     } else if (purpose === "subscription_purchase") {
       if (!body.planType) return json({ error: "Missing planType" }, 400);
@@ -145,12 +182,14 @@ Deno.serve(async (req) => {
     let walletCoinsToUse = 0;
     if (purpose !== "wallet_topup") {
       const requested = Math.max(0, Math.floor(Number(body.walletCoinsToUse ?? 0)));
+      console.log(`[CreateOrder] Requested wallet coins: ${requested}`);
       if (requested > 0) {
         const { data: wallet } = await admin
           .from("wallets").select("balance_coins").eq("user_id", userId).maybeSingle();
         const balance = Number(wallet?.balance_coins ?? 0);
         const totalCoins = inrToCoins(totalInr);
         walletCoinsToUse = Math.min(requested, balance, totalCoins);
+        console.log(`[CreateOrder] Clamped wallet coins: ${walletCoinsToUse} (Balance: ${balance}, Total: ${totalCoins})`);
       }
       notes.walletCoinsToUse = walletCoinsToUse;
     }
@@ -158,6 +197,8 @@ Deno.serve(async (req) => {
     const walletInr = walletCoinsToUse / COINS_PER_INR;
     const remainderInr = Math.max(0, totalInr - walletInr);
     const remainderPaise = Math.round(remainderInr * 100);
+
+    console.log(`[CreateOrder] Remainder INR: ${remainderInr}, Remainder Paise: ${remainderPaise}`);
 
     if (remainderPaise < 100) {
       return json({

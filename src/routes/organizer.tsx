@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, redirect, Link, useMatchRoute } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, Link, useMatchRoute, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { getAuthSession } from "@/lib/auth";
 import { Clock, LayoutDashboard, CalendarPlus, CalendarRange, ScanLine, Users, BadgeCheck, Menu, X, LogOut, ChevronLeft, ChevronRight, Settings, BarChart3, IndianRupee, ShoppingBag, Zap, ImageIcon, Bell } from "lucide-react";
@@ -132,6 +132,9 @@ function OrganizerLayout() {
     navigate({ to: "/" });
   };
 
+  const routerState = useRouterState();
+  const eventMatch = routerState.matches.find((m: any) => m.routeId === "/organizer/events/$eventId");
+
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
       {/* Header */}
@@ -184,10 +187,11 @@ function OrganizerLayout() {
 
         {/* Contextual Event Link */}
         {(() => {
-          const match = matchRoute({ to: "/organizer/events/$eventId", fuzzy: true });
-          if (match) {
-            const eventId = (match as any).eventId;
-            const isConsoleActive = matchRoute({ to: "/organizer/events/$eventId", fuzzy: false });
+          if (eventMatch) {
+            const eventId = (eventMatch.params as any).eventId;
+            if (!eventId) return null;
+            
+            const isConsoleActive = !!matchRoute({ to: "/organizer/events/$eventId", fuzzy: false });
             const search = (Route.useSearch() as any);
             const activeTab = search?.tab || "analytics";
             

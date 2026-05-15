@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Users, IndianRupee, Activity, Check, X, Ticket, Loader2, ShoppingBag, Zap, Mic2, Star, Wallet, Send, Plus, BarChart3, Receipt } from "lucide-react";
+import { ArrowLeft, Users, IndianRupee, Activity, Check, X, Ticket, Loader2, ShoppingBag, Zap, Mic2, Star, Wallet, Send, Plus, BarChart3, Receipt, Clock, Handshake, ArrowUpRight, BadgeCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, PieChart, Pie, Cell } from "recharts";
 import { format, parseISO, subDays, eachDayOfInterval } from "date-fns";
@@ -13,6 +13,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 
 export const Route = createFileRoute("/organizer/events/$eventId")({
@@ -46,8 +48,6 @@ export const Route = createFileRoute("/organizer/events/$eventId")({
 
 function OrganizerEventDashboard() {
   const event = Route.useLoaderData();
-  if (!event) return null;
-
   const { tab } = Route.useSearch();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -96,6 +96,7 @@ function OrganizerEventDashboard() {
 
   const { data: volunteers, isLoading: loadingVols } = useQuery({
     queryKey: ["volunteers", event?.id],
+    enabled: !!event?.id,
 
     queryFn: async () => {
       const { data, error } = await supabase
@@ -104,59 +105,101 @@ function OrganizerEventDashboard() {
         .eq("event_id", event?.id);
 
       if (error) throw error;
-      return data;
+      return data || [];
     }
   });
 
-  const { data: proposals, isLoading: loadingProposals } = useQuery({
-    queryKey: ["proposals", event?.id],
-
+  const { data: proposals, isLoading: loadingProposals, refetch: refetchProposals } = useQuery({
+    queryKey: ["event-proposals", event?.id],
+    enabled: !!event?.id,
+    staleTime: 0,
+    refetchInterval: 5000, // Fallback polling every 5s if Realtime fails
     queryFn: async () => {
-      // 1. Fetch proposals
+      console.log("[Query] Fetching proposals for event:", event?.id);
+      if (!event?.id) return [];
+      
       const { data: proposalsData, error: proposalsError } = await supabase
         .from("sponsorship_proposals")
         .select("*")
-        .eq("event_id", event?.id);
+        .eq("event_id", event.id)
+        .order('created_at', { ascending: false });
 
+      if (proposalsError) {
+        console.error("[Query] Error fetching proposals:", proposalsError);
+        throw proposalsError;
+      }
+
+      if (!proposalsData || proposalsData.length === 0) {
+        console.log("[Query] No proposals found for event:", event.id);
+        return [];
+      }
+
+      // Fetch company profiles for these proposals
+      const companyIds = [...new Set(proposalsData.map(p => p.company_user_id).filter(Boolean))];
       
-      if (proposalsError) throw proposalsError;
-      if (!proposalsData || proposalsData.length === 0) return [];
+      if (companyIds.length === 0) {
+        return proposalsData.map(p => ({ ...p, company: null }));
+      }
 
-      // 2. Fetch profiles for these companies
-      const companyIds = [...new Set(proposalsData.map(p => p.company_user_id))];
       const { data: profilesData, error: profilesError } = await supabase
         .from("profiles")
         .select("user_id, email, full_name")
         .in("user_id", companyIds);
 
       if (profilesError) {
-        console.error("Error fetching company profiles:", profilesError);
-        // Still return proposals, just without company metadata
+        console.error("[Query] Error fetching company profiles:", profilesError);
+        // Still return proposals even if profiles fail
         return proposalsData.map(p => ({ ...p, company: null }));
       }
 
-      // 3. Merge profile data into proposals
-      return proposalsData.map(p => ({
-        ...p,
-        company: profilesData.find(profile => profile.user_id === p.company_user_id) || null
+      const result = proposalsData.map(proposal => ({
+        ...proposal,
+        company: profilesData.find(profile => profile.user_id === proposal.company_user_id) || null
       }));
+      
+      console.log(`[Query] Successfully fetched ${result.length} proposals for event ${event.id}`);
+      if (result.length > 0) {
+        console.table(result.map(r => ({ id: r.id, status: r.status, company: (r.company as any)?.full_name || 'N/A' })));
+      }
+      return result;
     }
   });
 
   useEffect(() => {
+    if (!event?.id) return;
+
+    console.log(`[Realtime] Subscribing to sponsorship_proposals for event: ${event.id}`);
+    
     const channel = supabase
-      .channel('proposals_changes')
+      .channel(`event_proposals_hardened_${event.id}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'sponsorship_proposals', filter: `event_id=eq.${event.id}` },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["proposals", event.id] });
-          toast.info("New sponsorship proposal received");
+        {
+          event: '*',
+          schema: 'public',
+          table: 'sponsorship_proposals',
+          filter: `event_id=eq.${event.id}`
+        },
+        (payload) => {
+          console.log('[Realtime] Proposal change detected:', payload);
+          refetchProposals(); // Use the refetch function from useQuery
+          toast.info("Sponsorship updates received!");
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        console.log(`[Realtime] Subscription status for event ${event.id}:`, status);
+        if (err) console.error(`[Realtime] Error subscribing to event ${event.id}:`, err);
+        
+        if (status === 'SUBSCRIBED') {
+          console.log(`[Realtime] Active and listening for proposals on event: ${event.id}`);
+        }
+        if (status === 'CHANNEL_ERROR') {
+          console.error(`[Realtime] Channel error for event ${event.id}. Falling back to polling.`);
+        }
+      });
 
     return () => {
+      console.log(`[Realtime] Removing subscription for event: ${event.id}`);
       supabase.removeChannel(channel);
     };
   }, [event?.id, queryClient]);
@@ -164,6 +207,7 @@ function OrganizerEventDashboard() {
 
   const { data: tickets, isLoading: loadingTickets } = useQuery({
     queryKey: ["event-tickets-sold", event?.id],
+    enabled: !!event?.id,
 
     queryFn: async () => {
       const { data, error } = await supabase
@@ -178,6 +222,7 @@ function OrganizerEventDashboard() {
 
   const { data: eventProducts } = useQuery({
     queryKey: ["event-products", event?.id],
+    enabled: !!event?.id,
 
     queryFn: async () => {
       const { data, error } = await supabase.from("products").select("*").eq("event_id", event?.id);
@@ -189,6 +234,7 @@ function OrganizerEventDashboard() {
 
   const { data: eventPrograms } = useQuery({
     queryKey: ["event-programs", event?.id],
+    enabled: !!event?.id,
 
     queryFn: async () => {
       const { data, error } = await supabase.from("ambassador_programs").select("*").eq("event_id", event?.id);
@@ -200,6 +246,7 @@ function OrganizerEventDashboard() {
 
   const { data: budgets } = useQuery({
     queryKey: ["event-budgets", event?.id],
+    enabled: !!event?.id,
 
     queryFn: async () => {
       const { data, error } = await supabase.from("event_budgets").select("*").eq("event_id", event?.id);
@@ -211,6 +258,7 @@ function OrganizerEventDashboard() {
 
   const { data: campaigns } = useQuery({
     queryKey: ["marketing-campaigns", event?.college_id],
+    enabled: !!event?.college_id,
 
     queryFn: async () => {
       const { data, error } = await supabase.from("marketing_campaigns").select("*").eq("college_id", event?.college_id ?? "");
@@ -221,17 +269,18 @@ function OrganizerEventDashboard() {
   });
 
   const { data: vendorPayouts } = useQuery({
-    queryKey: ["vendor-payouts", event.id],
+    queryKey: ["vendor-payouts", event?.id],
+    enabled: !!event?.id,
     queryFn: async () => {
-      const { data, error } = await supabase.from("vendor_payouts").select("*").eq("event_id", event.id);
+      const { data, error } = await supabase.from("vendor_payouts").select("*").eq("event_id", event?.id || "");
       if (error) throw error;
       return data;
     }
   });
 
   const { data: eventOrders } = useQuery({
-    queryKey: ["event-orders", event.id],
-    enabled: !!eventProducts?.length,
+    queryKey: ["event-orders", event?.id],
+    enabled: !!event?.id && !!eventProducts?.length,
     queryFn: async () => {
       const productIds = eventProducts?.map(p => p.id) || [];
       if (productIds.length === 0) return [];
@@ -242,8 +291,8 @@ function OrganizerEventDashboard() {
   });
 
   const { data: ambassadorApplications } = useQuery({
-    queryKey: ["ambassador-applications", event.id],
-    enabled: !!eventPrograms?.length,
+    queryKey: ["ambassador-applications", event?.id],
+    enabled: !!event?.id && !!eventPrograms?.length,
     queryFn: async () => {
       const programIds = eventPrograms?.map(p => p.id) || [];
       if (programIds.length === 0) return [];
@@ -260,7 +309,7 @@ function OrganizerEventDashboard() {
     },
     onSuccess: () => {
       toast.success("Volunteer status updated");
-      queryClient.invalidateQueries({ queryKey: ["volunteers", event.id] });
+      if (event?.id) queryClient.invalidateQueries({ queryKey: ["volunteers", event.id] });
     }
   });
 
@@ -271,7 +320,7 @@ function OrganizerEventDashboard() {
     },
     onSuccess: () => {
       toast.success("Sponsorship status updated");
-      queryClient.invalidateQueries({ queryKey: ["proposals", event.id] });
+      if (event?.id) queryClient.invalidateQueries({ queryKey: ["event-proposals", event.id] });
     }
   });
 
@@ -283,7 +332,7 @@ function OrganizerEventDashboard() {
         price: Number(data.price), // Store in Rupees
         stock: Number(data.stock),
         image_url: data.image_url || null,
-        event_id: event.id
+        event_id: event?.id
       };
       
       if (editingProduct) {
@@ -296,7 +345,7 @@ function OrganizerEventDashboard() {
     },
     onSuccess: () => {
       toast.success(editingProduct ? "Product updated successfully" : "Product added successfully");
-      queryClient.invalidateQueries({ queryKey: ["event-products", event.id] });
+      if (event?.id) queryClient.invalidateQueries({ queryKey: ["event-products", event.id] });
       setIsProductDialogOpen(false);
       setEditingProduct(null);
       setProductForm({ name: "", description: "", price: "", stock: "", image_url: "" });
@@ -314,7 +363,7 @@ function OrganizerEventDashboard() {
         channel: data.channel,
         target_segment: data.target_segment,
         scheduled_at: data.scheduled_at ? new Date(data.scheduled_at).toISOString() : null,
-        college_id: event.college_id,
+        college_id: event?.college_id,
         status: data.scheduled_at ? 'scheduled' : 'sent'
       };
       
@@ -323,7 +372,7 @@ function OrganizerEventDashboard() {
     },
     onSuccess: () => {
       toast.success("Campaign created successfully");
-      queryClient.invalidateQueries({ queryKey: ["marketing-campaigns", event.college_id] });
+      if (event?.college_id) queryClient.invalidateQueries({ queryKey: ["marketing-campaigns", event.college_id] });
       setIsCampaignDialogOpen(false);
       setCampaignForm({
         title: "",
@@ -344,7 +393,7 @@ function OrganizerEventDashboard() {
         category: data.category,
         allocated_amount: Number(data.allocated_amount),
         currency: data.currency,
-        event_id: event.id,
+        event_id: event?.id,
         spent_amount: 0
       };
       
@@ -353,7 +402,7 @@ function OrganizerEventDashboard() {
     },
     onSuccess: () => {
       toast.success("Budget added successfully");
-      queryClient.invalidateQueries({ queryKey: ["event-budgets", event.id] });
+      if (event?.id) queryClient.invalidateQueries({ queryKey: ["event-budgets", event.id] });
       setIsBudgetDialogOpen(false);
       setBudgetForm({ category: "", allocated_amount: "", currency: "INR" });
     },
@@ -370,7 +419,7 @@ function OrganizerEventDashboard() {
         requirements: data.requirements,
         perks: data.perks.split(",").map(p => p.trim()).filter(Boolean),
         status: data.status,
-        event_id: event.id
+        event_id: event?.id
       };
       
       const { error } = await supabase.from("ambassador_programs").insert([payload]);
@@ -378,7 +427,7 @@ function OrganizerEventDashboard() {
     },
     onSuccess: () => {
       toast.success("Program created successfully");
-      queryClient.invalidateQueries({ queryKey: ["event-programs", event.id] });
+      if (event?.id) queryClient.invalidateQueries({ queryKey: ["event-programs", event.id] });
       setIsProgramDialogOpen(false);
       setProgramForm({
         title: "",
@@ -412,27 +461,29 @@ function OrganizerEventDashboard() {
   };
 
   const ticketRevenue = (tickets || []).reduce((acc, ticket) => {
-    const passSettings = event.pass_settings as any;
-    if (!passSettings) return acc + event.price_from;
+    const passSettings = event?.pass_settings as any;
+    if (!passSettings) return acc + (event?.price_from || 0);
     
     // Check if it matches a specific tier price
     const tier = ticket.tier?.toLowerCase();
     if (tier === 'vip' && passSettings.vip?.enabled) {
-      return acc + (passSettings.vip.price || event.price_from);
+      return acc + (passSettings.vip.price || event?.price_from || 0);
     } else if (tier === 'normal' && passSettings.normal?.enabled) {
-      return acc + (passSettings.normal.price || event.price_from);
+      return acc + (passSettings.normal.price || event?.price_from || 0);
     }
     
-    return acc + event.price_from;
+    return acc + (event?.price_from || 0);
   }, 0);
 
-  const merchRevenue = (eventOrders || []).reduce((acc, order) => acc + order.total_amount, 0);
+  const merchRevenue = (eventOrders || []).reduce((acc, order) => acc + (order?.total_amount || 0), 0);
   const totalRevenue = ticketRevenue + merchRevenue;
 
   const pendingVols = volunteers?.filter(v => v.status === "pending") || [];
   const activeVols = volunteers?.filter(v => v.status === "approved") || [];
   const pendingProposals = proposals?.filter(p => p.status === "pending") || [];
   const activeProposals = proposals?.filter(p => p.status === "accepted") || [];
+
+  if (!event) return null;
 
   if (!isBaseRoute) {
     return <Outlet />;
@@ -454,10 +505,10 @@ function OrganizerEventDashboard() {
             {event.status}
           </div>
           <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-bold">
-            <Link to="/organizer/events/$eventId/edit" params={{ eventId: event.id }}>Edit Event</Link>
+            <Link to="/organizer/events/$eventId/edit" params={{ eventId: event?.id || "" }}>Edit Event</Link>
           </Button>
           <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-bold">
-            <Link to="/events/$eventId" params={{ eventId: event.id }}>View Public Page</Link>
+            <Link to="/events/$eventId" params={{ eventId: event?.id || "" }}>View Public Page</Link>
           </Button>
         </div>
       </div>
@@ -467,8 +518,8 @@ function OrganizerEventDashboard() {
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="finance">Finance</TabsTrigger>
           <TabsTrigger value="marketing">Marketing</TabsTrigger>
-          <TabsTrigger value="volunteers">Volunteers ({activeVols.length})</TabsTrigger>
-          <TabsTrigger value="sponsors">Sponsors ({activeProposals.length})</TabsTrigger>
+          <TabsTrigger value="volunteers">Volunteers ({volunteers?.length || 0})</TabsTrigger>
+          <TabsTrigger value="sponsors">Sponsors ({proposals?.length || 0})</TabsTrigger>
           <TabsTrigger value="merch">Merchandise ({eventProducts?.length || 0})</TabsTrigger>
           <TabsTrigger value="ambassadors">Ambassadors ({eventPrograms?.length || 0})</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -496,7 +547,7 @@ function OrganizerEventDashboard() {
                 <Activity className="h-5 w-5" />
                 <span className="text-sm font-semibold">Expected Footfall</span>
               </div>
-              <div className="mt-4 text-3xl font-bold">{event.attendees.toLocaleString()}</div>
+              <div className="mt-4 text-3xl font-bold">{(event?.attendees || 0).toLocaleString()}</div>
             </div>
           </div>
           
@@ -781,7 +832,7 @@ function OrganizerEventDashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/60">
-                    {activeVols.map(v => (
+                    {activeVols.map(v => v?.id && (
                       <tr key={v.id}>
                         <td className="p-4 font-medium">{(v.user as any)?.raw_user_meta_data?.full_name || (v.user as any)?.email}</td>
                         <td className="p-4 capitalize">{v.role}</td>
@@ -798,30 +849,117 @@ function OrganizerEventDashboard() {
           </div>
         </TabsContent>
 
-        <TabsContent value="sponsors" className="space-y-8">
+        <TabsContent value="sponsors" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-display text-xl font-black tracking-tight">Sponsorship Hub</h3>
+              <p className="text-xs text-muted-foreground">Manage brand partnerships and sponsorship proposals.</p>
+            </div>
+            <Button size="sm" variant="outline" className="rounded-xl border-primary/20 hover:bg-primary/5 text-primary font-bold">
+              <Zap className="h-4 w-4 mr-2" /> Invite Sponsors
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="rounded-xl text-xs font-bold"
+              onClick={() => {
+                refetchProposals();
+                toast.info("Refreshing sponsorship data...");
+              }}
+              disabled={loadingProposals}
+            >
+              <Activity className={cn("h-4 w-4 mr-2", loadingProposals && "animate-spin")} />
+              Refresh
+            </Button>
+          </div>
+
+          {/* Stats Row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="glass p-4 rounded-2xl">
+              <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Total Committed</div>
+              <div className="text-xl font-black">₹{(activeProposals.reduce((acc, p) => acc + p.amount, 0) / 100000).toFixed(1)}L</div>
+            </div>
+            <div className="glass p-4 rounded-2xl">
+              <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Active Partners</div>
+              <div className="text-xl font-black">{activeProposals.length}</div>
+            </div>
+            <div className="glass p-4 rounded-2xl">
+              <div className="text-[10px] font-black text-amber-500/80 uppercase tracking-widest mb-1">Pending</div>
+              <div className="text-xl font-black text-amber-500">{pendingProposals.length}</div>
+            </div>
+            <div className="glass p-4 rounded-2xl">
+              <div className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Goals Met</div>
+              <div className="text-xl font-black">
+                {Math.min(100, Math.round((activeProposals.reduce((acc, p) => acc + p.amount, 0) / 2000000) * 100))}%
+              </div>
+            </div>
+          </div>
+
           <div>
-            <h3 className="font-semibold text-lg mb-4">Pending Proposals ({pendingProposals.length})</h3>
+            <div className="flex items-center gap-2 mb-4">
+              <Clock className="h-4 w-4 text-amber-500" />
+              <h3 className="font-bold text-lg">Pending Proposals</h3>
+              {pendingProposals.length > 0 && (
+                <Badge variant="secondary" className="bg-amber-500/10 text-amber-500 border-none px-2 py-0.5 text-[10px]">
+                  NEW
+                </Badge>
+              )}
+            </div>
+            
             {pendingProposals.length === 0 ? (
-              <div className="text-sm text-muted-foreground glass p-6 rounded-xl text-center">No pending proposals</div>
+              <div className="flex flex-col items-center justify-center py-12 glass rounded-3xl border-dashed border-border/60">
+                <div className="h-12 w-12 rounded-full bg-muted/20 flex items-center justify-center mb-4">
+                  <Handshake className="h-6 w-6 text-muted-foreground/40" />
+                </div>
+                <h4 className="font-bold text-muted-foreground">No pending proposals</h4>
+                <p className="text-xs text-muted-foreground/60 mt-1">New requests from the marketplace will appear here.</p>
+              </div>
             ) : (
-              <div className="grid gap-3 md:grid-cols-2">
-                {pendingProposals.map(p => (
-                  <div key={p.id} className="glass p-4 rounded-xl flex flex-col gap-3">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="font-bold">{(p.company as any)?.full_name || (p.company as any)?.email || 'Anonymous Brand'}</div>
-                        <div className="text-xs text-muted-foreground">{p.tier} Tier • ₹{(p.amount / 100000).toFixed(1)}L</div>
+              <div className="grid gap-4 md:grid-cols-2">
+                {pendingProposals.map(p => p?.id && (
+                  <div key={p.id} className="group glass p-5 rounded-2xl border-white/5 hover:border-primary/20 transition-all duration-300 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground">
+                        <ArrowUpRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    
+                    <div className="flex items-start gap-4">
+                      <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary font-black text-lg shadow-inner">
+                        {((p.company as any)?.full_name || 'A')[0].toUpperCase()}
                       </div>
-                      <div className="flex gap-2">
-                        <Button size="icon" variant="ghost" className="text-emerald-500 h-8 w-8" onClick={() => setSelectedProposal(p)}><Check className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" className="text-red-500 h-8 w-8" onClick={() => updateProposalMutation.mutate({ id: p.id, status: 'rejected' })}><X className="h-4 w-4" /></Button>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-black truncate text-base">{(p.company as any)?.full_name || (p.company as any)?.email || 'Anonymous Brand'}</div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="outline" className="text-[9px] font-black uppercase tracking-tighter py-0 px-2 h-5 border-primary/20 text-primary">
+                            {p.tier}
+                          </Badge>
+                          <span className="text-xs font-bold text-foreground/80">₹{(p.amount / 100000).toFixed(1)}L</span>
+                        </div>
                       </div>
                     </div>
+
                     {p.message && (
-                      <div className="bg-muted/50 rounded-lg p-3 text-xs italic text-muted-foreground border border-border/40">
+                      <div className="mt-4 p-3 rounded-xl bg-muted/30 border border-border/40 text-xs text-muted-foreground italic leading-relaxed">
                         "{p.message}"
                       </div>
                     )}
+
+                    <div className="flex gap-2 mt-5">
+                      <Button 
+                        className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl h-10 shadow-lg shadow-emerald-900/20"
+                        onClick={() => setSelectedProposal(p)}
+                      >
+                        <Check className="h-4 w-4 mr-2" /> Review & Accept
+                      </Button>
+                      <Button 
+                        variant="ghost"
+                        className="w-10 rounded-xl text-red-500 hover:bg-red-500/10 h-10"
+                        onClick={() => updateProposalMutation.mutate({ id: p.id, status: 'rejected' })}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -829,27 +967,50 @@ function OrganizerEventDashboard() {
           </div>
 
           <div>
-            <h3 className="font-semibold text-lg mb-4">Active Sponsors ({activeProposals.length})</h3>
+            <div className="flex items-center gap-2 mb-4">
+              <BadgeCheck className="h-4 w-4 text-emerald-500" />
+              <h3 className="font-bold text-lg">Active Partnerships</h3>
+            </div>
+            
             {activeProposals.length === 0 ? (
-              <div className="text-sm text-muted-foreground glass p-6 rounded-xl text-center">No active sponsors</div>
+              <div className="text-sm text-muted-foreground glass p-8 rounded-3xl text-center border-dashed border-border/40">
+                You haven't finalized any sponsorships yet.
+              </div>
             ) : (
-              <div className="glass overflow-hidden rounded-xl border border-border/60">
+              <div className="glass overflow-hidden rounded-[24px] border border-border/40 shadow-xl">
                 <table className="w-full text-left text-sm">
-                  <thead className="bg-muted/50 text-muted-foreground">
+                  <thead className="bg-muted/30 text-muted-foreground">
                     <tr>
-                      <th className="p-4 font-medium">Company</th>
-                      <th className="p-4 font-medium">Tier</th>
-                      <th className="p-4 font-medium">Committed</th>
-                      <th className="p-4 font-medium">Status</th>
+                      <th className="p-4 font-black uppercase tracking-widest text-[10px]">Brand Partner</th>
+                      <th className="p-4 font-black uppercase tracking-widest text-[10px]">Tier</th>
+                      <th className="p-4 font-black uppercase tracking-widest text-[10px]">Investment</th>
+                      <th className="p-4 font-black uppercase tracking-widest text-[10px]">Date Joined</th>
+                      <th className="p-4 font-black uppercase tracking-widest text-[10px] text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border/60">
-                    {activeProposals.map(p => (
-                      <tr key={p.id}>
-                        <td className="p-4 font-medium">{(p.company as any)?.full_name || (p.company as any)?.email || 'Anonymous Brand'}</td>
-                        <td className="p-4 capitalize text-primary font-medium">{p.tier}</td>
-                        <td className="p-4 font-semibold">₹{(p.amount / 100000).toFixed(1)}L</td>
-                        <td className="p-4"><span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] font-medium text-emerald-500">Active</span></td>
+                  <tbody className="divide-y divide-border/40">
+                    {activeProposals.map(p => p?.id && (
+                      <tr key={p.id} className="hover:bg-muted/10 transition-colors">
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                              {((p.company as any)?.full_name || 'A')[0].toUpperCase()}
+                            </div>
+                            <span className="font-bold">{(p.company as any)?.full_name || (p.company as any)?.email || 'Anonymous Brand'}</span>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <Badge variant="secondary" className="rounded-lg font-bold text-[10px] uppercase px-2 py-0.5 border-none">
+                            {p.tier}
+                          </Badge>
+                        </td>
+                        <td className="p-4 font-black text-primary text-base">₹{(p.amount / 100000).toFixed(1)}L</td>
+                        <td className="p-4 text-xs text-muted-foreground">{new Date(p.created_at).toLocaleDateString()}</td>
+                        <td className="p-4 text-right">
+                          <Button size="sm" variant="ghost" className="rounded-lg h-8 px-3 font-bold text-xs hover:bg-primary/10 hover:text-primary">
+                            View Brand
+                          </Button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -866,7 +1027,8 @@ function OrganizerEventDashboard() {
           </div>
           <div className="grid gap-4 md:grid-cols-3">
             {eventProducts?.map(p => {
-              const soldCount = (eventOrders || []).filter(o => o.product_id === p.id).reduce((acc, o) => acc + (o.quantity || 1), 0);
+              if (!p?.id) return null;
+              const soldCount = (eventOrders || []).filter(o => o?.product_id === p.id).reduce((acc, o) => acc + (o?.quantity || 1), 0);
               return (
                 <div key={p.id} className="glass p-6 rounded-2xl flex flex-col justify-between">
                   <div>
@@ -902,8 +1064,9 @@ function OrganizerEventDashboard() {
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             {eventPrograms?.map(prog => {
-              const applicants = (ambassadorApplications || []).filter(a => a.program_id === prog.id);
-              const approvedCount = applicants.filter(a => a.status === 'approved').length;
+              if (!prog?.id) return null;
+              const applicants = (ambassadorApplications || []).filter(a => a?.program_id === prog.id);
+              const approvedCount = applicants.filter(a => a?.status === 'approved').length;
               return (
                 <div key={prog.id} className="glass p-6 rounded-2xl">
                   <div className="flex items-center gap-3 mb-4">
@@ -1017,7 +1180,7 @@ function OrganizerEventDashboard() {
               if (!ps) {
                 return (
                   <div className="py-8 text-center text-sm text-muted-foreground italic">
-                    Using default pricing: ₹{event.price_from} (Day Pass)
+                    Using default pricing: ₹{event?.price_from || 0} (Day Pass)
                   </div>
                 );
               }
@@ -1126,7 +1289,9 @@ function OrganizerEventDashboard() {
             <Button 
               className="bg-emerald-500 hover:bg-emerald-600 text-white" 
               onClick={() => {
-                updateProposalMutation.mutate({ id: selectedProposal.id, status: 'accepted' });
+                if (selectedProposal?.id) {
+                  updateProposalMutation.mutate({ id: selectedProposal.id, status: 'accepted' });
+                }
                 setSelectedProposal(null);
                 setAcceptNotes("");
               }}

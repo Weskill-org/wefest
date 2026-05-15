@@ -79,11 +79,23 @@ function Tickets() {
     }
   });
 
-  const { data: currentUser } = useQuery({
-    queryKey: ["current-user-profile"],
+  const { data: currentUserProfile } = useQuery({
+    queryKey: ["current-user-profile-with-college"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      return user;
+      if (!user) return null;
+      
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*, colleges(name)')
+        .eq('id', user.id)
+        .single();
+        
+      if (error) {
+        console.error("Error fetching profile:", error);
+        return { user };
+      }
+      return { user, profile };
     }
   });
 
@@ -136,7 +148,8 @@ function Tickets() {
   if (myMemories.length >= 1) badges.push({ name: "Collector", icon: Sparkles, color: "text-primary" });
   if (festPoints > 1000) badges.push({ name: "Campus Legend", icon: Medal, color: "text-purple-400" });
 
-  const studentName = currentUser?.user_metadata?.full_name || "Student";
+  const studentName = currentUserProfile?.user?.user_metadata?.full_name || currentUserProfile?.profile?.full_name || "Student";
+  const collegeName = currentUserProfile?.profile?.colleges?.name;
 
   return (
     <div className="px-6 sm:px-8 py-8 max-w-[900px] mx-auto space-y-6 animate-in fade-in duration-500">
@@ -278,6 +291,7 @@ function Tickets() {
                             eventName={t.events?.title || "Event Participant"}
                             date={t.events?.date ? format(new Date(t.events.date), "MMMM dd, yyyy") : "2026"}
                             certificateId={`CERT-${t.id.slice(0, 8).toUpperCase()}`}
+                            collegeName={collegeName}
                           />
                         </DialogContent>
                       </Dialog>
