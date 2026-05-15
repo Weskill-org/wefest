@@ -182,6 +182,37 @@ Deno.serve(async (req) => {
 
       await admin.from("razorpay_orders").update({ credited_at: new Date().toISOString() }).eq("id", order.id);
       result.orderId = orderRow.id;
+    } else if (purpose === "subscription_purchase") {
+      const planType = notes.planType as string;
+      const currentPeriodEnd = new Date();
+      currentPeriodEnd.setFullYear(currentPeriodEnd.getFullYear() + 1); // 1 year subscription
+
+      // Upsert the subscription
+      const { data: existingSub } = await admin
+        .from("subscriptions")
+        .select("id")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (existingSub) {
+        const { error: subErr } = await admin.from("subscriptions").update({
+          plan_type: planType,
+          status: "active",
+          current_period_end: currentPeriodEnd.toISOString(),
+        }).eq("id", existingSub.id);
+        if (subErr) throw new Error(`Subscription update failed: ${subErr.message}`);
+      } else {
+        const { error: subErr } = await admin.from("subscriptions").insert({
+          user_id: userId,
+          plan_type: planType,
+          status: "active",
+          current_period_end: currentPeriodEnd.toISOString(),
+        });
+        if (subErr) throw new Error(`Subscription creation failed: ${subErr.message}`);
+      }
+
+      await admin.from("razorpay_orders").update({ credited_at: new Date().toISOString() }).eq("id", order.id);
+      result.planType = planType;
     }
 
     return json(result);

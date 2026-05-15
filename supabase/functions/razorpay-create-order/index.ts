@@ -9,7 +9,7 @@ const corsHeaders = {
 const COINS_PER_INR = 10;
 const inrToCoins = (inr: number) => Math.round(inr * COINS_PER_INR);
 
-type Purpose = "wallet_topup" | "ticket_purchase" | "product_purchase";
+type Purpose = "wallet_topup" | "ticket_purchase" | "product_purchase" | "subscription_purchase";
 
 interface Body {
   purpose: Purpose;
@@ -24,6 +24,8 @@ interface Body {
   productId?: string;
   quantity?: number;
   shippingAddress?: string;
+  // subscription_purchase
+  planType?: string;
 }
 
 function json(body: unknown, status = 200) {
@@ -122,6 +124,18 @@ Deno.serve(async (req) => {
         organizerId,
         shippingAddress: body.shippingAddress ?? "Pickup at Campus",
         totalInr,
+      };
+    } else if (purpose === "subscription_purchase") {
+      if (!body.planType) return json({ error: "Missing planType" }, 400);
+      if (body.planType === "Growth") {
+        totalInr = 9999;
+      } else {
+        return json({ error: "This plan cannot be purchased via Razorpay directly" }, 400);
+      }
+      notes = {
+        purpose,
+        planType: body.planType,
+        totalInr
       };
     } else {
       return json({ error: "Invalid purpose" }, 400);

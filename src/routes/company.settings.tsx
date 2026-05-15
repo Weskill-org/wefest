@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { openRazorpayCheckout } from "@/lib/razorpay-checkout";
 
 export const Route = createFileRoute("/company/settings")({
   head: () => ({ meta: [{ title: "Settings — Company Portal — WeFest" }] }),
@@ -88,10 +89,60 @@ function CompanySettings() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const upgradePlan = useMutation({
+    mutationFn: async (plan: string) => {
+      if (plan !== "Growth") {
+        throw new Error("Only the Growth plan is available for direct purchase.");
+      }
+
+      const { data: order, error: orderErr } = await supabase.functions.invoke<{
+        orderId: string; amount: number; currency: string; keyId: string;
+      }>("razorpay-create-order", { 
+        body: { purpose: "subscription_purchase", planType: plan } 
+      });
+      if (orderErr || !order) throw new Error(orderErr?.message || "Failed to create order");
+
+      return new Promise<{ ok: boolean }>((resolve, reject) => {
+        openRazorpayCheckout({
+          keyId: order.keyId,
+          orderId: order.orderId,
+          amount: order.amount,
+          currency: order.currency,
+          name: "WeFest",
+          description: `${plan} Plan Subscription`,
+          prefill: {
+            email: user?.email ?? undefined,
+            name: (user?.user_metadata as any)?.full_name,
+          },
+          onSuccess: async (resp) => {
+            const { error: vErr } = await supabase.functions.invoke("razorpay-verify", { body: resp });
+            if (vErr) return reject(new Error(vErr.message || "Verification failed"));
+            resolve({ ok: true });
+          },
+          onDismiss: () => reject(new Error("Payment cancelled")),
+        }).catch(reject);
+      });
+    },
+    onSuccess: () => {
+      toast.success("Subscription upgraded successfully!");
+      qc.invalidateQueries({ queryKey: ["my-subscription"] });
+    },
+    onError: (err: any) => {
+      if (err?.message !== "Payment cancelled") toast.error(err?.message || "Upgrade failed");
+    },
+  });
+
   const handleUpgrade = (plan: string) => {
-    toast.success(`Redirecting to payment for ${plan} plan...`, {
-      description: "Secure payment processing powered by WeFest Billing Engine.",
-    });
+    if (plan === "Explorer") {
+      toast.info("The Explorer plan is the default free tier.");
+      return;
+    }
+    if (plan === "Enterprise") {
+      toast.info("Please contact sales for Enterprise plan.");
+      window.location.href = "mailto:sales@wefest.co.in";
+      return;
+    }
+    upgradePlan.mutate(plan);
   };
 
   if (isLoading) {
@@ -225,6 +276,7 @@ function CompanySettings() {
             active={subscription?.plan_type === "Growth"}
             features={["Unlimited fests", "Priority proposals", "Booth heatmap", "Lead export", "Direct chat"]}
             onUpgrade={() => handleUpgrade("Growth")}
+            loading={upgradePlan.isPending && upgradePlan.variables === "Growth"}
           />
           <PricingCard
             name="Enterprise"
@@ -255,10 +307,10 @@ function CompanySettings() {
 }
 
 function PricingCard({
-  name, price, period, desc, features, featured, active, onUpgrade
+  name, price, period, desc, features, featured, active, loading, onUpgrade
 }: {
   name: string; price: string; period?: string; desc: string;
-  features: string[]; featured?: boolean; active?: boolean; onUpgrade: () => void;
+  features: string[]; featured?: boolean; active?: boolean; loading?: boolean; onUpgrade: () => void;
 }) {
   return (
     <div className={`relative flex flex-col rounded-2xl p-6 transition-all hover:-translate-y-0.5 ${
@@ -304,8 +356,9 @@ function PricingCard({
         size="sm"
         variant={featured ? "secondary" : "default"}
         className={`w-full text-xs font-bold ${featured ? "bg-white text-primary hover:bg-white/90" : ""}`}
-        disabled={active}
+        disabled={active || loading}
       >
+        {loading ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : null}
         {active ? "Current Plan" : price === "Custom" ? "Contact Sales" : "Get Started"}
       </Button>
     </div>
