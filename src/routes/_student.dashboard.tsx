@@ -11,7 +11,9 @@ import {
   ScanLine, CheckCircle2, XCircle, ShieldCheck,
   Clock, ArrowRight, ChevronRight, TrendingUp, Wallet
 } from "lucide-react";
-import { toast } from "sonner";
+import { QRCodeSVG } from "qrcode.react";
+import { QRScanner } from "@/components/qr-scanner";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -262,17 +264,36 @@ function StudentDashboard() {
 
           {/* Wallet Quick Access */}
           <div className="rounded-xl bg-brand-gradient p-5 text-white relative overflow-hidden group">
-            <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <QrCode className="h-24 w-24" />
-            </div>
+            {upcoming.length > 0 ? (
+              <div className="absolute -right-2 -bottom-2 opacity-10 group-hover:opacity-30 transition-all duration-500 scale-110 group-hover:scale-125 group-hover:-rotate-12">
+                <QRCodeSVG 
+                  value={upcoming[0].code} 
+                  size={120} 
+                  level="H" 
+                  includeMargin={false}
+                  className="bg-transparent"
+                />
+              </div>
+            ) : (
+              <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <QrCode className="h-24 w-24" />
+              </div>
+            )}
             <div className="relative z-10">
               <div className="flex items-center gap-2 mb-2">
                 <Wallet className="h-4 w-4" />
                 <h3 className="font-semibold text-sm">Digital Wallet</h3>
               </div>
-              <p className="text-[11px] text-white/70 mb-4 leading-relaxed">QR passes & certificates</p>
-              <Button asChild variant="secondary" size="sm" className="w-full font-semibold bg-white/15 hover:bg-white/25 text-white border-0 text-xs h-8">
-                <Link to="/tickets">Open Wallet</Link>
+              {upcoming.length > 0 ? (
+                <div className="space-y-1 mb-4">
+                  <p className="text-[11px] text-white/90 font-bold uppercase tracking-tight">Next: {upcoming[0].events?.title}</p>
+                  <p className="text-[10px] text-white/70">ID: {upcoming[0].code}</p>
+                </div>
+              ) : (
+                <p className="text-[11px] text-white/70 mb-4 leading-relaxed">QR passes & certificates</p>
+              )}
+              <Button asChild variant="secondary" size="sm" className="w-full font-semibold bg-white/15 hover:bg-white/25 text-white border-0 text-xs h-8 backdrop-blur-md">
+                <Link to="/tickets">{upcoming.length > 0 ? "Show Full Pass" : "Open Wallet"}</Link>
               </Button>
             </div>
           </div>
@@ -414,6 +435,7 @@ function LevelPill({ level, xp, percent }: { level: number; xp: number; percent:
 /** Compact booth scan form */
 function QuickScan({ userId }: { userId?: string }) {
   const [code, setCode] = useState("");
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const scanMutation = useMutation({
@@ -441,33 +463,68 @@ function QuickScan({ userId }: { userId?: string }) {
     onSuccess: (booth) => {
       toast.success(`+50 pts — ${booth.sponsor_name}`);
       setCode("");
+      setIsScannerOpen(false);
       queryClient.invalidateQueries({ queryKey: ["dashboard-tickets"] });
     },
     onError: (e: any) => toast.error(e.message),
   });
 
+  const handleScanSuccess = (decodedText: string) => {
+    if (scanMutation.isPending) return;
+    let finalCode = decodedText;
+    if (decodedText.includes("/")) {
+      finalCode = decodedText.split("/").pop() || decodedText;
+    }
+    scanMutation.mutate(finalCode);
+  };
+
   return (
-    <form 
-      onSubmit={(e) => { e.preventDefault(); if (code.trim()) scanMutation.mutate(code); }}
-      className="flex gap-2"
-    >
-      <Input
-        value={code}
-        onChange={(e) => setCode(e.target.value.toUpperCase())}
-        placeholder="BOOTH CODE"
-        disabled={scanMutation.isPending}
-        className="h-9 rounded-lg bg-white/5 border-white/10 font-mono text-xs text-center tracking-widest placeholder:tracking-normal placeholder:font-sans"
-        maxLength={8}
-      />
-      <Button 
-        type="submit" 
-        disabled={scanMutation.isPending || !code.trim()} 
-        size="sm"
-        className="bg-brand-gradient text-white rounded-lg font-semibold px-3 h-9 shrink-0 text-xs"
+    <div className="space-y-2">
+      <form 
+        onSubmit={(e) => { e.preventDefault(); if (code.trim()) scanMutation.mutate(code); }}
+        className="flex gap-2"
       >
-        {scanMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Scan"}
-      </Button>
-    </form>
+        <Input
+          value={code}
+          onChange={(e) => setCode(e.target.value.toUpperCase())}
+          placeholder="BOOTH CODE"
+          disabled={scanMutation.isPending}
+          className="h-10 rounded-xl bg-white/5 border-white/10 font-mono text-xs text-center tracking-widest placeholder:tracking-normal placeholder:font-sans uppercase"
+          maxLength={8}
+        />
+        <Button 
+          type="submit" 
+          disabled={scanMutation.isPending || !code.trim()} 
+          className="bg-brand-gradient text-white rounded-xl font-bold px-4 h-10 shrink-0 text-xs shadow-glow"
+        >
+          {scanMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Claim"}
+        </Button>
+        <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
+          <DialogTrigger asChild>
+            <Button 
+              variant="outline" 
+              className="h-10 w-10 rounded-xl border-white/10 bg-white/5 p-0 hover:bg-primary/10 hover:text-primary transition-all"
+            >
+              <QrCode className="h-4 w-4" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md border-white/10 bg-black/90 backdrop-blur-2xl p-6 rounded-3xl">
+            <div className="text-center mb-6">
+              <h3 className="text-lg font-bold">Booth Scanner</h3>
+              <p className="text-xs text-muted-foreground">Scan booth QR code to earn points.</p>
+            </div>
+            <QRScanner onScanSuccess={handleScanSuccess} />
+            <Button 
+              variant="ghost" 
+              className="mt-4 w-full text-xs font-bold text-muted-foreground"
+              onClick={() => setIsScannerOpen(false)}
+            >
+              Cancel
+            </Button>
+          </DialogContent>
+        </Dialog>
+      </form>
+    </div>
   );
 }
 

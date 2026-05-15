@@ -13,6 +13,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { QRCodeSVG } from "qrcode.react";
 
 export const Route = createFileRoute("/_student/tickets")({
   head: () => ({ meta: [{ title: "My Tickets — WeFest" }, { name: "description", content: "Your WeFest tickets and QR codes." }] }),
@@ -216,8 +217,14 @@ function Tickets() {
                     {/* QR Section */}
                     <div className="relative p-5 md:pl-8 flex flex-col items-center justify-center bg-white/[0.01] border-t md:border-t-0 md:border-l border-dashed border-white/10">
                       <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-background hidden md:block" />
-                      <div className="grid h-28 w-28 place-items-center rounded-2xl bg-white text-black p-2.5 shadow-inner group-hover:scale-105 transition-transform">
-                        <QrCode className="h-full w-full" />
+                      <div className="grid h-28 w-28 place-items-center rounded-2xl bg-white p-2 shadow-inner group-hover:scale-105 transition-transform duration-500">
+                        <QRCodeSVG 
+                          value={t.code || t.id} 
+                          size={96}
+                          level="H"
+                          includeMargin={false}
+                          className="h-full w-full"
+                        />
                       </div>
                       <code className="mt-3 rounded-lg bg-white/5 px-3 py-1 text-xs font-bold tracking-widest text-foreground border border-white/10 text-center">
                         {t.code}

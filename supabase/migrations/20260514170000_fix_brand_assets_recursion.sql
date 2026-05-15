@@ -47,6 +47,14 @@ DROP POLICY IF EXISTS "Organizers can view guidelines of companies with shared a
 DROP POLICY IF EXISTS "Companies can manage their shared assets" ON public.shared_assets;
 DROP POLICY IF EXISTS "Organizers can view their shared assets" ON public.shared_assets;
 
+-- Drop new policies if they exist (to make migration idempotent)
+DROP POLICY IF EXISTS "brand_assets_owner_all" ON public.brand_assets;
+DROP POLICY IF EXISTS "brand_assets_shared_view" ON public.brand_assets;
+DROP POLICY IF EXISTS "brand_guidelines_owner_all" ON public.brand_guidelines;
+DROP POLICY IF EXISTS "brand_guidelines_shared_view" ON public.brand_guidelines;
+DROP POLICY IF EXISTS "shared_assets_owner_all" ON public.shared_assets;
+DROP POLICY IF EXISTS "shared_assets_organizer_view" ON public.shared_assets;
+
 -- New Policies for brand_assets
 CREATE POLICY "brand_assets_owner_all"
 ON public.brand_assets FOR ALL TO authenticated

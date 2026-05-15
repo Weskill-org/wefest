@@ -1,13 +1,14 @@
 import { createFileRoute, Outlet, redirect, Link, useMatchRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { getAuthSession } from "@/lib/auth";
-import { Clock, LayoutDashboard, CalendarPlus, CalendarRange, ScanLine, Users, BadgeCheck, Menu, X, LogOut, ChevronLeft, ChevronRight, Settings, BarChart3, IndianRupee, ShoppingBag, Zap, ImageIcon } from "lucide-react";
+import { Clock, LayoutDashboard, CalendarPlus, CalendarRange, ScanLine, Users, BadgeCheck, Menu, X, LogOut, ChevronLeft, ChevronRight, Settings, BarChart3, IndianRupee, ShoppingBag, Zap, ImageIcon, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
+import { ActivityFeedPopover } from "@/components/activity-feed-popover";
 
 export const Route = createFileRoute("/organizer")({
   head: () => ({ 
@@ -92,6 +93,7 @@ const sidebarLinks = [
   { to: "/organizer/scan", label: "Scan Tickets", icon: ScanLine },
   { to: "/organizer/team", label: "Team", icon: Users },
   { to: "/organizer/sponsor-assets", label: "Sponsor Assets", icon: ImageIcon },
+  { to: "/organizer/activity", label: "Recent Activity", icon: Bell },
 ];
 
 function OrganizerLayout() {

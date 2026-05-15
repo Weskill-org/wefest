@@ -41,6 +41,7 @@ import { Route as OrganizerSponsorAssetsRouteImport } from './routes/organizer.s
 import { Route as OrganizerSettingsRouteImport } from './routes/organizer.settings'
 import { Route as OrganizerScanRouteImport } from './routes/organizer.scan'
 import { Route as OrganizerNewRouteImport } from './routes/organizer.new'
+import { Route as OrganizerActivityRouteImport } from './routes/organizer.activity'
 import { Route as EventsEventIdRouteImport } from './routes/events.$eventId'
 import { Route as CompanyWalletRouteImport } from './routes/company.wallet'
 import { Route as CompanySettingsRouteImport } from './routes/company.settings'
@@ -68,6 +69,7 @@ import { Route as StudentShopRouteImport } from './routes/_student.shop'
 import { Route as StudentSettingsRouteImport } from './routes/_student.settings'
 import { Route as StudentOrdersRouteImport } from './routes/_student.orders'
 import { Route as StudentDashboardRouteImport } from './routes/_student.dashboard'
+import { Route as StudentActivityRouteImport } from './routes/_student.activity'
 import { Route as OrganizerEventsIndexRouteImport } from './routes/organizer.events.index'
 import { Route as StudentExploreIndexRouteImport } from './routes/_student.explore.index'
 import { Route as OrganizerEventsEventIdRouteImport } from './routes/organizer.events.$eventId'
@@ -233,6 +235,11 @@ const OrganizerNewRoute = OrganizerNewRouteImport.update({
   path: '/new',
   getParentRoute: () => OrganizerRoute,
 } as any)
+const OrganizerActivityRoute = OrganizerActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
+  getParentRoute: () => OrganizerRoute,
+} as any)
 const EventsEventIdRoute = EventsEventIdRouteImport.update({
   id: '/$eventId',
   path: '/$eventId',
@@ -368,6 +375,11 @@ const StudentDashboardRoute = StudentDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => StudentRoute,
 } as any)
+const StudentActivityRoute = StudentActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
+  getParentRoute: () => StudentRoute,
+} as any)
 const OrganizerEventsIndexRoute = OrganizerEventsIndexRouteImport.update({
   id: '/events/',
   path: '/events/',
@@ -412,6 +424,7 @@ export interface FileRoutesByFullPath {
   '/sponsors': typeof SponsorsRoute
   '/talent': typeof TalentRoute
   '/terms': typeof TermsRoute
+  '/activity': typeof StudentActivityRoute
   '/dashboard': typeof StudentDashboardRoute
   '/orders': typeof StudentOrdersRoute
   '/settings': typeof StudentSettingsRoute
@@ -439,6 +452,7 @@ export interface FileRoutesByFullPath {
   '/company/settings': typeof CompanySettingsRoute
   '/company/wallet': typeof CompanyWalletRoute
   '/events/$eventId': typeof EventsEventIdRoute
+  '/organizer/activity': typeof OrganizerActivityRoute
   '/organizer/new': typeof OrganizerNewRoute
   '/organizer/scan': typeof OrganizerScanRoute
   '/organizer/settings': typeof OrganizerSettingsRoute
@@ -471,6 +485,7 @@ export interface FileRoutesByTo {
   '/sponsors': typeof SponsorsRoute
   '/talent': typeof TalentRoute
   '/terms': typeof TermsRoute
+  '/activity': typeof StudentActivityRoute
   '/dashboard': typeof StudentDashboardRoute
   '/orders': typeof StudentOrdersRoute
   '/settings': typeof StudentSettingsRoute
@@ -498,6 +513,7 @@ export interface FileRoutesByTo {
   '/company/settings': typeof CompanySettingsRoute
   '/company/wallet': typeof CompanyWalletRoute
   '/events/$eventId': typeof EventsEventIdRoute
+  '/organizer/activity': typeof OrganizerActivityRoute
   '/organizer/new': typeof OrganizerNewRoute
   '/organizer/scan': typeof OrganizerScanRoute
   '/organizer/settings': typeof OrganizerSettingsRoute
@@ -538,6 +554,7 @@ export interface FileRoutesById {
   '/sponsors': typeof SponsorsRoute
   '/talent': typeof TalentRoute
   '/terms': typeof TermsRoute
+  '/_student/activity': typeof StudentActivityRoute
   '/_student/dashboard': typeof StudentDashboardRoute
   '/_student/orders': typeof StudentOrdersRoute
   '/_student/settings': typeof StudentSettingsRoute
@@ -565,6 +582,7 @@ export interface FileRoutesById {
   '/company/settings': typeof CompanySettingsRoute
   '/company/wallet': typeof CompanyWalletRoute
   '/events/$eventId': typeof EventsEventIdRoute
+  '/organizer/activity': typeof OrganizerActivityRoute
   '/organizer/new': typeof OrganizerNewRoute
   '/organizer/scan': typeof OrganizerScanRoute
   '/organizer/settings': typeof OrganizerSettingsRoute
@@ -605,6 +623,7 @@ export interface FileRouteTypes {
     | '/sponsors'
     | '/talent'
     | '/terms'
+    | '/activity'
     | '/dashboard'
     | '/orders'
     | '/settings'
@@ -632,6 +651,7 @@ export interface FileRouteTypes {
     | '/company/settings'
     | '/company/wallet'
     | '/events/$eventId'
+    | '/organizer/activity'
     | '/organizer/new'
     | '/organizer/scan'
     | '/organizer/settings'
@@ -664,6 +684,7 @@ export interface FileRouteTypes {
     | '/sponsors'
     | '/talent'
     | '/terms'
+    | '/activity'
     | '/dashboard'
     | '/orders'
     | '/settings'
@@ -691,6 +712,7 @@ export interface FileRouteTypes {
     | '/company/settings'
     | '/company/wallet'
     | '/events/$eventId'
+    | '/organizer/activity'
     | '/organizer/new'
     | '/organizer/scan'
     | '/organizer/settings'
@@ -730,6 +752,7 @@ export interface FileRouteTypes {
     | '/sponsors'
     | '/talent'
     | '/terms'
+    | '/_student/activity'
     | '/_student/dashboard'
     | '/_student/orders'
     | '/_student/settings'
@@ -757,6 +780,7 @@ export interface FileRouteTypes {
     | '/company/settings'
     | '/company/wallet'
     | '/events/$eventId'
+    | '/organizer/activity'
     | '/organizer/new'
     | '/organizer/scan'
     | '/organizer/settings'
@@ -1028,6 +1052,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrganizerNewRouteImport
       parentRoute: typeof OrganizerRoute
     }
+    '/organizer/activity': {
+      id: '/organizer/activity'
+      path: '/activity'
+      fullPath: '/organizer/activity'
+      preLoaderRoute: typeof OrganizerActivityRouteImport
+      parentRoute: typeof OrganizerRoute
+    }
     '/events/$eventId': {
       id: '/events/$eventId'
       path: '/$eventId'
@@ -1217,6 +1248,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudentDashboardRouteImport
       parentRoute: typeof StudentRoute
     }
+    '/_student/activity': {
+      id: '/_student/activity'
+      path: '/activity'
+      fullPath: '/activity'
+      preLoaderRoute: typeof StudentActivityRouteImport
+      parentRoute: typeof StudentRoute
+    }
     '/organizer/events/': {
       id: '/organizer/events/'
       path: '/events'
@@ -1256,6 +1294,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface StudentRouteChildren {
+  StudentActivityRoute: typeof StudentActivityRoute
   StudentDashboardRoute: typeof StudentDashboardRoute
   StudentOrdersRoute: typeof StudentOrdersRoute
   StudentSettingsRoute: typeof StudentSettingsRoute
@@ -1268,6 +1307,7 @@ interface StudentRouteChildren {
 }
 
 const StudentRouteChildren: StudentRouteChildren = {
+  StudentActivityRoute: StudentActivityRoute,
   StudentDashboardRoute: StudentDashboardRoute,
   StudentOrdersRoute: StudentOrdersRoute,
   StudentSettingsRoute: StudentSettingsRoute,
@@ -1391,6 +1431,7 @@ const OrganizerEventsEventIdRouteWithChildren =
   )
 
 interface OrganizerRouteChildren {
+  OrganizerActivityRoute: typeof OrganizerActivityRoute
   OrganizerNewRoute: typeof OrganizerNewRoute
   OrganizerScanRoute: typeof OrganizerScanRoute
   OrganizerSettingsRoute: typeof OrganizerSettingsRoute
@@ -1403,6 +1444,7 @@ interface OrganizerRouteChildren {
 }
 
 const OrganizerRouteChildren: OrganizerRouteChildren = {
+  OrganizerActivityRoute: OrganizerActivityRoute,
   OrganizerNewRoute: OrganizerNewRoute,
   OrganizerScanRoute: OrganizerScanRoute,
   OrganizerSettingsRoute: OrganizerSettingsRoute,

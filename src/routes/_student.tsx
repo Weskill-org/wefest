@@ -4,11 +4,13 @@ import { getAuthSession } from "@/lib/auth";
 import { 
   LayoutDashboard, CalendarRange, Ticket, Users, 
   ShoppingBag, Settings, Menu, X, LogOut, 
-  ChevronLeft, ChevronRight, GraduationCap, Sparkles, Coins
+  ChevronLeft, ChevronRight, GraduationCap, Sparkles, Coins,
+  Bell
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { toast } from "sonner";
+import { ActivityFeedPopover } from "@/components/activity-feed-popover";
 
 export const Route = createFileRoute("/_student")({
   beforeLoad: async ({ location }) => {
@@ -76,6 +78,7 @@ const navLinks = [
   { to: "/social", label: "Campus Network", icon: Users, exact: false },
   { to: "/shop", label: "Campus Store", icon: ShoppingBag, exact: false },
   { to: "/wallet", label: "WeCoin Wallet", icon: Coins, exact: false },
+  { to: "/activity", label: "Activity Feed", icon: Bell, exact: false },
 ];
 
 function StudentLayout() {
