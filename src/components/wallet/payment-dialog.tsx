@@ -1,11 +1,12 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Coins, CreditCard, Loader2, LogIn, Wallet, Plus, Sparkles, ArrowRight } from "lucide-react";
+import { Coins, Loader2, LogIn, Wallet, Plus, Sparkles, ArrowRight } from "lucide-react";
 import { useWallet } from "@/hooks/use-wallet";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { COINS_PER_INR, coinsToInr } from "@/lib/wallet.functions";
+import { getSupabaseAuthHeaders } from "@/lib/auth";
 import { WalletTopupDialog } from "./wallet-topup-dialog";
 import { openRazorpayCheckout } from "@/lib/razorpay-checkout";
 import { toast } from "sonner";
@@ -70,15 +71,34 @@ export function PaymentDialog({
     }
   }, [open]);
 
-  const invalidateAfter = () => {
-    qc.invalidateQueries({ queryKey: ["wallet"] });
-    qc.invalidateQueries({ queryKey: ["wallet-transactions"] });
-    if (purchase.kind === "ticket") {
-      qc.invalidateQueries({ queryKey: ["my-tickets"] });
-      qc.invalidateQueries({ queryKey: ["has-ticket", purchase.eventId] });
-    } else {
-      qc.invalidateQueries({ queryKey: ["shop-products"] });
+  const syncWalletCache = (coinsDebited: number, balanceAfter?: number) => {
+    if (balanceAfter != null && balanceAfter >= 0) {
+      qc.setQueryData(["wallet"], (prev: { balance_coins?: number; lifetime_debited?: number } | undefined) =>
+        prev
+          ? {
+              ...prev,
+              balance_coins: balanceAfter,
+              lifetime_debited: (prev.lifetime_debited ?? 0) + coinsDebited,
+            }
+          : prev,
+      );
     }
+  };
+
+  const invalidateAfter = async () => {
+    await Promise.all([
+      qc.refetchQueries({ queryKey: ["wallet"] }),
+      qc.refetchQueries({ queryKey: ["wallet-transactions"] }),
+      purchase.kind === "ticket"
+        ? Promise.all([
+            qc.refetchQueries({ queryKey: ["my-tickets"] }),
+            qc.refetchQueries({ queryKey: ["has-ticket", purchase.eventId] }),
+          ])
+        : Promise.all([
+            qc.refetchQueries({ queryKey: ["shop-products"] }),
+            qc.refetchQueries({ queryKey: ["my-orders"] }),
+          ]),
+    ]);
   };
 
   const handlePay = async () => {
@@ -93,23 +113,37 @@ export function PaymentDialog({
   const payFullWallet = async () => {
     setProcessing(true);
     try {
+      const headers = await getSupabaseAuthHeaders();
+      if (!headers.Authorization) throw new Error("Please sign in to pay with WeCoins");
+
       const { payForTicketWithWallet, payForProductWithWallet } = await import("@/lib/wallet.functions");
       if (purchase.kind === "ticket") {
-        const res = await payForTicketWithWallet({ eventId: purchase.eventId, tier: purchase.tier });
+        const res = await payForTicketWithWallet({
+          data: { eventId: purchase.eventId, tier: purchase.tier },
+          headers,
+        });
+        syncWalletCache(res.coinsDebited ?? totalCoins);
         toast.success(`Ticket booked! Code: ${res.ticketCode}`);
       } else {
-        await payForProductWithWallet({
-          productId: purchase.productId,
-          quantity: purchase.quantity,
-          shippingAddress: purchase.shippingAddress ?? "Pickup at Campus",
+        const res = await payForProductWithWallet({
+          data: {
+            productId: purchase.productId,
+            quantity: purchase.quantity,
+            shippingAddress: purchase.shippingAddress ?? "Pickup at Campus",
+          },
+          headers,
         });
-        toast.success(`Order placed!`);
+        syncWalletCache(res.coinsDebited, res.balanceAfter);
+        toast.success(
+          `Order placed! ${res.coinsDebited.toLocaleString()} WeCoins debited · Balance ${res.balanceAfter.toLocaleString()}`,
+        );
       }
-      invalidateAfter();
+      await invalidateAfter();
       onSuccess?.();
       onOpenChange(false);
-    } catch (e: any) {
-      toast.error(e?.message || "Payment failed");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Payment failed";
+      toast.error(message);
     } finally {
       setProcessing(false);
     }
@@ -171,15 +205,22 @@ export function PaymentDialog({
         }).catch(reject);
       });
 
-      invalidateAfter();
+      await invalidateAfter();
       onSuccess?.();
       onOpenChange(false);
-    } catch (e: any) {
-      if (e?.message !== "Payment cancelled") toast.error(e?.message || "Payment failed");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Payment failed";
+      if (message !== "Payment cancelled") toast.error(message);
     } finally {
       setProcessing(false);
     }
   };
+
+  const payButtonLabel = processing
+    ? null
+    : isFullWalletPay
+      ? `Pay ${totalCoins.toLocaleString()} WeCoins`
+      : `Pay ₹${finalAmountInr.toLocaleString()}`;
 
   return (
     <>
@@ -303,7 +344,7 @@ export function PaymentDialog({
                       <>
                         <Sparkles className="h-5 w-5 text-amber-300 animate-pulse" />
                         <span className="text-xl font-black text-white tracking-tight">
-                          Pay ₹{finalAmountInr.toLocaleString()}
+                          {payButtonLabel}
                         </span>
                       </>
                     )}

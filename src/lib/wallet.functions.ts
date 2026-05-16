@@ -20,8 +20,7 @@ export const getMyWallet = createServerFn({ method: "GET" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!data) {
-      // Server-side ensure
-      await supabaseAdmin.from("wallets").insert({ user_id: userId }).select().single();
+      // Wallet is created on first credit/debit; show zero until then
       data = { balance_coins: 0, held_coins: 0, lifetime_credited: 0, lifetime_debited: 0, updated_at: new Date().toISOString() } as any;
     }
     return data!;
@@ -139,61 +138,35 @@ export const payForProductWithWallet = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => payForProductInput.parse(d))
   .handler(async ({ context, data }) => {
-    const { userId } = context;
+    const { supabase } = context;
 
-    const { data: product, error: pErr } = await supabaseAdmin
-      .from("products")
-      .select("id, name, price, stock, event_id, events:event_id(organizer_user_id, title)")
-      .eq("id", data.productId)
-      .maybeSingle();
-    if (pErr) throw new Error(pErr.message);
-    if (!product) throw new Error("Product not found");
-    if (product.stock < data.quantity) throw new Error("Insufficient stock");
-
-    const organizerId = (product.events as any)?.organizer_user_id;
-    if (!organizerId) throw new Error("Product has no seller wallet");
-
-    const totalInr = Number(product.price) * data.quantity;
-    const coins = inrToCoins(totalInr);
-
-    const { error: trErr } = await supabaseAdmin.rpc("wallet_transfer", {
-      _from_user: userId,
-      _to_user: organizerId,
-      _amount_coins: coins,
-      _debit_type: "purchase",
-      _credit_type: "sale",
-      _description: `Shop: ${product.name} x${data.quantity}`,
-      _reference_type: "order",
-      _reference_id: product.id,
-      _metadata: { quantity: data.quantity, total_inr: totalInr },
+    const { data: result, error: rpcErr } = await supabase.rpc("purchase_product_with_wallet", {
+      _product_id: data.productId,
+      _quantity: data.quantity,
+      _shipping_address: data.shippingAddress,
     });
-    if (trErr) {
-      if (trErr.message?.includes("INSUFFICIENT_BALANCE")) throw new Error("Insufficient WeCoin balance");
-      throw new Error(trErr.message);
+
+    if (rpcErr) {
+      const msg = rpcErr.message ?? "Purchase failed";
+      if (msg.includes("INSUFFICIENT_BALANCE")) throw new Error("Insufficient WeCoin balance");
+      if (msg.includes("Insufficient stock")) throw new Error("Insufficient stock");
+      if (msg.includes("Product not found")) throw new Error("Product not found");
+      if (msg.includes("no seller wallet")) throw new Error("Product has no seller wallet");
+      throw new Error(msg);
     }
 
-    const { error: oErr, data: order } = await supabaseAdmin.from("orders").insert({
-      user_id: userId,
-      product_id: product.id,
-      quantity: data.quantity,
-      total_amount: totalInr,
-      shipping_address: data.shippingAddress,
-      status: "paid",
-    }).select("id").single();
-    if (oErr) {
-      await supabaseAdmin.rpc("wallet_transfer", {
-        _from_user: organizerId, _to_user: userId, _amount_coins: coins,
-        _debit_type: "refund", _credit_type: "refund",
-        _description: `Refund: order failed (${product.name})`,
-        _reference_type: "order_refund", _reference_id: product.id,
-      });
-      throw new Error(oErr.message);
-    }
+    const payload = result as {
+      order_id?: string;
+      coins_debited?: number;
+      balance_after?: number;
+    };
 
-    // Decrement stock
-    await supabaseAdmin.from("products").update({ stock: product.stock - data.quantity }).eq("id", product.id);
-
-    return { ok: true, orderId: order.id, coinsDebited: coins };
+    return {
+      ok: true,
+      orderId: payload.order_id!,
+      coinsDebited: Number(payload.coins_debited ?? 0),
+      balanceAfter: Number(payload.balance_after ?? 0),
+    };
   });
 
 /** Company sponsors an event using WeCoin. */

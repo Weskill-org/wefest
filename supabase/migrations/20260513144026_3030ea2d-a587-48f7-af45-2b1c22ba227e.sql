@@ -213,15 +213,23 @@ BEGIN
     RAISE EXCEPTION 'Credit amount must be positive';
   END IF;
 
+  IF _user_id IS NULL THEN
+    RAISE EXCEPTION 'User ID cannot be null';
+  END IF;
+
   INSERT INTO public.wallets (user_id) VALUES (_user_id)
   ON CONFLICT (user_id) DO NOTHING;
 
   UPDATE public.wallets
-  SET balance_coins = balance_coins + _amount_coins,
-      lifetime_credited = lifetime_credited + _amount_coins,
+  SET balance_coins = COALESCE(balance_coins, 0) + _amount_coins,
+      lifetime_credited = COALESCE(lifetime_credited, 0) + _amount_coins,
       updated_at = now()
   WHERE user_id = _user_id
   RETURNING id, balance_coins INTO _wallet_id, _new_balance;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Wallet update failed for user %', _user_id;
+  END IF;
 
   INSERT INTO public.wallet_transactions
     (wallet_id, user_id, amount_coins, balance_after, type, description,
@@ -259,11 +267,19 @@ BEGIN
     RAISE EXCEPTION 'Debit amount must be positive';
   END IF;
 
+  IF _user_id IS NULL THEN
+    RAISE EXCEPTION 'User ID cannot be null';
+  END IF;
+
   INSERT INTO public.wallets (user_id) VALUES (_user_id)
   ON CONFLICT (user_id) DO NOTHING;
 
-  SELECT id, balance_coins INTO _wallet_id, _current_balance
+  SELECT id, COALESCE(balance_coins, 0) INTO _wallet_id, _current_balance
   FROM public.wallets WHERE user_id = _user_id FOR UPDATE;
+
+  IF NOT FOUND THEN
+     RAISE EXCEPTION 'Wallet not found for user %', _user_id;
+  END IF;
 
   IF _current_balance < _amount_coins THEN
     RAISE EXCEPTION 'INSUFFICIENT_BALANCE: have %, need %', _current_balance, _amount_coins
@@ -271,11 +287,15 @@ BEGIN
   END IF;
 
   UPDATE public.wallets
-  SET balance_coins = balance_coins - _amount_coins,
-      lifetime_debited = lifetime_debited + _amount_coins,
+  SET balance_coins = _current_balance - _amount_coins,
+      lifetime_debited = COALESCE(lifetime_debited, 0) + _amount_coins,
       updated_at = now()
   WHERE id = _wallet_id
   RETURNING balance_coins INTO _new_balance;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Wallet debit update failed for user %', _user_id;
+  END IF;
 
   INSERT INTO public.wallet_transactions
     (wallet_id, user_id, amount_coins, balance_after, type, description,

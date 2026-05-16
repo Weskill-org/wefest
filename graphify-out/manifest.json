@@ -20,7 +20,7 @@
     "hash": "5622542c835e74c8a5a414b879d4b53b"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routeTree.gen.ts": {
-    "mtime": 1778826597.6080272,
+    "mtime": 1778854417.9586918,
     "hash": "45508bf5106fe47ca541c0e12ade7f3d"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\activity-feed-popover.tsx": {
@@ -28,7 +28,7 @@
     "hash": "e7faf916e94e2398bb403a9eb1d1ab8d"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\ad-banner.tsx": {
-    "mtime": 1778155190.1350381,
+    "mtime": 1778854417.2433708,
     "hash": "28c2f51ce3ce7c6f1f5385148d81106f"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\certificate-template.tsx": {
@@ -280,7 +280,7 @@
     "hash": "6dd894a539d5f97a0615c049be79a355"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\wallet\\payment-dialog.tsx": {
-    "mtime": 1778764593.0714884,
+    "mtime": 1778853956.918643,
     "hash": "eeb2b1dc6a07dbd83adb14ebeaf9784e"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\wallet\\redeem-gift-card-dialog.tsx": {
@@ -344,8 +344,8 @@
     "hash": "e3f848f1b39f863e6164cf58b5a8e752"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\lib\\wallet.functions.ts": {
-    "mtime": 1778762431.7166197,
-    "hash": "bc88196d8ed570e28a4192f971d19c03"
+    "mtime": 1778855517.7107208,
+    "hash": "110f2c143af6cb6a89275979fbd42c0b"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\admin.admins.tsx": {
     "mtime": 1778650789.896259,
@@ -476,7 +476,7 @@
     "hash": "d0068f764be6cf04da9a2590c5ef0f01"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\index.tsx": {
-    "mtime": 1778586638.0933616,
+    "mtime": 1778854417.2433708,
     "hash": "9f9b8060e39bf9fe2c6513c2a2da9531"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\login.tsx": {
@@ -492,8 +492,8 @@
     "hash": "375ad4c850595a4580904c584e8955f0"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.events.$eventId.tsx": {
-    "mtime": 1778848366.8691058,
-    "hash": "5c39fe188159a7ac03c3b96a86a146e1"
+    "mtime": 1778850457.3877273,
+    "hash": "8f1f1cf0b729b3de843497bf6c1eb510"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.events.index.tsx": {
     "mtime": 1778479440.299517,
@@ -512,8 +512,8 @@
     "hash": "684866a6f97db86fbbd937581dcd2be8"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.settings.tsx": {
-    "mtime": 1778848093.678882,
-    "hash": "8619a7133745561380a9d1cd53b37e47"
+    "mtime": 1778848657.9190712,
+    "hash": "9136b99dda17c165c30cbee2ba237221"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.sponsor-assets.tsx": {
     "mtime": 1778766626.2461298,
@@ -524,8 +524,8 @@
     "hash": "a7a49500353fc0dbd9ba894e272b65da"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.tsx": {
-    "mtime": 1778848360.2370543,
-    "hash": "595b450bcb0daf579156d1c60a79947e"
+    "mtime": 1778850457.3832726,
+    "hash": "8e88cf8723cc1ec5dd825ac28dfdda83"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.wallet.tsx": {
     "mtime": 1778684351.7648585,
@@ -616,16 +616,16 @@
     "hash": "06de06811474cbc88613398a5a0a2b15"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\supabase\\functions\\razorpay-create-order\\index.ts": {
-    "mtime": 1778832552.0874288,
-    "hash": "4e99e5157888371be39d234c3da3082a"
+    "mtime": 1778853665.593887,
+    "hash": "e0d6efd0ea0e1f73c19c3f8a32e9a3d8"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\supabase\\functions\\razorpay-key\\index.ts": {
     "mtime": 1778752080.624893,
     "hash": "fcd06aa459d95d5b7894a82edea9fe7b"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\supabase\\functions\\razorpay-verify\\index.ts": {
-    "mtime": 1778832564.7626066,
-    "hash": "db3fb1f65ba52ebf37e974ecb7575ddb"
+    "mtime": 1778855524.49228,
+    "hash": "6f3bc945671572b72bc92ff8a7448955"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\supabase\\migrations\\20260507071702_fe39b9f3-7f64-4ab8-82b6-f7103e10fc71.sql": {
     "mtime": 1778141327.9830444,
@@ -728,8 +728,8 @@
     "hash": "b3e5cc39f053c8a468540e0063e44224"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\supabase\\migrations\\20260513144026_3030ea2d-a587-48f7-af45-2b1c22ba227e.sql": {
-    "mtime": 1778739273.8297112,
-    "hash": "7ec62d86ef1c14dd6c1b32024495b2ed"
+    "mtime": 1778855511.737345,
+    "hash": "8813fdd059b880d33d1bb97d2462628b"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\supabase\\migrations\\20260514120000_repair_admin_schema.sql": {
     "mtime": 1778739708.2018168,
@@ -798,6 +798,10 @@
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\supabase\\migrations\\20260515136000_simplify_sponsorship_rls.sql": {
     "mtime": 1778847524.9260619,
     "hash": "eecf093f9bbf2327b66d96eeb7c1d138"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\supabase\\migrations\\20260515137000_fix_sponsorship_visibility.sql": {
+    "mtime": 1778849122.3873277,
+    "hash": "84b3bf8b4c6773ab1d1d5c692d749b59"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\allfeatures.md": {
     "mtime": 1778219526.5087645,

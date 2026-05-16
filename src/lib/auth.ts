@@ -47,3 +47,11 @@ export function getDashboardRedirect(role: UserRole, isAdmin: boolean): string {
   if (role === "college") return "/organizer";
   return "/dashboard";
 }
+
+/** Bearer headers for authenticated serverFn calls (wallet pay, redeem, etc.). */
+export async function getSupabaseAuthHeaders(): Promise<Record<string, string>> {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  if (!token) return {};
+  return { Authorization: `Bearer ${token}` };
+}

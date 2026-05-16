@@ -91,7 +91,7 @@ function StudentLayout() {
   const navigate = useNavigate();
   const matchRoute = useMatchRoute();
 
-  const studentName = profile?.display_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Student";
+  const studentName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Student";
   const collegeName = profile?.colleges?.name || "Independent Student";
   const initials = studentName.substring(0, 2).toUpperCase();
 

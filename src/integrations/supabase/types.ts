@@ -1957,6 +1957,14 @@ export type Database = {
         }
         Returns: Json
       }
+      purchase_product_with_wallet: {
+        Args: {
+          _product_id: string
+          _quantity: number
+          _shipping_address: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       admin_rank: "Moderator" | "Organizer" | "Admin" | "Superadmin"

@@ -137,6 +137,8 @@ Deno.serve(async (req) => {
     } else if (purpose === "product_purchase") {
       const totalInr = Number(notes.totalInr);
       const organizerId = notes.organizerId as string;
+      if (!organizerId) throw new Error("Missing organizerId in payment notes");
+
       const productId = notes.productId as string;
       const productName = (notes.productName as string) ?? "Product";
       const quantity = Math.max(1, Number(notes.quantity ?? 1));
