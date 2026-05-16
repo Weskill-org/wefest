@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -36,6 +38,18 @@ export const Route = createFileRoute("/_student/tickets")({
 
 function Tickets() {
   const queryClient = useQueryClient();
+  const [printingCert, setPrintingCert] = useState<any>(null);
+
+  useEffect(() => {
+    if (printingCert) {
+      // Increase delay to ensure images (logo-gold.png) and fonts are fully loaded
+      const timer = setTimeout(() => {
+        window.print();
+        setPrintingCert(null);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [printingCert]);
 
   const { data: tickets, isLoading, error } = useQuery({
     queryKey: ["my-tickets-full"],
@@ -285,7 +299,7 @@ function Tickets() {
                         <DialogTrigger asChild>
                           <Button variant="outline" size="sm" className="rounded-lg font-semibold text-xs h-8 border-white/10 bg-white/[0.02]">Preview</Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-4xl border-none bg-transparent p-0">
+                        <DialogContent className="max-w-[1120px] w-[96vw] border-none bg-[#0a0a0c] p-0 overflow-auto max-h-[90vh]">
                           <CertificateTemplate 
                             studentName={studentName}
                             eventName={t.events?.title || "Event Participant"}
@@ -296,8 +310,8 @@ function Tickets() {
                         </DialogContent>
                       </Dialog>
                       <Button size="sm" className="bg-brand-gradient text-white rounded-lg font-semibold shadow-glow text-xs h-8 px-4" onClick={() => {
-                        toast.success("Certificate download started");
-                        window.print();
+                        toast.success("Preparing certificate for download...");
+                        setPrintingCert(t);
                       }}>
                         <Download className="h-3 w-3 mr-1.5" /> Download
                       </Button>
@@ -411,6 +425,20 @@ function Tickets() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* ─── HIDDEN PRINT ROOT (PORTAL) ─── */}
+      {printingCert && typeof document !== 'undefined' && createPortal(
+        <div className="print-root">
+          <CertificateTemplate 
+            studentName={studentName}
+            eventName={printingCert.events?.title || "Event Participant"}
+            date={printingCert.events?.date ? format(new Date(printingCert.events.date), "MMMM dd, yyyy") : "2026"}
+            certificateId={`CERT-${printingCert.id.slice(0, 8).toUpperCase()}`}
+            collegeName={collegeName}
+          />
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

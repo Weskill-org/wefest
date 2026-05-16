@@ -1,5 +1,4 @@
 import React from "react";
-import { ShieldCheck, Award, Star } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 
 interface CertificateProps {
@@ -10,207 +9,664 @@ interface CertificateProps {
   collegeName?: string;
 }
 
-/**
- * ULTRA-PREMIUM CERTIFICATE COMPONENT (V2)
- * High-fidelity assets integrated for maximum authenticity.
- */
+// ─── Inline SVG: WeFest Authenticated Seal ───────────────────────────────────
+const WeFestSeal = () => (
+  <svg viewBox="0 0 200 200" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="sealGold" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#D4AF37" />
+        <stop offset="50%" stopColor="#F5D77E" />
+        <stop offset="100%" stopColor="#B8860B" />
+      </linearGradient>
+      <linearGradient id="sealInner" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#1a0a00" />
+        <stop offset="100%" stopColor="#2d1500" />
+      </linearGradient>
+    </defs>
 
-export function CertificateTemplate({ studentName, eventName, date, certificateId, collegeName }: CertificateProps) {
+    {/* Outer gear ring */}
+    {Array.from({ length: 36 }).map((_, i) => {
+      const angle = (i * 10 * Math.PI) / 180;
+      const x1 = 100 + 95 * Math.cos(angle);
+      const y1 = 100 + 95 * Math.sin(angle);
+      const x2 = 100 + 85 * Math.cos(angle);
+      const y2 = 100 + 85 * Math.sin(angle);
+      return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="url(#sealGold)" strokeWidth="2.5" />;
+    })}
+
+    {/* Outer ring */}
+    <circle cx="100" cy="100" r="92" fill="none" stroke="url(#sealGold)" strokeWidth="2" />
+    <circle cx="100" cy="100" r="84" fill="none" stroke="url(#sealGold)" strokeWidth="0.8" />
+
+    {/* Star burst */}
+    {Array.from({ length: 8 }).map((_, i) => {
+      const angle = (i * 45 * Math.PI) / 180;
+      const x1 = 100 + 80 * Math.cos(angle);
+      const y1 = 100 + 80 * Math.sin(angle);
+      const x2 = 100 + 48 * Math.cos(angle);
+      const y2 = 100 + 48 * Math.sin(angle);
+      return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="url(#sealGold)" strokeWidth="0.8" opacity="0.5" />;
+    })}
+
+    {/* Inner circle background */}
+    <circle cx="100" cy="100" r="78" fill="url(#sealInner)" />
+    <circle cx="100" cy="100" r="75" fill="none" stroke="url(#sealGold)" strokeWidth="1" />
+
+    {/* Curved text paths */}
+    <defs>
+      <path id="topArc" d="M 22,100 A 78,78 0 0,1 178,100" />
+      <path id="bottomArc" d="M 30,110 A 72,72 0 0,0 170,110" />
+    </defs>
+
+    <text fill="url(#sealGold)" fontSize="10" fontFamily="Georgia, serif" fontWeight="bold" letterSpacing="3">
+      <textPath href="#topArc" startOffset="10%">WEFEST • OFFICIAL • CREDENTIAL •</textPath>
+    </text>
+    <text fill="url(#sealGold)" fontSize="8.5" fontFamily="Georgia, serif" letterSpacing="2">
+      <textPath href="#bottomArc" startOffset="14%">VERIFIED & AUTHENTICATED</textPath>
+    </text>
+
+    {/* WeFest W Logo mark center */}
+    <g transform="translate(100,100)" opacity="0.9">
+      {/* Stylized W */}
+      <polygon
+        points="-24,-10 -16,14 -8,-4 0,14 8,-4 16,14 24,-10 20,-10 16,8 8,-10 0,8 -8,-10 -20,8"
+        fill="url(#sealGold)"
+      />
+      {/* Crown above */}
+      <polygon points="-10,-14 -6,-22 0,-16 6,-22 10,-14" fill="url(#sealGold)" />
+    </g>
+  </svg>
+);
+
+// ─── Inline SVG: Security Guilloche Pattern ──────────────────────────────────
+const GuillochePattern = () => (
+  <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <pattern id="guillocheWave" x="0" y="0" width="120" height="60" patternUnits="userSpaceOnUse">
+        <path d="M0 30 Q15 0,30 30 T60 30 T90 30 T120 30" fill="none" stroke="#8B6914" strokeWidth="0.4" />
+        <path d="M0 20 Q15 -10,30 20 T60 20 T90 20 T120 20" fill="none" stroke="#8B6914" strokeWidth="0.3" />
+        <path d="M0 40 Q15 10,30 40 T60 40 T90 40 T120 40" fill="none" stroke="#8B6914" strokeWidth="0.3" />
+      </pattern>
+      <pattern id="diagonalLines" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+        <line x1="0" y1="20" x2="20" y2="0" stroke="#8B6914" strokeWidth="0.2" />
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#guillocheWave)" opacity="0.6" />
+    <rect width="100%" height="100%" fill="url(#diagonalLines)" opacity="0.25" />
+  </svg>
+);
+
+// ─── Inline SVG: Corner Ornament ─────────────────────────────────────────────
+const CornerOrnament = ({ rotate = 0 }: { rotate?: number }) => (
+  <svg viewBox="0 0 80 80" width="80" height="80" xmlns="http://www.w3.org/2000/svg"
+    style={{ transform: `rotate(${rotate}deg)` }}>
+    <path d="M4,4 L4,36 M4,4 L36,4" fill="none" stroke="#C9A227" strokeWidth="2.5" strokeLinecap="round" />
+    <path d="M4,4 L22,22" fill="none" stroke="#C9A227" strokeWidth="0.8" opacity="0.6" />
+    <circle cx="4" cy="4" r="3" fill="#C9A227" />
+    <circle cx="22" cy="4" r="1.5" fill="#C9A227" opacity="0.6" />
+    <circle cx="4" cy="22" r="1.5" fill="#C9A227" opacity="0.6" />
+    <path d="M14,4 Q18,14 4,14" fill="none" stroke="#C9A227" strokeWidth="0.8" opacity="0.5" />
+  </svg>
+);
+
+// ─── Main Certificate Component ───────────────────────────────────────────────
+export function CertificateTemplate({
+  studentName,
+  eventName,
+  date,
+  certificateId,
+  collegeName,
+}: CertificateProps) {
+  const verifyUrl = `https://wefest.in/verify/${certificateId}`;
+
   return (
-    <div 
-      className="certificate-outer bg-[#0a0a0c] p-8 md:p-12 flex items-center justify-center min-h-screen font-display"
-      style={{ perspective: "2000px" }}
+    <div
+      className="certificate-outer"
+      style={{
+        background: "#0a0a0c",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "32px",
+        minHeight: "100vh",
+        fontFamily: "'Georgia', 'Times New Roman', serif",
+      }}
     >
-      <div 
+      {/* ── Certificate Paper ── */}
+      <div
         id="certificate-print-area"
-        className="certificate-inner relative bg-[#fffdfa] shadow-[0_80px_160px_-40px_rgba(0,0,0,0.4)] overflow-hidden transition-transform duration-700 hover:rotate-x-0"
-        style={{ 
-          width: "297mm", 
-          height: "210mm",
-          border: "25px solid #0f172a",
-          transform: "rotateX(5deg) translateY(-20px)",
-          transformStyle: "preserve-3d",
-          boxShadow: "0 0 0 10px #D4AF37, 0 80px 160px -40px rgba(0,0,0,0.4)"
+        style={{
+          position: "relative",
+          width: "297mm",
+          minHeight: "210mm",
+          background: "linear-gradient(145deg, #fffef9 0%, #fefce8 40%, #fffdf5 70%, #fefce8 100%)",
+          overflow: "hidden",
+          boxSizing: "border-box",
+          // Triple border system for premium look
+          outline: "2px solid #C9A227",
+          outlineOffset: "-6px",
+          boxShadow:
+            "0 0 0 1px #C9A227, 0 0 0 8px #7c5c0a, 0 0 0 10px #C9A227, 0 60px 120px -20px rgba(0,0,0,0.6)",
         }}
       >
-        {/* ─── SECURITY BACKGROUND PATTERN ─── */}
-        <div className="absolute inset-0 pointer-events-none opacity-[0.04]">
-          <svg width="100%" height="100%">
-            <pattern id="guilloche" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-              <path d="M0 50 Q 25 0, 50 50 T 100 50" fill="none" stroke="#D4AF37" strokeWidth="0.5" />
-              <path d="M0 60 Q 25 10, 50 60 T 100 60" fill="none" stroke="#D4AF37" strokeWidth="0.5" />
-            </pattern>
-            <rect width="100%" height="100%" fill="url(#guilloche)" />
-          </svg>
+        {/* ── Security Background ── */}
+        <div style={{ position: "absolute", inset: 0, opacity: 0.07, pointerEvents: "none" }}>
+          <GuillochePattern />
         </div>
 
-        {/* ─── GOLD FILIGREE CORNERS ─── */}
-        <div className="absolute top-4 left-4 w-32 h-32 border-t-2 border-l-2 border-[#D4AF37]/40 rounded-tl-3xl" />
-        <div className="absolute top-4 right-4 w-32 h-32 border-t-2 border-r-2 border-[#D4AF37]/40 rounded-tr-3xl" />
-        <div className="absolute bottom-4 left-4 w-32 h-32 border-b-2 border-l-2 border-[#D4AF37]/40 rounded-bl-3xl" />
-        <div className="absolute bottom-4 right-4 w-32 h-32 border-b-2 border-r-2 border-[#D4AF37]/40 rounded-br-3xl" />
+        {/* ── Watermark ── */}
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%,-50%) rotate(-35deg)",
+            pointerEvents: "none",
+            userSelect: "none",
+            opacity: 0.025,
+            fontSize: "160px",
+            fontWeight: 900,
+            fontFamily: "Georgia, serif",
+            color: "#7c5c0a",
+            whiteSpace: "nowrap",
+            letterSpacing: "0.3em",
+          }}
+        >
+          WEFEST
+        </div>
 
-        {/* ─── MAIN CONTENT ─── */}
-        <div className="relative z-10 h-full p-16 flex flex-col items-center">
-          
-          {/* Header: Large Gold Logo */}
-          <div className="w-full flex flex-col items-center mb-10">
-            <div className="relative h-28 w-28 mb-4 drop-shadow-xl animate-float">
-              <img src="/logo-gold.png" alt="WeFest Logo" className="h-full w-full object-contain" />
-              <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent rounded-full pointer-events-none" />
+        {/* ── Corners ── */}
+        <div style={{ position: "absolute", top: 14, left: 14 }}>
+          <CornerOrnament rotate={0} />
+        </div>
+        <div style={{ position: "absolute", top: 14, right: 14 }}>
+          <CornerOrnament rotate={90} />
+        </div>
+        <div style={{ position: "absolute", bottom: 14, left: 14 }}>
+          <CornerOrnament rotate={270} />
+        </div>
+        <div style={{ position: "absolute", bottom: 14, right: 14 }}>
+          <CornerOrnament rotate={180} />
+        </div>
+
+        {/* ── Gold stripe accents ── */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "6px",
+            background: "linear-gradient(90deg, #7c5c0a, #D4AF37, #F5D77E, #D4AF37, #7c5c0a)",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: "6px",
+            background: "linear-gradient(90deg, #7c5c0a, #D4AF37, #F5D77E, #D4AF37, #7c5c0a)",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            bottom: 0,
+            width: "6px",
+            background: "linear-gradient(180deg, #7c5c0a, #D4AF37, #F5D77E, #D4AF37, #7c5c0a)",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            width: "6px",
+            background: "linear-gradient(180deg, #7c5c0a, #D4AF37, #F5D77E, #D4AF37, #7c5c0a)",
+          }}
+        />
+
+        {/* ── Main Content ── */}
+        <div
+          style={{
+            position: "relative",
+            zIndex: 10,
+            padding: "44px 56px 36px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            minHeight: "210mm",
+            boxSizing: "border-box",
+          }}
+        >
+          {/* ── HEADER: Logo + Title ── */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            {/* Logo */}
+            <div style={{ width: 72, height: 72, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <img
+                src="/logo-gold.png"
+                alt="WeFest"
+                style={{ width: "100%", height: "100%", objectFit: "contain", filter: "drop-shadow(0 2px 6px rgba(196,163,45,0.4))" }}
+              />
             </div>
-            <div className="flex flex-col items-center">
-               <h3 className="text-4xl font-black text-[#0f172a] uppercase tracking-[0.2em] italic">WEFEST</h3>
-               <div className="flex items-center gap-4 mt-2">
-                 <div className="h-[2px] w-12 bg-gradient-to-r from-transparent to-[#D4AF37]" />
-                 <p className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.5em]">OFFICIAL CREDENTIAL</p>
-                 <div className="h-[2px] w-12 bg-gradient-to-l from-transparent to-[#D4AF37]" />
-               </div>
+
+            {/* Brand name */}
+            <div style={{ textAlign: "center" }}>
+              <div
+                style={{
+                  fontSize: 28,
+                  fontWeight: 900,
+                  letterSpacing: "0.28em",
+                  color: "#1a0d00",
+                  fontFamily: "Georgia, serif",
+                  textTransform: "uppercase",
+                }}
+              >
+                WEFEST
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  marginTop: 4,
+                  justifyContent: "center",
+                }}
+              >
+                <div style={{ height: 1, width: 40, background: "linear-gradient(to right, transparent, #C9A227)" }} />
+                <span
+                  style={{
+                    fontSize: 9,
+                    fontWeight: 700,
+                    letterSpacing: "0.35em",
+                    color: "#C9A227",
+                    textTransform: "uppercase",
+                    fontFamily: "Georgia, serif",
+                  }}
+                >
+                  OFFICIAL CREDENTIAL
+                </span>
+                <div style={{ height: 1, width: 40, background: "linear-gradient(to left, transparent, #C9A227)" }} />
+              </div>
             </div>
           </div>
 
-          {/* Body Section */}
-          <div className="flex-1 flex flex-col items-center text-center max-w-4xl pt-4">
-             <h1 className="text-[80px] font-serif font-black text-[#0f172a] italic mb-4 tracking-tighter leading-none drop-shadow-sm">
-                Certificate of Merit
-             </h1>
-             
-             <div className="flex items-center gap-8 mb-8 w-full justify-center">
-                <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
-                <span className="text-2xl font-serif italic text-slate-500">This high distinction is conferred upon</span>
-                <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
-             </div>
+          {/* ── Divider ── */}
+          <div
+            style={{
+              width: "100%",
+              height: 1,
+              background: "linear-gradient(to right, transparent, #C9A22788, #C9A227, #C9A22788, transparent)",
+              margin: "10px 0 16px",
+            }}
+          />
 
-             <div className="mb-8">
-                <h2 className="text-[100px] font-black text-[#0f172a] uppercase tracking-tighter leading-none mb-4 animate-glow">
-                   {studentName}
-                </h2>
-                <div className="flex items-center justify-center gap-3 py-2 px-6 bg-slate-50/50 rounded-full border border-slate-100 backdrop-blur-sm">
-                   <Award className="text-[#D4AF37]" size={24} />
-                   <p className="text-2xl font-serif text-slate-700 italic">
-                      In recognition of outstanding performance representing <span className="font-bold text-[#0f172a] not-italic">{collegeName || "Our Participating Institution"}</span>
-                   </p>
-                </div>
-             </div>
-
-             <div className="max-w-3xl mb-8">
-                <p className="text-[22px] text-slate-700 leading-relaxed font-serif italic">
-                   For demonstrating exemplary leadership and excellence during the official festival
-                </p>
-                <div className="mt-4 relative group">
-                   <span className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#0f172a] via-[#D4AF37] to-[#0f172a] uppercase tracking-tighter italic">
-                      {eventName}
-                   </span>
-                   <div className="absolute -bottom-1 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
-                </div>
-             </div>
+          {/* ── Certificate Title ── */}
+          <div style={{ textAlign: "center", marginBottom: 10 }}>
+            <div
+              style={{
+                fontSize: 13,
+                letterSpacing: "0.45em",
+                textTransform: "uppercase",
+                color: "#7c5c0a",
+                fontWeight: 600,
+                fontFamily: "Georgia, serif",
+                marginBottom: 6,
+              }}
+            >
+              CERTIFICATE OF PARTICIPATION
+            </div>
+            <div
+              style={{
+                fontSize: 46,
+                fontWeight: 700,
+                color: "#1a0d00",
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontStyle: "italic",
+                lineHeight: 1.1,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              Certificate of Merit
+            </div>
           </div>
 
-          {/* Footer: Triple Authentication System */}
-          <div className="w-full mt-auto grid grid-cols-3 items-end pb-8">
-             
-             {/* 1. Official Gold Seal */}
-             <div className="flex flex-col items-center">
-                <div className="relative h-44 w-44 -mb-8 drop-shadow-2xl hover:scale-110 transition-transform duration-500 cursor-help">
-                   <img src="/seal-gold.png" alt="Gold Seal" className="h-full w-full object-contain" />
-                </div>
-                <p className="text-[10px] font-black text-[#0f172a] uppercase tracking-widest mt-6">Office of the Registrar</p>
-             </div>
-
-             {/* 2. Institutional Stamp & Signatures */}
-             <div className="flex flex-col items-center gap-8">
-                <div className="h-20 opacity-90 hover:opacity-100 transition-opacity">
-                   <img src="/stamp-college.png" alt="College Stamp" className="h-full w-full object-contain" />
-                </div>
-                <div className="flex flex-col items-center text-center">
-                   <div className="h-12 flex items-end mb-1 border-b border-slate-300 w-64 justify-center">
-                      <span className="text-4xl font-signature text-[#0f172a] opacity-80">
-                         WeFest Executive Board
-                      </span>
-                   </div>
-                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Authorized Signature</p>
-                </div>
-             </div>
-
-             {/* 3. Holographic Security Seal */}
-             <div className="flex flex-col items-end">
-                <div className="relative h-40 w-40 -mb-6 drop-shadow-2xl hover:brightness-125 transition-all">
-                   <img src="/seal-holographic.png" alt="Holographic Seal" className="h-full w-full object-contain" />
-                   {/* Overlay QR Code for Scannability */}
-                   <div className="absolute inset-0 flex items-center justify-center pt-2">
-                     <div className="bg-white p-1 rounded-sm shadow-sm scale-75 opacity-80 hover:opacity-100 transition-opacity">
-                        <QRCodeSVG value={`https://wefest.io/verify/${certificateId}`} size={48} level="M" />
-                     </div>
-                   </div>
-                </div>
-                <div className="text-right mt-6 pr-4">
-                   <div className="flex items-center justify-end gap-2 text-emerald-600 font-black text-[9px] uppercase tracking-widest mb-1">
-                      <ShieldCheck size={12} /> SECURE CRYPTOGRAPHIC ID
-                   </div>
-                   <p className="text-[8px] font-mono text-slate-400">DOC_ID: {certificateId}</p>
-                   <p className="text-[8px] font-mono text-slate-400">ISSUED: {date}</p>
-                </div>
-             </div>
-
+          {/* ── Body Text ── */}
+          <div style={{ textAlign: "center", marginBottom: 10 }}>
+            <p
+              style={{
+                fontSize: 13,
+                color: "#5c4a2a",
+                fontFamily: "Georgia, serif",
+                fontStyle: "italic",
+                letterSpacing: "0.02em",
+                marginBottom: 0,
+              }}
+            >
+              This is to certify that
+            </p>
           </div>
 
+          {/* ── Student Name ── */}
+          <div
+            style={{
+              textAlign: "center",
+              borderBottom: "2px solid #C9A227",
+              paddingBottom: 8,
+              marginBottom: 10,
+              minWidth: "60%",
+              maxWidth: "80%",
+            }}
+          >
+            <div
+              style={{
+                fontSize: 48,
+                fontWeight: 800,
+                color: "#1a0800",
+                fontFamily: "Georgia, 'Times New Roman', serif",
+                letterSpacing: "0.05em",
+                textTransform: "uppercase",
+                lineHeight: 1,
+              }}
+            >
+              {studentName}
+            </div>
+            {collegeName && (
+              <div
+                style={{
+                  fontSize: 11,
+                  color: "#7c5c0a",
+                  fontFamily: "Georgia, serif",
+                  letterSpacing: "0.15em",
+                  textTransform: "uppercase",
+                  marginTop: 6,
+                  fontWeight: 600,
+                }}
+              >
+                {collegeName}
+              </div>
+            )}
+          </div>
+
+          {/* ── Event Description ── */}
+          <div style={{ textAlign: "center", maxWidth: "75%", marginBottom: 16 }}>
+            <p
+              style={{
+                fontSize: 13,
+                color: "#5c4a2a",
+                fontFamily: "Georgia, serif",
+                fontStyle: "italic",
+                lineHeight: 1.7,
+                margin: 0,
+              }}
+            >
+              has successfully participated in and demonstrated exemplary enthusiasm,
+              <br />
+              leadership and dedication at the official festival event
+            </p>
+            <div
+              style={{
+                marginTop: 8,
+                fontSize: 22,
+                fontWeight: 800,
+                color: "#7c3d00",
+                fontFamily: "Georgia, serif",
+                textTransform: "uppercase",
+                letterSpacing: "0.1em",
+              }}
+            >
+              {eventName}
+            </div>
+            <div
+              style={{
+                fontSize: 11,
+                color: "#9a7a40",
+                fontFamily: "Georgia, serif",
+                letterSpacing: "0.1em",
+                marginTop: 4,
+              }}
+            >
+              Held on {date}
+            </div>
+          </div>
+
+          {/* ── FOOTER: Seal + Signature + QR ── */}
+          <div
+            style={{
+              width: "100%",
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1fr",
+              alignItems: "flex-end",
+              marginTop: "auto",
+              paddingTop: 16,
+              borderTop: "1px solid #C9A22755",
+            }}
+          >
+            {/* Left: WeFest Authenticated Seal */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+              <div style={{ width: 100, height: 100 }}>
+                <WeFestSeal />
+              </div>
+              <div
+                style={{
+                  fontSize: 8,
+                  fontWeight: 700,
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase",
+                  color: "#7c5c0a",
+                  fontFamily: "Georgia, serif",
+                  textAlign: "center",
+                }}
+              >
+                Authenticated Seal
+              </div>
+            </div>
+
+            {/* Center: Signature */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+              {/* Cert ID */}
+              <div
+                style={{
+                  fontSize: 8,
+                  letterSpacing: "0.15em",
+                  color: "#9a7a40",
+                  fontFamily: "Georgia, serif",
+                  textTransform: "uppercase",
+                  marginBottom: 4,
+                }}
+              >
+                CERT # {certificateId}
+              </div>
+
+              {/* Signature line */}
+              <div style={{ textAlign: "center", width: "100%" }}>
+                {/* Cursive signature using SVG path */}
+                <svg viewBox="0 0 180 50" width="180" height="50" style={{ marginBottom: 2 }}>
+                  <path
+                    d="M 20,40 C 30,15 50,10 70,28 C 85,42 95,20 110,22 C 125,24 140,38 160,32"
+                    fill="none"
+                    stroke="#1a0800"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    opacity="0.75"
+                  />
+                  <path
+                    d="M 40,35 C 55,20 75,18 90,30"
+                    fill="none"
+                    stroke="#1a0800"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    opacity="0.5"
+                  />
+                </svg>
+                <div style={{ height: 1, background: "#1a0800", opacity: 0.4, marginBottom: 6 }} />
+                <div
+                  style={{
+                    fontSize: 9,
+                    fontWeight: 700,
+                    letterSpacing: "0.18em",
+                    textTransform: "uppercase",
+                    color: "#1a0800",
+                    fontFamily: "Georgia, serif",
+                  }}
+                >
+                  WeFest Executive Board
+                </div>
+                <div
+                  style={{
+                    fontSize: 8,
+                    color: "#9a7a40",
+                    letterSpacing: "0.1em",
+                    fontFamily: "Georgia, serif",
+                    marginTop: 2,
+                  }}
+                >
+                  Authorized Signatory
+                </div>
+              </div>
+            </div>
+
+            {/* Right: QR + ID */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+              {/* QR code in gold frame */}
+              <div
+                style={{
+                  background: "#fff",
+                  padding: 6,
+                  border: "2px solid #C9A227",
+                  boxShadow: "0 2px 8px rgba(196,163,45,0.25)",
+                  display: "inline-block",
+                }}
+              >
+                <QRCodeSVG
+                  value={verifyUrl}
+                  size={64}
+                  level="M"
+                  fgColor="#1a0800"
+                  bgColor="#ffffff"
+                />
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div
+                  style={{
+                    fontSize: 8,
+                    fontWeight: 700,
+                    color: "#16a34a",
+                    letterSpacing: "0.15em",
+                    textTransform: "uppercase",
+                    fontFamily: "Georgia, serif",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 3,
+                    justifyContent: "flex-end",
+                  }}
+                >
+                  ✓ SECURE VERIFICATION
+                </div>
+                <div style={{ fontSize: 7.5, color: "#9a7a40", fontFamily: "monospace", marginTop: 2 }}>
+                  wefest.in/verify/{certificateId}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* ─── FINAL POLISH ─── */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-multiply bg-[url('https://www.transparenttextures.com/patterns/natural-paper.png')]" />
-        
-        {/* Massive Watermark */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.01] pointer-events-none select-none rotate-[-35deg]">
-           <span className="text-[240px] font-black uppercase tracking-[0.4em] text-[#0f172a]">VERIFIED</span>
-        </div>
+        {/* ── Paper texture overlay ── */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage:
+              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E\")",
+            pointerEvents: "none",
+            opacity: 0.5,
+          }}
+        />
       </div>
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Dancing+Script:wght@700&family=Playfair+Display:ital,wght@1,900&display=swap');
-        
-        .font-signature {
-          font-family: 'Dancing Script', cursive;
-        }
-        
-        .font-serif {
-          font-family: 'Playfair Display', serif;
-        }
-        
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-10px); }
-        }
-        
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,700;1,900&display=swap');
 
-        @keyframes glow {
-          0%, 100% { text-shadow: 0 0 0px rgba(212,175,55,0); }
-          50% { text-shadow: 0 0 20px rgba(212,175,55,0.2); }
-        }
-        
-        .animate-glow {
-          animation: glow 4s ease-in-out infinite;
+        /* Hide print root on screen but keep it in DOM for asset loading */
+        @media screen {
+          .print-root {
+            position: absolute !important;
+            top: -10000px !important;
+            left: -10000px !important;
+            visibility: hidden !important;
+          }
         }
 
         @media print {
+          /* Hide everything by default */
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 297mm !important;
+            height: 210mm !important;
+            background: #fff !important;
+          }
+          
+          body > *:not(.print-root) {
+            display: none !important;
+          }
+
+          .print-root {
+            display: block !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 297mm !important;
+            height: 210mm !important;
+            z-index: 9999999 !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            background: #fff !important;
+          }
+
           .certificate-outer {
-            padding: 0;
-            background: white;
-            min-height: 0;
+            padding: 0 !important;
+            margin: 0 !important;
+            background: #fff !important;
+            display: block !important;
+            min-height: 0 !important;
+            perspective: none !important;
+            width: 297mm !important;
+            height: 210mm !important;
           }
-          .certificate-inner {
+
+          #certificate-print-area {
+            position: relative !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 297mm !important;
+            height: 209mm !important; /* Slightly less to avoid extra blank page */
             box-shadow: none !important;
+            outline: none !important;
+            margin: 0 !important;
             transform: none !important;
-            border-width: 15px !important;
+            border: none !important;
+            float: none !important;
           }
-          .animate-float, .animate-glow {
-            animation: none !important;
+
+          /* Ensure colors and backgrounds print */
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
+
+          @page {
+            size: A4 landscape;
+            margin: 0;
           }
         }
       `}</style>
     </div>
   );
 }
-
