@@ -24,7 +24,7 @@ export const Route = createFileRoute("/organizer")({
     if (!session) {
       throw redirect({
         to: '/login',
-        search: { redirect: location.href },
+        search: { redirect: location.pathname + location.search },
       });
     }
     
@@ -188,7 +188,7 @@ function OrganizerLayout() {
         {/* Contextual Event Link */}
         {(() => {
           if (eventMatch) {
-            const eventId = (eventMatch.params as any).eventId;
+            const eventId = (eventMatch?.params as any)?.eventId;
             if (!eventId) return null;
             
             const isConsoleActive = !!matchRoute({ to: "/organizer/events/$eventId", fuzzy: false });

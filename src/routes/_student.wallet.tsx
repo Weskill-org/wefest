@@ -7,7 +7,8 @@ export const Route = createFileRoute("/_student/wallet")({
   beforeLoad: async ({ location }) => {
     if (typeof window === "undefined") return;
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw redirect({ to: "/login", search: { redirect: location.href } });
+    if (!user) throw redirect({ to: "/login", search: { redirect: location.pathname + location.search } });
+
   },
   component: StudentWallet,
 });

@@ -1,6 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { QRScanner } from "@/components/qr-scanner";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScanLine, QrCode, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/organizer/scan")({
   head: () => ({ meta: [{ title: "Gate Scanner — WeFest" }, { name: "description", content: "Validate ticket QR codes at the gate." }] }),

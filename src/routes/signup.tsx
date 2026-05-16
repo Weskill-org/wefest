@@ -69,7 +69,9 @@ function Signup() {
       return;
     }
     setLoading(true);
-    const redirectUrl = search.redirect ? `${window.location.origin}${search.redirect}` : `${window.location.origin}/`;
+    const redirectUrl = search.redirect 
+      ? (search.redirect.startsWith('http') ? search.redirect : `${window.location.origin}${search.redirect}`)
+      : `${window.location.origin}/`;
     const { error } = await supabase.auth.signUp({
       email,
       password,

@@ -25,7 +25,7 @@ export const Route = createFileRoute("/organizer/events/$eventId")({
   },
   loader: async ({ params, context }) => {
     // Access membership from parent context
-    const { membership } = context as any;
+    const { membership, user } = context as any;
     
     let query = supabase
        .from("events")
@@ -33,9 +33,14 @@ export const Route = createFileRoute("/organizer/events/$eventId")({
        .eq("id", params.eventId);
     
     if (membership?.college_id) {
-      query = query.or(`organizer_user_id.eq.${(context as any).user.id},college_id.eq.${membership.college_id}`);
+      query = query.or(`organizer_user_id.eq.${user?.id},college_id.eq.${membership.college_id}`);
+    } else if (user?.id) {
+      query = query.eq("organizer_user_id", user.id);
     } else {
-      query = query.eq("organizer_user_id", (context as any).user.id);
+      throw redirect({ 
+        to: "/login",
+        search: { redirect: location.pathname + location.search }
+      });
     }
 
     const { data: event, error } = await query.maybeSingle();
@@ -130,7 +135,7 @@ function OrganizerEventDashboard() {
       }
 
       if (!proposalsData || proposalsData.length === 0) {
-        console.log("[Query] No proposals found for event:", event.id);
+        console.log("[Query] No proposals found for event:", event?.id);
         return [];
       }
 
@@ -154,12 +159,12 @@ function OrganizerEventDashboard() {
 
       const result = proposalsData.map(proposal => ({
         ...proposal,
-        company: profilesData.find(profile => profile.user_id === proposal.company_user_id) || null
+        company: profilesData?.find(profile => profile.user_id === proposal.company_user_id) || null
       }));
       
-      console.log(`[Query] Successfully fetched ${result.length} proposals for event ${event.id}`);
+      console.log(`[Query] Successfully fetched ${result.length} proposals for event ${event?.id}`);
       if (result.length > 0) {
-        console.table(result.map(r => ({ id: r.id, status: r.status, company: (r.company as any)?.full_name || 'N/A' })));
+        console.table(result.map(r => ({ id: r?.id, status: r?.status, company: (r?.company as any)?.full_name || 'N/A' })));
       }
       return result;
     }
@@ -168,17 +173,17 @@ function OrganizerEventDashboard() {
   useEffect(() => {
     if (!event?.id) return;
 
-    console.log(`[Realtime] Subscribing to sponsorship_proposals for event: ${event.id}`);
+    console.log(`[Realtime] Subscribing to sponsorship_proposals for event: ${event?.id}`);
     
     const channel = supabase
-      .channel(`event_proposals_hardened_${event.id}`)
+      .channel(`event_proposals_hardened_${event?.id}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'sponsorship_proposals',
-          filter: `event_id=eq.${event.id}`
+          filter: `event_id=eq.${event?.id}`
         },
         (payload) => {
           console.log('[Realtime] Proposal change detected:', payload);
@@ -187,19 +192,19 @@ function OrganizerEventDashboard() {
         }
       )
       .subscribe((status, err) => {
-        console.log(`[Realtime] Subscription status for event ${event.id}:`, status);
-        if (err) console.error(`[Realtime] Error subscribing to event ${event.id}:`, err);
+        console.log(`[Realtime] Subscription status for event ${event?.id}:`, status);
+        if (err) console.error(`[Realtime] Error subscribing to event ${event?.id}:`, err);
         
         if (status === 'SUBSCRIBED') {
-          console.log(`[Realtime] Active and listening for proposals on event: ${event.id}`);
+          console.log(`[Realtime] Active and listening for proposals on event: ${event?.id}`);
         }
         if (status === 'CHANNEL_ERROR') {
-          console.error(`[Realtime] Channel error for event ${event.id}. Falling back to polling.`);
+          console.error(`[Realtime] Channel error for event ${event?.id}. Falling back to polling.`);
         }
       });
 
     return () => {
-      console.log(`[Realtime] Removing subscription for event: ${event.id}`);
+      console.log(`[Realtime] Removing subscription for event: ${event?.id}`);
       supabase.removeChannel(channel);
     };
   }, [event?.id, queryClient]);
@@ -252,7 +257,7 @@ function OrganizerEventDashboard() {
       const { data, error } = await supabase.from("event_budgets").select("*").eq("event_id", event?.id);
 
       if (error) throw error;
-      return data;
+      return data || [];
     }
   });
 
@@ -282,11 +287,11 @@ function OrganizerEventDashboard() {
     queryKey: ["event-orders", event?.id],
     enabled: !!event?.id && !!eventProducts?.length,
     queryFn: async () => {
-      const productIds = eventProducts?.map(p => p.id) || [];
+      const productIds = eventProducts?.map(p => p?.id).filter(Boolean) || [];
       if (productIds.length === 0) return [];
       const { data, error } = await supabase.from("orders").select("*").in("product_id", productIds);
       if (error) throw error;
-      return data;
+      return data || [];
     }
   });
 
@@ -294,11 +299,11 @@ function OrganizerEventDashboard() {
     queryKey: ["ambassador-applications", event?.id],
     enabled: !!event?.id && !!eventPrograms?.length,
     queryFn: async () => {
-      const programIds = eventPrograms?.map(p => p.id) || [];
+      const programIds = eventPrograms?.map(p => p?.id).filter(Boolean) || [];
       if (programIds.length === 0) return [];
       const { data, error } = await supabase.from("ambassador_applications").select("*").in("program_id", programIds);
       if (error) throw error;
-      return data;
+      return data || [];
     }
   });
 
@@ -309,7 +314,7 @@ function OrganizerEventDashboard() {
     },
     onSuccess: () => {
       toast.success("Volunteer status updated");
-      if (event?.id) queryClient.invalidateQueries({ queryKey: ["volunteers", event.id] });
+      if (event?.id) queryClient.invalidateQueries({ queryKey: ["volunteers", event?.id] });
     }
   });
 
@@ -320,7 +325,7 @@ function OrganizerEventDashboard() {
     },
     onSuccess: () => {
       toast.success("Sponsorship status updated");
-      if (event?.id) queryClient.invalidateQueries({ queryKey: ["event-proposals", event.id] });
+      if (event?.id) queryClient.invalidateQueries({ queryKey: ["event-proposals", event?.id] });
     }
   });
 
@@ -345,7 +350,7 @@ function OrganizerEventDashboard() {
     },
     onSuccess: () => {
       toast.success(editingProduct ? "Product updated successfully" : "Product added successfully");
-      if (event?.id) queryClient.invalidateQueries({ queryKey: ["event-products", event.id] });
+      if (event?.id) queryClient.invalidateQueries({ queryKey: ["event-products", event?.id] });
       setIsProductDialogOpen(false);
       setEditingProduct(null);
       setProductForm({ name: "", description: "", price: "", stock: "", image_url: "" });
@@ -402,7 +407,7 @@ function OrganizerEventDashboard() {
     },
     onSuccess: () => {
       toast.success("Budget added successfully");
-      if (event?.id) queryClient.invalidateQueries({ queryKey: ["event-budgets", event.id] });
+      if (event?.id) queryClient.invalidateQueries({ queryKey: ["event-budgets", event?.id] });
       setIsBudgetDialogOpen(false);
       setBudgetForm({ category: "", allocated_amount: "", currency: "INR" });
     },
@@ -427,7 +432,7 @@ function OrganizerEventDashboard() {
     },
     onSuccess: () => {
       toast.success("Program created successfully");
-      if (event?.id) queryClient.invalidateQueries({ queryKey: ["event-programs", event.id] });
+      if (event?.id) queryClient.invalidateQueries({ queryKey: ["event-programs", event?.id] });
       setIsProgramDialogOpen(false);
       setProgramForm({
         title: "",
@@ -877,7 +882,7 @@ function OrganizerEventDashboard() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="glass p-4 rounded-2xl">
               <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Total Committed</div>
-              <div className="text-xl font-black">₹{(activeProposals.reduce((acc, p) => acc + p.amount, 0) / 100000).toFixed(1)}L</div>
+              <div className="text-xl font-black">₹{(activeProposals.reduce((acc, p) => acc + (p?.amount || 0), 0) / 100000).toFixed(1)}L</div>
             </div>
             <div className="glass p-4 rounded-2xl">
               <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Active Partners</div>
@@ -890,7 +895,7 @@ function OrganizerEventDashboard() {
             <div className="glass p-4 rounded-2xl">
               <div className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Goals Met</div>
               <div className="text-xl font-black">
-                {Math.min(100, Math.round((activeProposals.reduce((acc, p) => acc + p.amount, 0) / 2000000) * 100))}%
+                {Math.min(100, Math.round((activeProposals.reduce((acc, p) => acc + (p?.amount || 0), 0) / 2000000) * 100))}%
               </div>
             </div>
           </div>
@@ -931,10 +936,10 @@ function OrganizerEventDashboard() {
                       <div className="flex-1 min-w-0">
                         <div className="font-black truncate text-base">{(p.company as any)?.full_name || (p.company as any)?.email || 'Anonymous Brand'}</div>
                         <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="outline" className="text-[9px] font-black uppercase tracking-tighter py-0 px-2 h-5 border-primary/20 text-primary">
+                           <Badge variant="outline" className="text-[9px] font-black uppercase tracking-tighter py-0 px-2 h-5 border-primary/20 text-primary">
                             {p.tier}
                           </Badge>
-                          <span className="text-xs font-bold text-foreground/80">₹{(p.amount / 100000).toFixed(1)}L</span>
+                          <span className="text-xs font-bold text-foreground/80">₹{((p?.amount || 0) / 100000).toFixed(1)}L</span>
                         </div>
                       </div>
                     </div>
@@ -1004,8 +1009,8 @@ function OrganizerEventDashboard() {
                             {p.tier}
                           </Badge>
                         </td>
-                        <td className="p-4 font-black text-primary text-base">₹{(p.amount / 100000).toFixed(1)}L</td>
-                        <td className="p-4 text-xs text-muted-foreground">{new Date(p.created_at).toLocaleDateString()}</td>
+                        <td className="p-4 font-black text-primary text-base">₹{((p?.amount || 0) / 100000).toFixed(1)}L</td>
+                        <td className="p-4 text-xs text-muted-foreground">{p?.created_at ? new Date(p.created_at).toLocaleDateString() : 'N/A'}</td>
                         <td className="p-4 text-right">
                           <Button size="sm" variant="ghost" className="rounded-lg h-8 px-3 font-bold text-xs hover:bg-primary/10 hover:text-primary">
                             View Brand
