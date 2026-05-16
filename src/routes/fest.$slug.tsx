@@ -47,6 +47,17 @@ export const Route = createFileRoute("/fest/$slug")({
       return event;
     } catch (err) {
       console.error("[Loader] Catch-all error:", err);
+      // Attempt to log to a file for the agent to see
+      try {
+        const errorLog = `[${new Date().toISOString()}] Error fetching ${params.slug}: ${err instanceof Error ? err.message : String(err)}\n`;
+        // Since we are in a loader (server-side), we might be able to use fs if running in Node
+        if (typeof process !== 'undefined') {
+          const fs = await import('node:fs');
+          fs.appendFileSync('loader-error.log', errorLog);
+        }
+      } catch (logErr) {
+        // ignore
+      }
       throw err;
     }
   },
