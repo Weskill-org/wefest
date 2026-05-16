@@ -68,7 +68,10 @@ import { Route as StudentSocialRouteImport } from './routes/_student.social'
 import { Route as StudentShopRouteImport } from './routes/_student.shop'
 import { Route as StudentSettingsRouteImport } from './routes/_student.settings'
 import { Route as StudentOrdersRouteImport } from './routes/_student.orders'
+import { Route as StudentMemoriesRouteImport } from './routes/_student.memories'
 import { Route as StudentDashboardRouteImport } from './routes/_student.dashboard'
+import { Route as StudentCertificationsRouteImport } from './routes/_student.certifications'
+import { Route as StudentAlertsRouteImport } from './routes/_student.alerts'
 import { Route as StudentActivityRouteImport } from './routes/_student.activity'
 import { Route as OrganizerEventsIndexRouteImport } from './routes/organizer.events.index'
 import { Route as StudentExploreIndexRouteImport } from './routes/_student.explore.index'
@@ -370,9 +373,24 @@ const StudentOrdersRoute = StudentOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => StudentRoute,
 } as any)
+const StudentMemoriesRoute = StudentMemoriesRouteImport.update({
+  id: '/memories',
+  path: '/memories',
+  getParentRoute: () => StudentRoute,
+} as any)
 const StudentDashboardRoute = StudentDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => StudentRoute,
+} as any)
+const StudentCertificationsRoute = StudentCertificationsRouteImport.update({
+  id: '/certifications',
+  path: '/certifications',
+  getParentRoute: () => StudentRoute,
+} as any)
+const StudentAlertsRoute = StudentAlertsRouteImport.update({
+  id: '/alerts',
+  path: '/alerts',
   getParentRoute: () => StudentRoute,
 } as any)
 const StudentActivityRoute = StudentActivityRouteImport.update({
@@ -425,7 +443,10 @@ export interface FileRoutesByFullPath {
   '/talent': typeof TalentRoute
   '/terms': typeof TermsRoute
   '/activity': typeof StudentActivityRoute
+  '/alerts': typeof StudentAlertsRoute
+  '/certifications': typeof StudentCertificationsRoute
   '/dashboard': typeof StudentDashboardRoute
+  '/memories': typeof StudentMemoriesRoute
   '/orders': typeof StudentOrdersRoute
   '/settings': typeof StudentSettingsRoute
   '/shop': typeof StudentShopRoute
@@ -486,7 +507,10 @@ export interface FileRoutesByTo {
   '/talent': typeof TalentRoute
   '/terms': typeof TermsRoute
   '/activity': typeof StudentActivityRoute
+  '/alerts': typeof StudentAlertsRoute
+  '/certifications': typeof StudentCertificationsRoute
   '/dashboard': typeof StudentDashboardRoute
+  '/memories': typeof StudentMemoriesRoute
   '/orders': typeof StudentOrdersRoute
   '/settings': typeof StudentSettingsRoute
   '/shop': typeof StudentShopRoute
@@ -555,7 +579,10 @@ export interface FileRoutesById {
   '/talent': typeof TalentRoute
   '/terms': typeof TermsRoute
   '/_student/activity': typeof StudentActivityRoute
+  '/_student/alerts': typeof StudentAlertsRoute
+  '/_student/certifications': typeof StudentCertificationsRoute
   '/_student/dashboard': typeof StudentDashboardRoute
+  '/_student/memories': typeof StudentMemoriesRoute
   '/_student/orders': typeof StudentOrdersRoute
   '/_student/settings': typeof StudentSettingsRoute
   '/_student/shop': typeof StudentShopRoute
@@ -624,7 +651,10 @@ export interface FileRouteTypes {
     | '/talent'
     | '/terms'
     | '/activity'
+    | '/alerts'
+    | '/certifications'
     | '/dashboard'
+    | '/memories'
     | '/orders'
     | '/settings'
     | '/shop'
@@ -685,7 +715,10 @@ export interface FileRouteTypes {
     | '/talent'
     | '/terms'
     | '/activity'
+    | '/alerts'
+    | '/certifications'
     | '/dashboard'
+    | '/memories'
     | '/orders'
     | '/settings'
     | '/shop'
@@ -753,7 +786,10 @@ export interface FileRouteTypes {
     | '/talent'
     | '/terms'
     | '/_student/activity'
+    | '/_student/alerts'
+    | '/_student/certifications'
     | '/_student/dashboard'
+    | '/_student/memories'
     | '/_student/orders'
     | '/_student/settings'
     | '/_student/shop'
@@ -1241,11 +1277,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudentOrdersRouteImport
       parentRoute: typeof StudentRoute
     }
+    '/_student/memories': {
+      id: '/_student/memories'
+      path: '/memories'
+      fullPath: '/memories'
+      preLoaderRoute: typeof StudentMemoriesRouteImport
+      parentRoute: typeof StudentRoute
+    }
     '/_student/dashboard': {
       id: '/_student/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof StudentDashboardRouteImport
+      parentRoute: typeof StudentRoute
+    }
+    '/_student/certifications': {
+      id: '/_student/certifications'
+      path: '/certifications'
+      fullPath: '/certifications'
+      preLoaderRoute: typeof StudentCertificationsRouteImport
+      parentRoute: typeof StudentRoute
+    }
+    '/_student/alerts': {
+      id: '/_student/alerts'
+      path: '/alerts'
+      fullPath: '/alerts'
+      preLoaderRoute: typeof StudentAlertsRouteImport
       parentRoute: typeof StudentRoute
     }
     '/_student/activity': {
@@ -1295,7 +1352,10 @@ declare module '@tanstack/react-router' {
 
 interface StudentRouteChildren {
   StudentActivityRoute: typeof StudentActivityRoute
+  StudentAlertsRoute: typeof StudentAlertsRoute
+  StudentCertificationsRoute: typeof StudentCertificationsRoute
   StudentDashboardRoute: typeof StudentDashboardRoute
+  StudentMemoriesRoute: typeof StudentMemoriesRoute
   StudentOrdersRoute: typeof StudentOrdersRoute
   StudentSettingsRoute: typeof StudentSettingsRoute
   StudentShopRoute: typeof StudentShopRoute
@@ -1308,7 +1368,10 @@ interface StudentRouteChildren {
 
 const StudentRouteChildren: StudentRouteChildren = {
   StudentActivityRoute: StudentActivityRoute,
+  StudentAlertsRoute: StudentAlertsRoute,
+  StudentCertificationsRoute: StudentCertificationsRoute,
   StudentDashboardRoute: StudentDashboardRoute,
+  StudentMemoriesRoute: StudentMemoriesRoute,
   StudentOrdersRoute: StudentOrdersRoute,
   StudentSettingsRoute: StudentSettingsRoute,
   StudentShopRoute: StudentShopRoute,
@@ -1487,10 +1550,11 @@ export const routeTree = rootRouteImport
   ._addFileTypes<FileRouteTypes>()
 
 import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
+import type { startInstance } from './start.ts'
 declare module '@tanstack/react-start' {
   interface Register {
     ssr: true
     router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
   }
 }

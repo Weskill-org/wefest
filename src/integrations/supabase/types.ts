@@ -901,6 +901,7 @@ export type Database = {
           is_read: boolean | null
           metadata: Json | null
           title: string
+          type: string | null
           user_id: string
         }
         Insert: {
@@ -910,6 +911,7 @@ export type Database = {
           is_read?: boolean | null
           metadata?: Json | null
           title: string
+          type?: string | null
           user_id: string
         }
         Update: {
@@ -919,6 +921,7 @@ export type Database = {
           is_read?: boolean | null
           metadata?: Json | null
           title?: string
+          type?: string | null
           user_id?: string
         }
         Relationships: []

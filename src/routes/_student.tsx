@@ -5,12 +5,13 @@ import {
   LayoutDashboard, CalendarRange, Ticket, Users, 
   ShoppingBag, Settings, Menu, X, LogOut, 
   ChevronLeft, ChevronRight, GraduationCap, Sparkles, Coins,
-  Bell
+  Bell, Image as ImageIcon, Award, BellRing, ShieldCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ActivityFeedPopover } from "@/components/activity-feed-popover";
+import { useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_student")({
   beforeLoad: async ({ location }) => {
@@ -79,6 +80,9 @@ const navLinks = [
   { to: "/shop", label: "Campus Store", icon: ShoppingBag, exact: false },
   { to: "/wallet", label: "WeCoin Wallet", icon: Coins, exact: false },
   { to: "/activity", label: "Activity Feed", icon: Bell, exact: false },
+  { to: "/memories", label: "Memories", icon: ImageIcon, exact: false },
+  { to: "/certifications", label: "Certifications", icon: Award, exact: false },
+  { to: "/alerts", label: "Alerts", icon: BellRing, exact: false, badge: true },
 ];
 
 function StudentLayout() {
@@ -101,7 +105,69 @@ function StudentLayout() {
     navigate({ to: "/" });
   };
 
-  const NavItem = ({ link, onClick }: { link: typeof navLinks[0]; onClick?: () => void }) => {
+  // Fetch unread alerts count for the badge
+  const { data: alertsData } = useQuery({
+    queryKey: ["student-unread-alerts-count"],
+    queryFn: async () => {
+      try {
+        const { data, error: userError } = await supabase.auth.getUser();
+        if (userError || !data?.user) return 0;
+        
+        const { count, error } = await supabase
+          .from("notification_logs")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", data.user.id)
+          .eq("is_read", false);
+          
+        if (error) {
+          console.warn("Error fetching unread alerts count:", error.message);
+          return 0;
+        }
+        return count || 0;
+      } catch (e) {
+        console.error("Unread alerts count fetch exception:", e);
+        return 0;
+      }
+    },
+    refetchInterval: 60000,
+  });
+  const unreadAlertsCount = alertsData || 0;
+
+  // Fetch pending invitations count
+  const { data: invitationsCountData } = useQuery({
+    queryKey: ["student-pending-invites-count", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("team_invitations" as any)
+        .select("*", { count: "exact", head: true })
+        .eq("invitee_user_id", user.id)
+        .eq("status", "pending");
+      return count || 0;
+    },
+    refetchInterval: 30000,
+  });
+  const pendingInvitesCount = invitationsCountData || 0;
+  const totalAlertsCount = unreadAlertsCount + pendingInvitesCount;
+
+  // Fetch membership data to show "My Committees" link
+  const { data: membershipData } = useQuery({
+    queryKey: ["student-memberships", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("college_members")
+        .select(`*, colleges (name)`)
+        .eq("user_id", user.id)
+        .eq("is_approved", true);
+      return data || [];
+    }
+  });
+  const isMember = (membershipData?.length || 0) > 0;
+
+  type NavLinkType = { to: string; label: string; icon: any; exact: boolean; badge?: boolean; color?: string; badgeCount?: number };
+
+  const NavItem = ({ link, onClick }: { link: NavLinkType; onClick?: () => void }) => {
     const isActive = link.exact
       ? matchRoute({ to: link.to, fuzzy: false })
       : matchRoute({ to: link.to, fuzzy: true });
@@ -118,8 +184,20 @@ function StudentLayout() {
             : "text-muted-foreground hover:text-foreground hover:bg-white/5"
         )}
       >
-        <link.icon className={cn("h-[18px] w-[18px] shrink-0 transition-colors", isActive ? "text-white" : "text-muted-foreground group-hover:text-foreground")} />
-        {!collapsed && <span className="truncate">{link.label}</span>}
+        <div className="relative shrink-0">
+          <link.icon className={cn("h-[18px] w-[18px] transition-colors", isActive ? "text-white" : "text-muted-foreground group-hover:text-foreground")} />
+          {link.badge && totalAlertsCount > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 rounded-full bg-primary text-white text-[8px] font-bold flex items-center justify-center">
+              {totalAlertsCount > 9 ? "9+" : totalAlertsCount}
+            </span>
+          )}
+        </div>
+        {!collapsed && <span className="truncate flex-1">{link.label}</span>}
+        {!collapsed && link.badge && totalAlertsCount > 0 && !isActive && (
+          <span className="ml-auto px-1.5 py-0.5 rounded-md bg-primary/15 text-primary text-[9px] font-bold">
+            {totalAlertsCount}
+          </span>
+        )}
         {isActive && !collapsed && (
           <div className="ml-auto h-1.5 w-1.5 rounded-full bg-white/40" />
         )}
@@ -154,10 +232,18 @@ function StudentLayout() {
       <div className={cn("mx-4 border-t border-white/5 my-1", collapsed && "mx-2.5")} />
 
       {/* Navigation */}
-      <nav className={cn("flex-1 px-3 py-3 space-y-0.5 overflow-y-auto hide-scrollbar", collapsed && "px-2")}>
-        {navLinks.map((link) => (
-          <NavItem key={link.to} link={link} onClick={onNavigate} />
-        ))}
+      <nav className={cn("flex-1 px-3 py-3 overflow-y-auto hide-scrollbar", collapsed && "px-2")}>
+        <div className="space-y-0.5">
+          {navLinks.map((link) => (
+            <NavItem key={link.to} link={link} onClick={onNavigate} />
+          ))}
+          {isMember && (
+            <NavItem 
+              link={{ to: "/organizer/team", label: "My Committees", icon: ShieldCheck, exact: false, color: "text-amber-500" } as any} 
+              onClick={onNavigate} 
+            />
+          )}
+        </div>
       </nav>
 
       {/* Bottom Section */}
