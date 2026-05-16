@@ -80,6 +80,7 @@ function EventsIndexPage() {
       priceFrom: e.price_from,
       description: e.description,
       organizer: e.organizer,
+      slug: e.slug,
     }));
   }, [events]);
 

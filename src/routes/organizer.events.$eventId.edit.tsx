@@ -1,6 +1,6 @@
 import React from "react";
 import { createFileRoute, useNavigate, notFound } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,21 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Loader2,
-  Calendar,
-  MapPin,
-  Type,
-  Info,
-  Sparkles,
-  Pencil,
-  Users,
-  Plus,
-  X,
-  Tag,
-  Ticket
+  Loader2, Calendar, MapPin, Type, Info, Sparkles, Pencil,
+  Users, Plus, X, Tag, Ticket, Link2, Dices, Check, AlertCircle, BadgeCheck
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { generateEventSlug, formatSlug, parseSlug } from "@/lib/event-words";
 
 export const Route = createFileRoute("/organizer/events/$eventId/edit")({
   loader: async ({ params }) => {
@@ -99,6 +90,10 @@ function EditEvent() {
   // Team member input state
   const [newMemberName, setNewMemberName] = useState("");
   const [newMemberRole, setNewMemberRole] = useState("");
+
+  // ── Slug State (Read Only) ──────────────────────────────────────────────
+  const existingSlug = (event as any).slug || "";
+  const { word1: initW1, word2: initW2 } = parseSlug(existingSlug);
 
   const set = (k: string, v: any) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -208,6 +203,27 @@ function EditEvent() {
             className="h-11 rounded-xl border-border/50 bg-muted/5 text-base font-medium"
           />
         </Field>
+
+        {/* ── Event Code (Slug) ── */}
+        <div className="space-y-3">
+          <Label className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+            <Link2 className="h-3.5 w-3.5" /> Event Code
+          </Label>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-primary/20 bg-primary/5 w-fit">
+              <span className="text-lg font-black text-primary">{initW1}</span>
+              <span className="text-primary/40 text-2xl font-black">.</span>
+              <span className="text-lg font-black text-primary">{initW2}</span>
+              <BadgeCheck className="h-4 w-4 text-primary ml-1" />
+            </div>
+            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest flex items-center gap-1.5">
+              <Info className="h-3 w-3" /> Event codes are permanent and cannot be changed after creation.
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Public URL: <span className="font-bold text-foreground">wefest.com/fest/{existingSlug}</span>
+            </p>
+          </div>
+        </div>
 
         <div className="grid gap-6 sm:grid-cols-2">
           <Field label="Date" icon={Calendar}>

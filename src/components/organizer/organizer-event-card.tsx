@@ -23,6 +23,7 @@ interface OrganizerEventCardProps {
   status: "Draft" | "Published" | "Sold Out" | "Completed";
   ticketsSold: number;
   revenue: number;
+  slug?: string;
   onDeleted?: () => void;
 }
 
@@ -35,6 +36,7 @@ export function OrganizerEventCard({
   status,
   ticketsSold,
   revenue,
+  slug,
   onDeleted,
 }: OrganizerEventCardProps) {
   const queryClient = useQueryClient();
@@ -64,7 +66,9 @@ export function OrganizerEventCard({
   });
 
   const handleShare = async () => {
-    const url = `${window.location.origin}/events/${id}`;
+    const url = slug 
+      ? `${window.location.origin}/fest/${slug}`
+      : `${window.location.origin}/events/${id}`;
     try {
       if (navigator.share) {
         await navigator.share({ title, url });
@@ -193,8 +197,8 @@ export function OrganizerEventCard({
             <DropdownMenuContent align="end" className="w-44 rounded-xl">
               <DropdownMenuItem asChild>
                 <Link
-                  to="/events/$eventId"
-                  params={{ eventId: id }}
+                  to={slug ? "/fest/$slug" : "/events/$eventId"}
+                  params={slug ? { slug } : { eventId: id }}
                   target="_blank"
                   className="flex items-center gap-2 cursor-pointer"
                 >

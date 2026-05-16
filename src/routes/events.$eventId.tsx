@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, notFound, redirect } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRegion } from "@/contexts/RegionContext";
+import { ShareEventDialog } from "@/components/events/share-event-dialog";
 
 export const Route = createFileRoute("/events/$eventId")({
   loader: async ({ params }) => {
@@ -27,9 +28,19 @@ export const Route = createFileRoute("/events/$eventId")({
       .from("events")
       .select("*")
       .eq("id", params.eventId)
-      .single();
+      .maybeSingle();
 
     if (error || !event) throw notFound();
+
+    // Redirect to slug-based URL if slug exists
+    if (event.slug) {
+      throw redirect({
+        to: "/fest/$slug",
+        params: { slug: event.slug },
+        replace: true,
+      });
+    }
+
     return event;
   },
   head: ({ loaderData }) => ({
@@ -89,6 +100,22 @@ function PublicEventDetail() {
     },
   });
 
+  const { data: studentProfile } = useQuery({
+    queryKey: ["student-profile", currentUser?.id],
+    enabled: !!currentUser?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("student_profiles")
+        .select("referral_code")
+        .eq("id", currentUser!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const referralCode = studentProfile?.referral_code;
+
   const tiers = useMemo(() => {
     const settings = (event as any).pass_settings;
     if (!settings) {
@@ -129,6 +156,7 @@ function PublicEventDetail() {
   }, [event]);
 
   const [selected, setSelected] = useState(0);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const buyMutation = useMutation({
     mutationFn: async () => {
@@ -398,10 +426,7 @@ function PublicEventDetail() {
           {/* Share / Actions */}
           <div className="mt-4 flex gap-3">
             <button
-              onClick={() => {
-                navigator.clipboard.writeText(window.location.href);
-                toast.success("Link copied to clipboard!");
-              }}
+              onClick={() => setShareOpen(true)}
               className="flex-1 glass rounded-xl p-3 flex items-center justify-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all"
             >
               <Share2 className="h-4 w-4" /> Share
@@ -415,6 +440,14 @@ function PublicEventDetail() {
           </div>
         </aside>
       </div>
+
+      <ShareEventDialog 
+        open={shareOpen} 
+        onOpenChange={setShareOpen}
+        eventTitle={event.title}
+        eventUrl={window.location.href}
+        referralCode={referralCode || undefined}
+      />
     </div>
   );
 }

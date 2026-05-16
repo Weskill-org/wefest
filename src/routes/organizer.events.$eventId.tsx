@@ -500,6 +500,17 @@ function OrganizerEventDashboard() {
         <div>
           <h1 className="font-display text-2xl font-black tracking-tight lg:text-3xl">{event.title}</h1>
           <div className="text-sm text-muted-foreground mt-1">Analytics, volunteers, and operations management</div>
+          {(event as any).slug && (
+            <button
+              onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/fest/${(event as any).slug}`); toast.success("Event link copied!"); }}
+              className="inline-flex items-center gap-2 mt-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-sm font-black text-primary hover:bg-primary/20 transition-all cursor-pointer group"
+            >
+              <span>{(event as any).slug.split(".")[0]}</span>
+              <span className="text-primary/40 text-lg font-black">.</span>
+              <span>{(event as any).slug.split(".")[1]}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-primary/50 group-hover:text-primary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+            </button>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <div className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
@@ -513,7 +524,7 @@ function OrganizerEventDashboard() {
             <Link to="/organizer/events/$eventId/edit" params={{ eventId: event?.id || "" }}>Edit Event</Link>
           </Button>
           <Button asChild variant="outline" size="sm" className="rounded-xl text-xs font-bold">
-            <Link to="/events/$eventId" params={{ eventId: event?.id || "" }}>View Public Page</Link>
+            <Link to={`/fest/${(event as any).slug || event?.id}`}>View Public Page</Link>
           </Button>
         </div>
       </div>

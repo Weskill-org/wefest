@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,8 @@ const notificationTypeIcon = (type: string) => {
     case "team_invite": return Users;
     case "team_update": return Crown;
     case "team_response": return CheckCircle2;
+    case "join_request_accepted": return CheckCircle2;
+    case "join_request_declined": return XCircle;
     default: return Info;
   }
 };
@@ -55,6 +57,8 @@ const notificationTypeColor = (type: string) => {
     case "team_invite": return "bg-violet-500/10 text-violet-400";
     case "team_update": return "bg-yellow-500/10 text-yellow-400";
     case "team_response": return "bg-emerald-500/10 text-emerald-400";
+    case "join_request_accepted": return "bg-emerald-500/10 text-emerald-400";
+    case "join_request_declined": return "bg-red-500/10 text-red-400";
     default: return "bg-white/5 text-muted-foreground";
   }
 };
@@ -96,7 +100,7 @@ function AlertsPage() {
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["student-alerts"] });
       queryClient.invalidateQueries({ queryKey: ["student-unread-alerts-count"] });
-      queryClient.invalidateQueries({ queryKey: ["student-pending-invites-count"] });
+      queryClient.invalidateQueries({ queryKey: ["student-unread-alerts-count"] });
       queryClient.invalidateQueries({ queryKey: ["student-memberships"] });
 
       if (result.accept) {
@@ -104,7 +108,7 @@ function AlertsPage() {
         const college = payload?.college_name || result.collegeName || "the committee";
         const roleLabel = payload?.role_label || teamRoleLabel(payload?.role || "member", payload?.position);
         toast.success(`You're on the ${college} team`, {
-          description: `Your role: ${roleLabel}. Use "My Committees" in the menu when you need organizer tools.`,
+          description: `Your role: ${roleLabel}. Use Committees or Team tools when you need organizer access.`,
           duration: 6000,
         });
       } else {
@@ -139,6 +143,7 @@ function AlertsPage() {
     },
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ["student-alerts"] });
+      queryClient.invalidateQueries({ queryKey: ["student-unread-alerts-count"] });
       if (id === "all") toast.success("All notifications marked as read");
     },
     onError: () => toast.error("Failed to update notification"),
@@ -277,7 +282,9 @@ function AlertsPage() {
         <div className="rounded-2xl border border-white/5 bg-white/[0.02] overflow-hidden divide-y divide-white/5">
           {filtered.map((n: any) => {
             const isInvite = n.type === "team_invite";
+            const isJoinAccepted = n.type === "join_request_accepted";
             const inviteMeta = isInvite ? (n.metadata || {}) : null;
+            const joinMeta = isJoinAccepted ? (n.metadata || {}) : null;
             const alreadyResponded = inviteMeta?.responded;
             const IconComp = notificationTypeIcon(n.type || "system");
             const iconColor = notificationTypeColor(n.type || "system");
@@ -288,6 +295,7 @@ function AlertsPage() {
                 className={cn(
                   "flex gap-4 px-5 py-4 transition-all group",
                   isInvite && !alreadyResponded ? "bg-violet-500/[0.04] hover:bg-violet-500/[0.07]" :
+                  isJoinAccepted && !n.is_read ? "bg-emerald-500/[0.04] hover:bg-emerald-500/[0.07]" :
                   !n.is_read ? "bg-primary/[0.03] hover:bg-primary/[0.05]" : "hover:bg-white/[0.02]"
                 )}
               >
@@ -307,6 +315,30 @@ function AlertsPage() {
                   </div>
 
                   {n.body && <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{n.body}</p>}
+
+                  {isJoinAccepted && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        className="h-8 rounded-lg bg-brand-gradient text-white font-bold text-xs"
+                        asChild
+                      >
+                        <Link to="/committees" onClick={() => markReadMutation.mutate(n.id)}>
+                          View Committees
+                        </Link>
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 rounded-lg border-amber-500/30 text-amber-400 font-bold text-xs"
+                        asChild
+                      >
+                        <Link to="/organizer/team" onClick={() => markReadMutation.mutate(n.id)}>
+                          Open Team Tools
+                        </Link>
+                      </Button>
+                    </div>
+                  )}
 
                   {/* Invite action card */}
                   {isInvite && !alreadyResponded && inviteMeta?.invitation_id && (

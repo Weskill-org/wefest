@@ -15,6 +15,7 @@ export interface Event {
   priceFrom: number;
   description?: string;
   isVerified?: boolean;
+  slug?: string;
 }
 
 export function EventCard({ event }: { event: Event }) {
@@ -26,8 +27,8 @@ export function EventCard({ event }: { event: Event }) {
 
   return (
     <Link
-      to={isStudentRoute ? "/explore/$eventId" : "/events/$eventId"}
-      params={{ eventId: event.id }}
+      to={event.slug ? "/fest/$slug" : "/events/$eventId"}
+      params={event.slug ? { slug: event.slug } : { eventId: event.id }}
       className="group relative flex flex-col overflow-hidden rounded-3xl border border-border/50 bg-muted/30 backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-primary/40 hover:shadow-[0_20px_50px_rgba(var(--brand-primary-rgb),0.1)]"
     >
       {/* Glow effect on hover */}
@@ -38,11 +39,16 @@ export function EventCard({ event }: { event: Event }) {
         <div className={`absolute inset-0 bg-gradient-to-br transition-transform duration-700 group-hover:scale-110 ${event.cover}`} />
         <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
         
-        {/* Category Badge */}
-        <div className="absolute left-4 top-4">
-          <span className="rounded-full border border-white/10 bg-black/40 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-md">
+        {/* Category Badge & Slug */}
+        <div className="absolute left-4 top-4 flex flex-col gap-2">
+          <span className="rounded-full border border-white/10 bg-black/40 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-md w-fit">
             {event.category}
           </span>
+          {event.slug && (
+            <span className="rounded-full border border-white/10 bg-white/15 px-3 py-1 text-[10px] font-black uppercase tracking-tighter text-amber-300 backdrop-blur-md w-fit flex items-center gap-1">
+              {event.slug.split(".")[0]} <span className="opacity-40 text-white">.</span> {event.slug.split(".")[1]}
+            </span>
+          )}
         </div>
 
         {/* Price Tag */}

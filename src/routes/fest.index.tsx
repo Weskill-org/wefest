@@ -1,60 +1,100 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { EventCard } from "@/components/event-card";
 import { 
   Sparkles, 
   CalendarRange, 
-  Filter, 
   Search, 
   MapPin, 
   GraduationCap,
   ShieldCheck,
   TrendingUp,
   Clock,
-  ArrowRight
+  ArrowRight,
+  Zap,
+  Loader2
 } from "lucide-react";
 import { EmptyState } from "@/components/events/empty-state";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { StudentAppLayout } from "@/components/layout/StudentAppLayout";
 
 const CATEGORIES = ["All", "Cultural", "Tech", "Sports", "Business", "Arts"] as const;
 
-export const Route = createFileRoute("/_student/explore/")({
+export const Route = createFileRoute("/fest/")({
   head: () => ({ 
     meta: [
-      { title: "Campus Discovery — WeFest" }, 
-      { name: "description", content: "Explore exclusive festivals and events at your institution." }
+      { title: "Festivals — WeFest" }, 
+      { name: "description", content: "Discover India's biggest college festivals." }
     ] 
   }),
-  component: ProfessionalExplorePage,
+  component: PublicFestPage,
 });
 
-function ProfessionalExplorePage() {
+function PublicFestPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<(typeof CATEGORIES)[number]>("All");
+  const navigate = useNavigate();
 
-  // 1. Fetch User Profile to get College ID
-  const { data: userProfile } = useQuery({
-    queryKey: ["student-profile-scoped"],
+  // ── Two-Word Quick Find ──────────────────────────────────────────────
+  const [findWord1, setFindWord1] = useState("");
+  const [findWord2, setFindWord2] = useState("");
+  const [findStatus, setFindStatus] = useState<"idle" | "checking" | "found" | "not_found">("idle");
+  const findTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const word2Ref = useRef<HTMLInputElement>(null);
+
+  const handleFindWord = useCallback((w1: string, w2: string) => {
+    if (findTimer.current) clearTimeout(findTimer.current);
+    if (!w1 || !w2 || w1.length < 2 || w2.length < 2) { setFindStatus("idle"); return; }
+    setFindStatus("checking");
+    findTimer.current = setTimeout(async () => {
+      const slug = `${w1.toLowerCase()}.${w2.toLowerCase()}`;
+      const { data } = await supabase.from("events").select("id, slug").eq("slug", slug).maybeSingle();
+      if (data) {
+        setFindStatus("found");
+        setTimeout(() => navigate({ to: "/fest/$slug", params: { slug } }), 400);
+      } else {
+        setFindStatus("not_found");
+      }
+    }, 600);
+  }, [navigate]);
+
+  const onFindWord1 = (val: string) => {
+    const clean = val.toLowerCase().replace(/[^a-z]/g, "");
+    setFindWord1(clean);
+    handleFindWord(clean, findWord2);
+    if (val.includes(".")) { word2Ref.current?.focus(); }
+  };
+  const onFindWord2 = (val: string) => {
+    const clean = val.toLowerCase().replace(/[^a-z]/g, "");
+    setFindWord2(clean);
+    handleFindWord(findWord1, clean);
+  };
+
+  // Auth & Profile
+  const { data: authData } = useQuery({
+    queryKey: ["current-auth"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
-      const { data } = await supabase
+      const { data: profile } = await supabase
         .from("student_profiles")
-        .select("*, colleges(id, name, city)")
+        .select("*, colleges(*)")
         .eq("id", user.id)
         .maybeSingle();
-      return data;
+      return { user, profile };
     }
   });
 
-  // 2. Fetch Events (Always scoped to college if user has one)
+  const user = authData?.user;
+  const profile = authData?.profile;
+
+  // Events (Scoped if logged in, otherwise all public)
   const { data: rawEvents, isLoading } = useQuery({
-    queryKey: ["scoped-events", userProfile?.college_id],
-    enabled: !!userProfile,
+    queryKey: ["fest-events", profile?.college_id],
     queryFn: async () => {
       let query = supabase
         .from("events")
@@ -62,9 +102,8 @@ function ProfessionalExplorePage() {
         .eq("status", "published")
         .order("date", { ascending: true });
       
-      // CRITICAL: Strict college isolation logic
-      if (userProfile?.college_id) {
-        query = query.eq("college_id", userProfile.college_id);
+      if (profile?.college_id) {
+        query = query.eq("college_id", profile.college_id);
       }
 
       const { data, error } = await query;
@@ -75,7 +114,6 @@ function ProfessionalExplorePage() {
 
   const filteredEvents = useMemo(() => {
     if (!rawEvents) return [];
-    
     return rawEvents
       .map(e => ({
         id: e.id,
@@ -89,45 +127,24 @@ function ProfessionalExplorePage() {
         attendees: e.attendees,
         priceFrom: e.price_from,
         description: e.description,
-        organizer: e.organizer,
-        isVerified: true
+        slug: e.slug
       }))
       .filter((e) => {
         const matchesSearch = 
           e.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
           e.description?.toLowerCase().includes(searchQuery.toLowerCase());
-        
         const matchesCategory = activeCategory === "All" || e.category === activeCategory;
-        
         return matchesSearch && matchesCategory;
       });
   }, [rawEvents, searchQuery, activeCategory]);
 
-  if (isLoading) {
-    return (
-      <div className="px-6 sm:px-8 py-10 max-w-[1400px] mx-auto space-y-8">
-        <div className="h-40 w-full rounded-3xl bg-white/[0.02] border border-white/5 animate-pulse" />
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className="h-[420px] rounded-3xl bg-white/[0.02] border border-white/5 animate-pulse" />
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const collegeName = profile?.colleges?.name || "Premium Institutions";
+  const city = profile?.colleges?.city || "India";
 
-  const collegeName = userProfile?.colleges?.name || "Your Institution";
-  const city = userProfile?.colleges?.city || "Your City";
-
-  return (
+  const PageContent = (
     <div className="min-h-screen pb-20 animate-in fade-in duration-700">
-      
-      {/* ─── Premium Header Section ─── */}
       <section className="relative px-6 sm:px-8 pt-10 pb-16 overflow-hidden">
-        {/* Background Ambient Glows */}
         <div className="absolute top-0 right-0 h-[500px] w-[500px] bg-primary/10 blur-[120px] rounded-full -mr-64 -mt-64" />
-        <div className="absolute bottom-0 left-0 h-[400px] w-[400px] bg-indigo-500/5 blur-[100px] rounded-full -ml-32 -mb-32" />
-
         <div className="max-w-[1400px] mx-auto relative z-10">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
             <div className="space-y-4 max-w-2xl">
@@ -139,11 +156,10 @@ function ProfessionalExplorePage() {
                 <span className="text-gradient">Campus Festivals</span>
               </h1>
               <p className="text-base text-muted-foreground font-medium max-w-lg">
-                Verified events only for students of <span className="text-foreground font-bold">{collegeName}</span>. 
+                Discover verified events {user ? `at ${collegeName}` : "across India's top colleges"}. 
                 Experience the best of culture, tech, and sports.
               </p>
               
-              {/* Quick Info Pills */}
               <div className="flex flex-wrap gap-3 pt-2">
                 <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/[0.03] border border-white/5 backdrop-blur-md">
                   <GraduationCap className="h-4 w-4 text-primary" />
@@ -156,7 +172,6 @@ function ProfessionalExplorePage() {
               </div>
             </div>
 
-            {/* Smart Stats Card */}
             <div className="hidden xl:block w-72 rounded-[2rem] border border-white/10 bg-white/[0.02] backdrop-blur-2xl p-8 relative group overflow-hidden">
               <div className="absolute inset-0 bg-brand-gradient opacity-0 group-hover:opacity-[0.03] transition-opacity duration-700" />
               <div className="relative z-10 space-y-6">
@@ -170,17 +185,8 @@ function ProfessionalExplorePage() {
                   </div>
                 </div>
                 <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground font-medium">Coming Soon</span>
-                    <span className="font-bold">2+ Events</span>
-                  </div>
-                  <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-primary w-2/3 rounded-full" />
-                  </div>
-                </div>
                 <Button variant="ghost" className="w-full text-[10px] font-black uppercase tracking-widest hover:bg-primary/5 hover:text-primary transition-all">
-                  Request Event Access <ArrowRight className="ml-2 h-3 w-3" />
+                  Browse Categories <ArrowRight className="ml-2 h-3 w-3" />
                 </Button>
               </div>
             </div>
@@ -188,7 +194,54 @@ function ProfessionalExplorePage() {
         </div>
       </section>
 
-      {/* ─── Search & Interactive Filters ─── */}
+      {/* Quick Find */}
+      <section className="px-6 sm:px-8 pb-2">
+        <div className="max-w-[1400px] mx-auto">
+          <div className="bg-black/30 backdrop-blur-2xl rounded-[2rem] p-4 border border-primary/10 shadow-lg">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                <Zap className="h-4 w-4" />
+              </div>
+              <div>
+                <div className="text-xs font-black uppercase tracking-widest">Quick Find by Event Code</div>
+                <div className="text-[10px] text-muted-foreground">Type the two-word code to instantly jump to an event</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 flex items-center rounded-2xl border border-white/10 bg-black/20 overflow-hidden focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+                <input
+                  type="text"
+                  value={findWord1}
+                  onChange={(e) => onFindWord1(e.target.value)}
+                  placeholder="first word"
+                  className="flex-1 h-12 px-5 bg-transparent text-sm font-bold text-right outline-none placeholder:text-muted-foreground/30"
+                  maxLength={20}
+                />
+                <div className="flex items-center justify-center w-10 shrink-0">
+                  <span className={cn(
+                    "text-3xl font-black transition-colors duration-300",
+                    findStatus === "found" ? "text-emerald-400" : findStatus === "not_found" ? "text-red-400" : "text-primary/60"
+                  )}>.</span>
+                </div>
+                <input
+                  ref={word2Ref}
+                  type="text"
+                  value={findWord2}
+                  onChange={(e) => onFindWord2(e.target.value)}
+                  placeholder="second word"
+                  className="flex-1 h-12 px-5 bg-transparent text-sm font-bold outline-none placeholder:text-muted-foreground/30"
+                  maxLength={20}
+                />
+              </div>
+              {findStatus === "checking" && <Loader2 className="h-5 w-5 text-muted-foreground animate-spin shrink-0" />}
+              {findStatus === "found" && <div className="text-emerald-400 text-xs font-bold shrink-0 animate-pulse">Found! Redirecting…</div>}
+              {findStatus === "not_found" && <div className="text-red-400 text-xs font-bold shrink-0">Not found</div>}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Search & Filters */}
       <section className="px-6 sm:px-8 py-6 sticky top-0 z-30 transition-all duration-300">
         <div className="max-w-[1400px] mx-auto">
           <div className="bg-black/40 backdrop-blur-2xl rounded-[2rem] p-3 border border-white/5 shadow-2xl flex flex-col md:flex-row items-center gap-3">
@@ -201,9 +254,6 @@ function ProfessionalExplorePage() {
                 className="h-14 pl-12 rounded-[1.5rem] bg-black/20 border-white/10 text-sm focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all placeholder:text-muted-foreground font-medium"
               />
             </div>
-            
-            <div className="h-8 w-px bg-white/10 hidden md:block" />
-
             <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide px-2 w-full md:w-auto">
               {CATEGORIES.map(category => (
                 <button
@@ -217,9 +267,6 @@ function ProfessionalExplorePage() {
                   )}
                 >
                   {category}
-                  {activeCategory === category && (
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-black animate-pulse" />
-                  )}
                 </button>
               ))}
             </div>
@@ -227,79 +274,47 @@ function ProfessionalExplorePage() {
         </div>
       </section>
 
-      {/* ─── Main Event Grid ─── */}
+      {/* Grid */}
       <section className="px-6 sm:px-8 py-12 max-w-[1400px] mx-auto">
-        
-        {/* Section Title */}
-        <div className="flex items-center justify-between mb-10">
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-2xl bg-brand-gradient shadow-glow flex items-center justify-center text-white">
-              <CalendarRange className="h-6 w-6" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-black tracking-tight uppercase">Institution Calendar</h2>
-              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Upcoming events at {collegeName}</p>
-            </div>
-          </div>
-          
-          <div className="hidden sm:flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/60">
-            <Clock className="h-3 w-3" /> Updated 5m ago
-          </div>
-        </div>
-
-        {filteredEvents.length > 0 ? (
+        {isLoading ? (
+           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+             {[1,2,3,4,5,6].map(i => <div key={i} className="h-64 rounded-3xl bg-white/5 animate-pulse" />)}
+           </div>
+        ) : filteredEvents.length > 0 ? (
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredEvents.map((event, index) => (
-              <div 
-                key={event.id} 
-                className="animate-in slide-in-from-bottom-8 fade-in duration-700 fill-mode-both"
-                style={{ animationDelay: `${index * 150}ms` }}
-              >
-                <EventCard event={event} />
-              </div>
+            {filteredEvents.map((event) => (
+              <EventCard key={event.id} event={event as any} />
             ))}
           </div>
         ) : (
-          <div className="py-20">
-            <EmptyState 
-              onReset={() => { setSearchQuery(""); setActiveCategory("All"); }} 
-              hasSearch={searchQuery !== "" || activeCategory !== "All"} 
-            />
-          </div>
+          <EmptyState onReset={() => { setSearchQuery(""); setActiveCategory("All"); }} hasSearch={searchQuery !== "" || activeCategory !== "All"} />
         )}
       </section>
+    </div>
+  );
 
-      {/* ─── Premium Footer CTA ─── */}
-      {filteredEvents.length > 0 && (
-        <section className="px-6 sm:px-8 mt-20">
-          <div className="max-w-[1400px] mx-auto relative rounded-[3rem] overflow-hidden bg-brand-gradient p-12 lg:p-20 text-white shadow-2xl">
-            <div className="absolute top-0 right-0 h-full w-1/2 bg-white/5 skew-x-[-20deg] translate-x-32" />
-            
-            <div className="relative z-10 max-w-2xl space-y-6">
-              <div className="h-16 w-16 rounded-3xl bg-white/20 backdrop-blur-xl flex items-center justify-center shadow-lg">
-                <Sparkles className="h-8 w-8 text-white" />
-              </div>
-              <h2 className="text-4xl lg:text-6xl font-black tracking-tighter leading-none">
-                Don't Miss Out <br/>On The Action.
-              </h2>
-              <p className="text-lg text-white/80 font-medium leading-relaxed">
-                Stay updated with your institution's latest happenings. Join 50,000+ students from {collegeName} who are already using WeFest to build memories.
-              </p>
-              <div className="flex flex-wrap gap-4 pt-4">
-                <Button size="lg" className="h-14 px-10 rounded-2xl bg-white text-primary font-black uppercase tracking-widest hover:scale-105 transition-transform shadow-xl">
-                  Get Exclusive Invites
-                </Button>
-                <Button variant="ghost" className="h-14 px-8 rounded-2xl border-2 border-white/20 text-white font-black uppercase tracking-widest hover:bg-white/10 transition-all">
-                  Join Campus Network
-                </Button>
-              </div>
-            </div>
+  if (user) {
+    return (
+      <StudentAppLayout user={user} profile={profile}>
+        {PageContent}
+      </StudentAppLayout>
+    );
+  }
 
-            {/* Decorative Floating Elements */}
-            <div className="absolute -bottom-10 -right-10 h-64 w-64 bg-white/10 rounded-full blur-[80px]" />
-          </div>
-        </section>
-      )}
+  return (
+    <div className="bg-background min-h-screen">
+      {/* Basic header for guests */}
+      <header className="px-6 py-4 flex items-center justify-between border-b border-white/5 bg-background/50 backdrop-blur-xl">
+        <Link to="/" className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-lg bg-brand-gradient flex items-center justify-center text-white font-black text-xs">W</div>
+          <span className="font-display font-black tracking-tighter text-lg">WeFest</span>
+        </Link>
+        <div className="flex gap-2">
+          <Button variant="ghost" asChild><Link to="/login">Login</Link></Button>
+          <Button className="bg-brand-gradient text-white" asChild><Link to="/signup">Join Now</Link></Button>
+        </div>
+      </header>
+      {PageContent}
     </div>
   );
 }

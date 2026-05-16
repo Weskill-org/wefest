@@ -106,6 +106,7 @@ function OrganizerEventsList() {
               status={(e.status || "Published") as any}
               ticketsSold={Math.floor((e.attendees || 0) * 0.15)}
               revenue={(e.attendees || 0) * (e.price_from || 0) * 0.15}
+              slug={e.slug}
             />
           ))
         ) : (

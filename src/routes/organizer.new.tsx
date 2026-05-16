@@ -1,6 +1,6 @@
 import React from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -19,10 +19,15 @@ import {
   Plus,
   X,
   Tag,
-  Ticket
+  Ticket,
+  Dices,
+  Link2,
+  Check,
+  AlertCircle
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { generateEventSlug, formatSlug } from "@/lib/event-words";
 
 export const Route = createFileRoute("/organizer/new")({
   head: () => ({ 
@@ -45,6 +50,55 @@ const ALL_TAGS = [
 function NewEvent() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  // ── Slug State ──────────────────────────────────────────────
+  const [slugWord1, setSlugWord1] = useState("");
+  const [slugWord2, setSlugWord2] = useState("");
+  const [slugStatus, setSlugStatus] = useState<"idle" | "checking" | "available" | "taken">("idle");
+  const slugCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Auto-generate on mount
+  useEffect(() => {
+    const initial = generateEventSlug();
+    const [w1, w2] = initial.split(".");
+    setSlugWord1(w1);
+    setSlugWord2(w2);
+  }, []);
+
+  // Debounced uniqueness check
+  const checkSlugUniqueness = useCallback((w1: string, w2: string) => {
+    if (slugCheckTimer.current) clearTimeout(slugCheckTimer.current);
+    if (!w1 || !w2 || w1.length < 2 || w2.length < 2) {
+      setSlugStatus("idle");
+      return;
+    }
+    setSlugStatus("checking");
+    slugCheckTimer.current = setTimeout(async () => {
+      const slug = formatSlug(w1, w2);
+      const { data } = await supabase.from("events").select("id").eq("slug", slug).maybeSingle();
+      setSlugStatus(data ? "taken" : "available");
+    }, 500);
+  }, []);
+
+  const handleSlugWord1 = (val: string) => {
+    const clean = val.toLowerCase().replace(/[^a-z]/g, "");
+    setSlugWord1(clean);
+    checkSlugUniqueness(clean, slugWord2);
+  };
+
+  const handleSlugWord2 = (val: string) => {
+    const clean = val.toLowerCase().replace(/[^a-z]/g, "");
+    setSlugWord2(clean);
+    checkSlugUniqueness(slugWord1, clean);
+  };
+
+  const regenerateSlug = () => {
+    const fresh = generateEventSlug();
+    const [w1, w2] = fresh.split(".");
+    setSlugWord1(w1);
+    setSlugWord2(w2);
+    checkSlugUniqueness(w1, w2);
+  };
 
   const [form, setForm] = useState({ 
     title: "",
@@ -113,6 +167,8 @@ function NewEvent() {
 
       const selectedCollege = colleges?.find(c => c.id === form.college_id);
 
+      const eventSlug = formatSlug(slugWord1, slugWord2);
+
       const { error } = await supabase.from("events").insert({
         title: form.title,
         date: form.date,
@@ -130,7 +186,8 @@ function NewEvent() {
         time: form.time,
         tags: form.tags,
         team_members: form.team_members,
-        pass_settings: form.pass_settings
+        pass_settings: form.pass_settings,
+        slug: eventSlug
       });
 
       if (error) {
@@ -269,6 +326,67 @@ function NewEvent() {
             className="h-11 rounded-xl border-border/50 bg-muted/5 text-base font-medium"
           />
         </Field>
+
+        {/* ── Event Code (Two-Word Slug) ── */}
+        <div className="space-y-3">
+          <Label className="flex items-center gap-2 text-sm font-bold">
+            <Link2 className="h-3.5 w-3.5 text-primary" />
+            Event Code
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            A unique two-word code for your event. Students can find your event by typing these two words. Your public URL will be <span className="font-bold text-foreground">wefest.com/fest/{slugWord1}.{slugWord2}</span>
+          </p>
+          <div className="flex items-center gap-2">
+            <div className="flex-1 flex items-center gap-0 rounded-xl border border-border/50 bg-muted/5 overflow-hidden focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+              <input
+                type="text"
+                value={slugWord1}
+                onChange={(e) => handleSlugWord1(e.target.value)}
+                placeholder="word1"
+                className="flex-1 h-11 px-4 bg-transparent text-base font-bold text-right outline-none placeholder:text-muted-foreground/40"
+                maxLength={20}
+              />
+              <div className="flex items-center justify-center w-8 shrink-0">
+                <span className="text-2xl font-black text-primary animate-pulse">.</span>
+              </div>
+              <input
+                type="text"
+                value={slugWord2}
+                onChange={(e) => handleSlugWord2(e.target.value)}
+                placeholder="word2"
+                className="flex-1 h-11 px-4 bg-transparent text-base font-bold outline-none placeholder:text-muted-foreground/40"
+                maxLength={20}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={regenerateSlug}
+              className="h-11 px-4 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all flex items-center gap-2 shrink-0 font-bold text-sm"
+              title="Generate random code"
+            >
+              <Dices className="h-4 w-4" />
+              Generate
+            </button>
+          </div>
+          {/* Status indicator */}
+          <div className="flex items-center gap-2 h-5">
+            {slugStatus === "checking" && (
+              <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-medium">
+                <Loader2 className="h-3 w-3 animate-spin" /> Checking availability…
+              </span>
+            )}
+            {slugStatus === "available" && (
+              <span className="flex items-center gap-1.5 text-[11px] text-emerald-500 font-bold">
+                <Check className="h-3 w-3" /> {slugWord1}.{slugWord2} is available!
+              </span>
+            )}
+            {slugStatus === "taken" && (
+              <span className="flex items-center gap-1.5 text-[11px] text-red-500 font-bold">
+                <AlertCircle className="h-3 w-3" /> This code is already taken. Try generating a new one.
+              </span>
+            )}
+          </div>
+        </div>
 
         <div className="grid gap-6 sm:grid-cols-2">
           <Field label="Date" icon={Calendar}>

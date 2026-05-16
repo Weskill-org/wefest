@@ -81,7 +81,8 @@ function Home() {
         attendees: e.attendees,
         priceFrom: e.price_from,
         description: e.description,
-        organizer: e.organizer
+        organizer: e.organizer,
+        slug: e.slug
       }));
     }
   });

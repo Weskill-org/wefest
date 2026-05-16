@@ -18,8 +18,21 @@ import {
   CheckCircle2,
   Save,
   AlertTriangle,
-  Camera
+  Camera,
+  Eye,
+  EyeOff,
+  ShieldCheck
 } from "lucide-react";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger,
+  DialogFooter,
+  DialogDescription
+} from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 
 export const Route = createFileRoute("/_student/settings")({
   head: () => ({
@@ -102,6 +115,27 @@ function StudentSettings() {
   const [isPublic, setIsPublic] = useState(true);
   const [isDirty, setIsDirty] = useState(false);
 
+  // Password Change State
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPasswords, setShowPasswords] = useState(false);
+
+  const getPasswordStrength = (pass: string) => {
+    let strength = 0;
+    if (pass.length >= 6) strength += 20;
+    if (pass.length >= 10) strength += 20;
+    if (/[A-Z]/.test(pass)) strength += 20;
+    if (/[0-9]/.test(pass)) strength += 20;
+    if (/[^A-Za-z0-9]/.test(pass)) strength += 20;
+    return strength;
+  };
+
+  const strength = getPasswordStrength(newPassword);
+  const strengthColor = strength <= 40 ? "bg-red-500" : strength <= 80 ? "bg-amber-500" : "bg-emerald-500";
+  const strengthText = strength <= 40 ? "Weak" : strength <= 80 ? "Medium" : "Strong";
+
   useEffect(() => {
     if (profile) {
       setFullName(profile.full_name || user?.user_metadata?.full_name || "");
@@ -137,6 +171,38 @@ function StudentSettings() {
       queryClient.invalidateQueries({ queryKey: ["current-user"] });
       toast.success("Profile updated successfully");
       setIsDirty(false);
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: async () => {
+      if (!user?.email) throw new Error("User email not found");
+      if (newPassword !== confirmPassword) throw new Error("New passwords do not match");
+      if (newPassword.length < 6) throw new Error("Password must be at least 6 characters");
+      if (oldPassword === newPassword) throw new Error("New password must be different from old password");
+
+      // Verify old password
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: oldPassword,
+      });
+
+      if (signInError) throw new Error("Incorrect current password");
+
+      // Update password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (updateError) throw updateError;
+    },
+    onSuccess: () => {
+      toast.success("Password updated successfully");
+      setIsPasswordModalOpen(false);
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -218,23 +284,29 @@ function StudentSettings() {
 
               <div className="space-y-1.5 pt-2">
                 <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">College Affiliation</Label>
-                <Select 
-                  value={collegeId} 
-                  onValueChange={(v) => { setCollegeId(v); setIsDirty(true); }}
-                  disabled={collegeId !== "none" && collegeId !== null}
-                >
-                  <SelectTrigger className="h-12 rounded-xl bg-background/50 border-border/50 font-medium">
-                    <SelectValue placeholder="Select your college" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
-                    <SelectItem value="none">Not affiliated / Other</SelectItem>
-                    {colleges?.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name} {c.city && <span className="text-muted-foreground ml-1">({c.city})</span>}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {collegeId !== "none" && collegeId !== null ? (
+                  <div className="h-12 rounded-xl bg-background/50 border border-border/50 font-medium flex items-center px-4 text-muted-foreground">
+                    <Building2 className="h-4 w-4 mr-2 text-primary" />
+                    {(profile?.colleges as any)?.name || "Linked College"}
+                  </div>
+                ) : (
+                  <Select 
+                    value={collegeId} 
+                    onValueChange={(v) => { setCollegeId(v); setIsDirty(true); }}
+                  >
+                    <SelectTrigger className="h-12 rounded-xl bg-background/50 border-border/50 font-medium">
+                      <SelectValue placeholder="Select your college" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      <SelectItem value="none">Not affiliated / Other</SelectItem>
+                      {colleges?.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.name} {c.city && <span className="text-muted-foreground ml-1">({c.city})</span>}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
                 <p className="text-[10px] text-muted-foreground mt-1">
                   {collegeId !== "none" 
                     ? "Your college affiliation is locked. Contact support to change it." 
@@ -293,9 +365,108 @@ function StudentSettings() {
               </div>
               <div>
                 <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Password</Label>
-                <Button variant="outline" className="w-full mt-1 justify-start font-medium text-xs rounded-lg h-9">
-                  Change Password
-                </Button>
+                <Dialog open={isPasswordModalOpen} onOpenChange={setIsPasswordModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full mt-1 justify-start font-medium text-xs rounded-lg h-9 hover:bg-primary/5 hover:text-primary transition-colors">
+                      <Lock className="h-3 w-3 mr-2" />
+                      Change Password
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[400px] glass-panel border-white/10 bg-zinc-950/90 backdrop-blur-xl p-0 overflow-hidden">
+                    <div className="absolute top-0 right-0 h-32 w-32 bg-primary/10 rounded-full blur-[50px] -mr-16 -mt-16" />
+                    
+                    <DialogHeader className="p-6 pb-0 relative z-10">
+                      <DialogTitle className="text-xl font-black flex items-center gap-2">
+                        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+                          <ShieldCheck className="h-4 w-4" />
+                        </div>
+                        Update Password
+                      </DialogTitle>
+                      <DialogDescription className="text-xs text-muted-foreground mt-1">
+                        Secure your account by choosing a strong, unique password.
+                      </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="p-6 space-y-4 relative z-10">
+                      <div className="space-y-1.5">
+                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Current Password</Label>
+                        <div className="relative">
+                          <Input
+                            type={showPasswords ? "text" : "password"}
+                            value={oldPassword}
+                            onChange={(e) => setOldPassword(e.target.value)}
+                            placeholder="••••••••"
+                            className="h-11 bg-background/50 border-white/5 rounded-xl pr-10 focus:ring-primary/20"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between items-center">
+                          <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">New Password</Label>
+                          {newPassword && (
+                            <span className={`text-[10px] font-bold uppercase tracking-widest ${strengthColor.replace('bg-', 'text-')}`}>
+                              {strengthText}
+                            </span>
+                          )}
+                        </div>
+                        <div className="relative">
+                          <Input
+                            type={showPasswords ? "text" : "password"}
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            placeholder="••••••••"
+                            className="h-11 bg-background/50 border-white/5 rounded-xl pr-10 focus:ring-primary/20"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPasswords(!showPasswords)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white transition-colors"
+                          >
+                            {showPasswords ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                        {newPassword && (
+                          <div className="space-y-1">
+                            <Progress value={strength} className="h-1 bg-white/5" indicatorClassName={strengthColor} />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Confirm New Password</Label>
+                        <Input
+                          type={showPasswords ? "text" : "password"}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="••••••••"
+                          className="h-11 bg-background/50 border-white/5 rounded-xl focus:ring-primary/20"
+                        />
+                      </div>
+                    </div>
+
+                    <DialogFooter className="p-6 bg-white/[0.02] border-t border-white/5 relative z-10">
+                      <Button
+                        variant="ghost"
+                        onClick={() => setIsPasswordModalOpen(false)}
+                        className="rounded-xl font-bold text-xs"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => changePasswordMutation.mutate()}
+                        disabled={changePasswordMutation.isPending || !oldPassword || !newPassword || !confirmPassword}
+                        className="bg-brand-gradient text-white rounded-xl font-bold px-6 shadow-glow"
+                      >
+                        {changePasswordMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          "Update Password"
+                        )}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
           </div>
@@ -307,7 +478,7 @@ function StudentSettings() {
             </div>
             {collegeId !== "none" ? (
               <p className="text-xs text-muted-foreground leading-relaxed">
-                You are currently affiliated with a college. Your fest points contribute to your college's overall ranking in the National Leaderboard.
+                You are currently affiliated with <span className="text-primary font-bold">{(profile?.colleges as any)?.name || "your college"}</span>. Your fest points contribute to your college's overall ranking in the National Leaderboard.
               </p>
             ) : (
               <p className="text-xs text-muted-foreground leading-relaxed">

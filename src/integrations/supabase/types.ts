@@ -745,6 +745,7 @@ export type Database = {
           organizer_user_id: string | null
           pass_settings: Json | null
           price_from: number
+          slug: string
           status: string
           tags: string[] | null
           team_members: Json | null
@@ -772,6 +773,7 @@ export type Database = {
           organizer_user_id?: string | null
           pass_settings?: Json | null
           price_from?: number
+          slug?: string
           status?: string
           tags?: string[] | null
           team_members?: Json | null
@@ -799,6 +801,7 @@ export type Database = {
           organizer_user_id?: string | null
           pass_settings?: Json | null
           price_from?: number
+          slug?: string
           status?: string
           tags?: string[] | null
           team_members?: Json | null

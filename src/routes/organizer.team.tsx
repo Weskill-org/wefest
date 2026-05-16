@@ -1,5 +1,5 @@
 ﻿import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -16,11 +16,16 @@ import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import {
   teamRoleLabel,
-  teamRoleBadge,
   fetchCollegeTeamMembers,
   fetchCollegeTeamInvitations,
   type CollegeTeamMember,
 } from "@/lib/team-invitations";
+import {
+  fetchCollegeJoinRequests,
+  acceptCollegeJoinRequest,
+  declineCollegeJoinRequest,
+  type CollegeJoinRequest,
+} from "@/lib/college-join-requests";
 
 export const Route = createFileRoute("/organizer/team")({ component: TeamManagement });
 
@@ -162,7 +167,7 @@ function InviteDialog({ collegeId, collegeName, onClose }: { collegeId: string; 
 function TeamManagement() {
   const queryClient = useQueryClient();
   const [showInvite, setShowInvite] = useState(false);
-  const [tab, setTab] = useState<"members" | "invitations">("members");
+  const [tab, setTab] = useState<"members" | "invitations" | "requests">("members");
 
   const { data: userData } = useQuery({
     queryKey: ["current-user"],
@@ -238,6 +243,13 @@ function TeamManagement() {
     refetchInterval: 15000,
   });
 
+  const { data: joinRequests } = useQuery({
+    queryKey: ["college-join-requests", collegeData?.collegeId],
+    enabled: !!collegeData?.collegeId,
+    queryFn: () => fetchCollegeJoinRequests(collegeData!.collegeId!),
+    refetchInterval: 15000,
+  });
+
   // Live refresh when a student accepts/declines
   useEffect(() => {
     if (!collegeData?.collegeId) return;
@@ -257,11 +269,37 @@ function TeamManagement() {
           queryClient.invalidateQueries({ queryKey: ["college-invitations", collegeData.collegeId] });
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "college_join_requests", filter: `college_id=eq.${collegeData.collegeId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["college-join-requests", collegeData.collegeId] });
+        }
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
   }, [collegeData?.collegeId, queryClient]);
+
+  const acceptRequestMutation = useMutation({
+    mutationFn: (requestId: string) => acceptCollegeJoinRequest(requestId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["college-join-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["college-team"] });
+      toast.success("Request accepted — member added to your team");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const declineRequestMutation = useMutation({
+    mutationFn: (requestId: string) => declineCollegeJoinRequest(requestId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["college-join-requests"] });
+      toast.success("Request declined");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const cancelInviteMutation = useMutation({
     mutationFn: async (invId: string) => {
@@ -315,6 +353,7 @@ function TeamManagement() {
   const myCollegeName = collegeData?.college?.name || "Your College";
   const activeMembers = teamMembers?.filter((m) => m.is_approved) || [];
   const pendingInvites = invitations?.filter((i: any) => i.status === "pending") || [];
+  const pendingJoinRequests = joinRequests?.filter((r) => r.status === "pending") || [];
 
   return (
     <div className="px-6 py-8 lg:px-10 lg:py-10 max-w-[1100px]">
@@ -332,10 +371,14 @@ function TeamManagement() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
         <div className="rounded-xl border border-border/50 bg-muted/10 p-4">
           <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Active</div>
           <div className="text-2xl font-black mt-1">{activeMembers.length}</div>
+        </div>
+        <div className="rounded-xl border border-violet-500/20 bg-violet-500/5 p-4">
+          <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Incoming</div>
+          <div className="text-2xl font-black text-violet-500 mt-1">{pendingJoinRequests.length}</div>
         </div>
         <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
           <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Pending Invites</div>
@@ -349,9 +392,10 @@ function TeamManagement() {
 
       {/* Tabs */}
       <div className="flex items-center gap-1 mb-6 bg-muted/10 rounded-xl p-1 w-fit">
-        {(["members", "invitations"] as const).map((t) => (
+        {(["members", "requests", "invitations"] as const).map((t) => (
           <button
             key={t}
+            type="button"
             onClick={() => setTab(t)}
             className={cn(
               "px-4 py-2 rounded-lg text-xs font-bold transition-all capitalize flex items-center gap-2",
@@ -361,7 +405,10 @@ function TeamManagement() {
             {t === "invitations" && pendingInvites.length > 0 && (
               <span className="h-4 w-4 rounded-full bg-amber-500 text-white text-[9px] font-black flex items-center justify-center">{pendingInvites.length}</span>
             )}
-            {t === "members" ? "Active Members" : "Invitations"}
+            {t === "requests" && pendingJoinRequests.length > 0 && (
+              <span className="h-4 w-4 rounded-full bg-violet-500 text-white text-[9px] font-black flex items-center justify-center">{pendingJoinRequests.length}</span>
+            )}
+            {t === "members" ? "Active Members" : t === "requests" ? "Incoming Requests" : "Invitations"}
           </button>
         ))}
       </div>
@@ -419,6 +466,34 @@ function TeamManagement() {
               <RoleDetail icon={Users} title="Member" color="text-muted-foreground" desc="View-only dashboard access." />
             </div>
           </div>
+        </div>
+      )}
+
+      {tab === "requests" && (
+        <div className="space-y-2">
+          {!joinRequests?.filter((r) => r.status === "pending").length ? (
+            <div className="rounded-2xl border-2 border-dashed border-border/50 p-16 text-center">
+              <Users className="h-10 w-10 text-muted-foreground/30 mx-auto mb-4" />
+              <p className="text-sm font-bold text-muted-foreground">No incoming requests</p>
+              <p className="text-xs text-muted-foreground mt-1">Students can request to join from the Committees page.</p>
+            </div>
+          ) : (
+            joinRequests!
+              .filter((r) => r.status === "pending")
+              .map((req: CollegeJoinRequest) => (
+                <JoinRequestCard
+                  key={req.id}
+                  request={req}
+                  isAdmin={!!isAdmin}
+                  onAccept={() => acceptRequestMutation.mutate(req.id)}
+                  onDecline={() => {
+                    if (confirm(`Decline ${req.student_name}'s request?`)) declineRequestMutation.mutate(req.id);
+                  }}
+                  acceptPending={acceptRequestMutation.isPending}
+                  declinePending={declineRequestMutation.isPending}
+                />
+              ))
+          )}
         </div>
       )}
 
@@ -481,6 +556,28 @@ function TeamManagement() {
   );
 }
 
+function TeamMemberField({
+  label,
+  children,
+  className,
+}: {
+  label: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn("flex flex-col gap-1.5 min-w-0", className)}>
+      <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground leading-none">
+        {label}
+      </Label>
+      {children}
+    </div>
+  );
+}
+
+const memberControlClass =
+  "h-9 w-full rounded-lg border border-border/50 bg-muted/20 text-xs font-medium text-foreground shadow-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary/50";
+
 function TeamMemberCard({
   member,
   isYou,
@@ -496,11 +593,18 @@ function TeamMemberCard({
 }) {
   const displayName = member.full_name || member.email?.split("@")[0] || "Team Member";
   const email = member.email?.trim();
-  const assignedLabel = teamRoleLabel(member.role, member.position);
+  const showAdminControls = isAdmin && !isYou;
+  const roleSummary = teamRoleLabel(member.role, member.position);
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-border/50 bg-muted/5 hover:bg-muted/10 transition-colors">
-      <div className="flex items-start gap-3 min-w-0 flex-1">
+    <div className="rounded-xl border border-border/50 bg-muted/[0.03] hover:bg-muted/10 transition-colors">
+      <div
+        className={cn(
+          "flex flex-col gap-4 p-4 sm:p-5",
+          showAdminControls && "lg:flex-row lg:items-center lg:gap-8"
+        )}
+      >
+      <div className="flex items-center gap-3 min-w-0 flex-1">
         <div className="relative shrink-0">
           <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center text-sm font-black text-primary">
             {displayName.charAt(0).toUpperCase()}
@@ -519,6 +623,7 @@ function TeamMemberCard({
                 You
               </Badge>
             )}
+            {!showAdminControls && <RoleBadge role={member.role} />}
           </div>
           {email ? (
             <a href={`mailto:${email}`} className="text-xs text-muted-foreground hover:text-primary truncate block">
@@ -527,30 +632,20 @@ function TeamMemberCard({
           ) : (
             <span className="text-xs text-muted-foreground/60 italic">Email not on file</span>
           )}
-          <div className="flex flex-wrap items-center gap-2 pt-0.5">
-            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Assigned role</span>
-            <RoleBadge role={member.role} />
-            {member.position && member.position !== teamRoleBadge(member.role) && (
-              <span className="text-[10px] font-bold text-primary px-1.5 py-0.5 bg-primary/5 rounded-md border border-primary/10">
-                {member.position}
-              </span>
-            )}
-          </div>
           <p className="text-[10px] text-muted-foreground">
-            {assignedLabel}
+            {roleSummary}
             <span className="mx-1.5">·</span>
             Joined {formatDistanceToNow(new Date(member.created_at), { addSuffix: true })}
           </p>
         </div>
       </div>
 
-      {isAdmin && !isYou && (
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0 border-t sm:border-t-0 border-border/30 pt-3 sm:pt-0">
-          <div className="space-y-1">
-            <Label className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Position title</Label>
+      {showAdminControls && (
+        <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_140px_auto] gap-3 sm:gap-4 items-end shrink-0 border-t border-border/30 pt-4 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6 lg:min-w-[min(100%,420px)]">
+          <TeamMemberField label="Position title" className="sm:min-w-[180px] lg:min-w-[200px]">
             <Input
-              placeholder="e.g. Head of Marketing"
-              className="h-8 w-full sm:w-36 text-[10px] font-medium bg-muted/20 border-border/40"
+              placeholder="Head of Marketing"
+              className={memberControlClass}
               defaultValue={member.position || ""}
               onBlur={(e) => {
                 if (e.target.value !== (member.position || "")) onUpdate({ position: e.target.value });
@@ -559,11 +654,10 @@ function TeamMemberCard({
                 if (e.key === "Enter") (e.target as HTMLInputElement).blur();
               }}
             />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Role</Label>
+          </TeamMemberField>
+          <TeamMemberField label="Role">
             <select
-              className="w-full sm:w-auto bg-muted/30 border border-border/50 rounded-lg text-[10px] font-bold px-2 py-1.5 h-8 focus:ring-1 ring-primary"
+              className={cn(memberControlClass, "cursor-pointer")}
               value={member.role}
               onChange={(e) => onUpdate({ role: e.target.value })}
             >
@@ -572,11 +666,12 @@ function TeamMemberCard({
               <option value="ticket_poc">Ticket POC</option>
               <option value="admin">Admin</option>
             </select>
-          </div>
+          </TeamMemberField>
           <Button
-            size="sm"
+            type="button"
+            size="icon"
             variant="ghost"
-            className="text-muted-foreground hover:text-destructive rounded-lg h-8 w-8 p-0 self-end sm:self-center"
+            className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 justify-self-end sm:justify-self-auto"
             onClick={onRemove}
             title="Remove from team"
           >
@@ -584,6 +679,7 @@ function TeamMemberCard({
           </Button>
         </div>
       )}
+      </div>
     </div>
   );
 }
@@ -609,6 +705,75 @@ function RoleDetail({ icon: Icon, title, color, desc }: { icon: any; title: stri
         <div className="text-xs font-bold">{title}</div>
         <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">{desc}</p>
       </div>
+    </div>
+  );
+}
+
+function JoinRequestCard({
+  request,
+  isAdmin,
+  onAccept,
+  onDecline,
+  acceptPending,
+  declinePending,
+}: {
+  request: CollegeJoinRequest;
+  isAdmin: boolean;
+  onAccept: () => void;
+  onDecline: () => void;
+  acceptPending: boolean;
+  declinePending: boolean;
+}) {
+  return (
+    <div className="rounded-xl border border-violet-500/20 bg-violet-500/5 p-4">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <JoinRequestCardBody request={request} />
+        {isAdmin && (
+          <div className="flex gap-2 shrink-0">
+            <Button
+              size="sm"
+              className="h-9 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs gap-1.5"
+              onClick={onAccept}
+              disabled={acceptPending || declinePending}
+            >
+              {acceptPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <><CheckCircle2 className="h-3 w-3" /> Accept</>}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-9 rounded-lg border-red-500/30 text-red-400 hover:bg-red-500/10 font-bold text-xs"
+              onClick={onDecline}
+              disabled={acceptPending || declinePending}
+            >
+              <XCircle className="h-3 w-3 mr-1" /> Decline
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function JoinRequestCardBody({ request }: { request: CollegeJoinRequest }) {
+  return (
+    <div className="min-w-0 flex-1">
+      <div className="flex items-center gap-3">
+        <div className="h-10 w-10 rounded-xl bg-violet-500/10 flex items-center justify-center text-sm font-black text-violet-400 shrink-0">
+          {request.student_name.charAt(0).toUpperCase()}
+        </div>
+        <div className="min-w-0">
+          <p className="font-bold text-sm">{request.student_name}</p>
+          {request.student_email && (
+            <p className="text-[10px] text-muted-foreground truncate">{request.student_email}</p>
+          )}
+          <p className="text-[10px] text-muted-foreground/50 mt-0.5">
+            {formatDistanceToNow(new Date(request.created_at), { addSuffix: true })}
+          </p>
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground mt-3 leading-relaxed border-l-2 border-violet-500/30 pl-3 italic">
+        &ldquo;{request.pitch}&rdquo;
+      </p>
     </div>
   );
 }
