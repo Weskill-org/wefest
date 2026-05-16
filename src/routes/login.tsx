@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { getAuthSession, getDashboardRedirect } from "@/lib/auth";
+import { processReferralAfterLogin } from "@/lib/referral";
+import { REFERRAL_REWARD_COINS } from "@/lib/wallet.functions";
 
 type LoginSearch = {
   redirect?: string;
@@ -75,6 +77,19 @@ function Login() {
     if (!session) {
       toast.error("Failed to retrieve user session");
       return;
+    }
+
+    if (session.role === "student" && session.user?.id) {
+      try {
+        const referral = await processReferralAfterLogin(session.user);
+        if (referral.processed) {
+          toast.success(
+            `Referral bonus! ${(referral.rewardCoins ?? REFERRAL_REWARD_COINS).toLocaleString()} WeCoins added to your wallet.`
+          );
+        }
+      } catch (refErr) {
+        console.error("Referral processing on login:", refErr);
+      }
     }
 
     toast.success("Welcome back");

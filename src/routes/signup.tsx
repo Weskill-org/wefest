@@ -4,7 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { GraduationCap, Building2, Briefcase, ArrowLeft, Loader2 } from "lucide-react";
+import { GraduationCap, Building2, Briefcase, ArrowLeft, Loader2, Gift } from "lucide-react";
+import { REFERRAL_REWARD_COINS } from "@/lib/wallet.functions";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -13,12 +14,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 type SignupSearch = {
   redirect?: string;
+  ref?: string;
 };
 
 export const Route = createFileRoute("/signup")({
   validateSearch: (search: Record<string, unknown>): SignupSearch => {
     return {
       redirect: search.redirect as string | undefined,
+      ref: typeof search.ref === "string" ? search.ref : undefined,
     };
   },
   head: () => ({ meta: [{ title: "Sign up — WeFest" }, { name: "description", content: "Create your WeFest account as a Student, College, or Company." }] }),
@@ -51,7 +54,12 @@ function Signup() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [collegeId, setCollegeId] = useState("");
+  const referralFromLink = search.ref?.trim().toUpperCase() ?? "";
+  const isReferralLocked = referralFromLink.length > 0;
+  const [referralCode, setReferralCode] = useState(() => referralFromLink);
   const [loading, setLoading] = useState(false);
+
+  const effectiveReferralCode = isReferralLocked ? referralFromLink : referralCode.trim().toUpperCase();
 
   const { data: colleges } = useQuery({
     queryKey: ["colleges-signup"],
@@ -72,12 +80,17 @@ function Signup() {
     const redirectUrl = search.redirect 
       ? (search.redirect.startsWith('http') ? search.redirect : `${window.location.origin}${search.redirect}`)
       : `${window.location.origin}/`;
+    const signupData: Record<string, string> = { full_name: name, role };
+    if (role === "student" && collegeId) signupData.college_id = collegeId;
+    if (role === "student" && effectiveReferralCode) {
+      signupData.referral_code = effectiveReferralCode;
+    }
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl,
-        data: { full_name: name, role, college_id: collegeId },
+        data: signupData,
       },
     });
     setLoading(false);
@@ -100,7 +113,13 @@ function Signup() {
       email,
       options: {
         emailRedirectTo: redirectUrl,
-        data: { full_name: name, role },
+        data: {
+          full_name: name,
+          role,
+          ...(role === "student" && effectiveReferralCode
+            ? { referral_code: effectiveReferralCode }
+            : {}),
+        },
       },
     });
     setLoading(false);
@@ -197,6 +216,38 @@ function Signup() {
                 className="h-11 rounded-xl bg-white/[0.03] border-white/10"
               />
             </div>
+            {role === "student" && (
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  {isReferralLocked ? "Referral code" : "Referral Code (optional)"}
+                </Label>
+                <Input
+                  value={isReferralLocked ? referralFromLink : referralCode}
+                  onChange={
+                    isReferralLocked
+                      ? undefined
+                      : (e) => setReferralCode(e.target.value.toUpperCase())
+                  }
+                  readOnly={isReferralLocked}
+                  placeholder="WF-XXXXXX"
+                  className={cn(
+                    "h-11 rounded-xl bg-white/[0.03] border-white/10 uppercase tracking-wider",
+                    isReferralLocked && "cursor-default opacity-90 bg-white/[0.06]"
+                  )}
+                />
+                {isReferralLocked && (
+                  <p className="text-xs text-muted-foreground">
+                    This code was applied from your invite link and cannot be changed.
+                  </p>
+                )}
+                {effectiveReferralCode && (
+                  <p className="text-xs text-emerald-500/90 flex items-center gap-1.5 font-medium">
+                    <Gift className="h-3.5 w-3.5 shrink-0" />
+                    You&apos;ll both earn {REFERRAL_REWARD_COINS.toLocaleString()} WeCoins!
+                  </p>
+                )}
+              </div>
+            )}
             {role === "student" && (
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Your College</Label>

@@ -347,3 +347,186 @@ export const getAllGiftCards = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return data ?? [];
   });
+
+export const REFERRAL_REWARD_COINS = 150;
+
+const applyReferralCodeInput = z.object({
+  referralCode: z.string().min(4).max(20),
+});
+/** Apply a referral code for the current user (e.g. after signup). */
+export const applyReferralCode = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => applyReferralCodeInput.parse(d))
+  .handler(async ({ context, data }) => {
+    const { userId } = context;
+    const code = data.referralCode.trim().toUpperCase();
+    const { data: result, error } = await supabaseAdmin.rpc("process_referral", {
+      _referred_user_id: userId,
+      _referral_code: code,
+    });
+    if (error) {
+      if (error.message?.includes("SELF_REFERRAL")) {
+        throw new Error("You cannot use your own referral code");
+      }
+      if (error.message?.includes("ALREADY_REFERRED")) {
+        throw new Error("You have already used a referral code");
+      }
+      if (error.message?.includes("INVALID_REFERRAL")) {
+        throw new Error("Invalid referral code");
+      }
+      throw new Error(error.message);
+    }
+    const payload = result as { success?: boolean; reward_coins?: number };
+    return {
+      success: !!payload?.success,
+      rewardCoins: Number(payload?.reward_coins ?? REFERRAL_REWARD_COINS),
+    };
+  });
+
+const processPendingReferralInput = z.object({
+  referralCode: z.string().min(4).max(20).optional(),
+});
+
+/** Process referral from signup metadata on first student login (server-side). */
+export const processPendingReferral = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => processPendingReferralInput.parse(d ?? {}))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+
+    let code = data.referralCode?.trim().toUpperCase();
+    if (!code) {
+      const { data: authUser, error: adminErr } = await supabaseAdmin.auth.admin.getUserById(userId);
+      if (!adminErr && authUser?.user) {
+        const meta = authUser.user.user_metadata?.referral_code;
+        if (typeof meta === "string" && meta.trim()) code = meta.trim().toUpperCase();
+      }
+    }
+    if (!code) {
+      const { data: userData } = await supabase.auth.getUser();
+      const meta = userData?.user?.user_metadata?.referral_code;
+      if (typeof meta === "string" && meta.trim()) code = meta.trim().toUpperCase();
+    }
+    if (!code) return { processed: false as const, reason: "no_code" as const };
+
+    const { data: profile } = await supabase
+      .from("student_profiles")
+      .select("referred_by")
+      .eq("id", userId)
+      .maybeSingle();
+    if (profile?.referred_by) return { processed: false as const, reason: "already_referred" as const };
+
+    const { data: result, error } = await supabaseAdmin.rpc("process_referral", {
+      _referred_user_id: userId,
+      _referral_code: code,
+    });
+    if (error) {
+      if (
+        error.message?.includes("ALREADY_REFERRED") ||
+        error.message?.includes("SELF_REFERRAL") ||
+        error.message?.includes("INVALID_REFERRAL")
+      ) {
+        return { processed: false as const, reason: error.message };
+      }
+      throw new Error(error.message);
+    }
+    const payload = result as { success?: boolean; reward_coins?: number };
+    return {
+      processed: !!payload?.success,
+      rewardCoins: Number(payload?.reward_coins ?? REFERRAL_REWARD_COINS),
+    };
+  });
+
+/** Referral code, stats, and history for the current student. */
+export const getMyReferralInfo = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+
+    const { data: profile, error: profileErr } = await supabase
+      .from("student_profiles")
+      .select("referral_code, referred_by")
+      .eq("id", userId)
+      .maybeSingle();
+    if (profileErr) {
+      if (profileErr.message?.includes("referral_code")) {
+        throw new Error(
+          "Referral system is not set up yet. Apply the latest Supabase migrations (referral_system)."
+        );
+      }
+      throw new Error(profileErr.message);
+    }
+
+    if (!profile) {
+      throw new Error("Student profile not found. Try refreshing or signing in again.");
+    }
+
+    let referralCode = profile.referral_code?.trim() || null;
+    if (!referralCode) {
+      const { data: ensured, error: ensureErr } = await supabaseAdmin.rpc(
+        "ensure_student_referral_code",
+        { _user_id: userId }
+      );
+      if (ensureErr) {
+        if (ensureErr.message?.includes("ensure_student_referral_code")) {
+          throw new Error(
+            "Referral system is not set up yet. Apply the latest Supabase migrations (ensure_referral_code)."
+          );
+        }
+        throw new Error(ensureErr.message);
+      }
+      referralCode = typeof ensured === "string" ? ensured : null;
+    }
+
+    let referrals: Array<{
+      id: string;
+      referred_id: string;
+      referral_code: string;
+      reward_coins: number;
+      status: string;
+      created_at: string;
+    }> = [];
+
+    const { data: referralRows, error: refErr } = await supabase
+      .from("referrals")
+      .select("id, referred_id, referral_code, reward_coins, status, created_at")
+      .eq("referrer_id", userId)
+      .order("created_at", { ascending: false });
+
+    if (!refErr) {
+      referrals = referralRows ?? [];
+    } else if (!refErr.message?.includes("referrals")) {
+      throw new Error(refErr.message);
+    }
+
+    const credited = referrals.filter((r) => r.status === "credited");
+    const totalCoinsEarned = credited.reduce((sum, r) => sum + Number(r.reward_coins ?? 0), 0);
+
+    const referredIds = credited.map((r) => r.referred_id);
+    let referredNames: Record<string, string> = {};
+    if (referredIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("student_profiles")
+        .select("id, full_name")
+        .in("id", referredIds);
+      referredNames = Object.fromEntries(
+        (profiles ?? []).map((p) => [p.id, p.full_name || "Student"])
+      );
+    }
+
+    return {
+      referralCode,
+      referredBy: profile.referred_by ?? null,
+      totalReferrals: credited.length,
+      totalCoinsEarned,
+      referrals: referrals.map((r) => ({
+        id: r.id,
+        referredId: r.referred_id,
+        referredName: referredNames[r.referred_id] ?? "Student",
+        referralCode: r.referral_code,
+        rewardCoins: Number(r.reward_coins ?? REFERRAL_REWARD_COINS),
+        status: r.status,
+        createdAt: r.created_at,
+      })),
+    };
+  });

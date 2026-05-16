@@ -18,6 +18,7 @@ const TYPE_LABEL: Record<string, string> = {
   withdrawal_hold: "Withdrawal pending",
   withdrawal_release: "Withdrawal cancelled",
   admin_adjustment: "Adjustment",
+  referral: "Referral Reward",
 };
 
 export function WalletPanel({ showTopup = true }: { showTopup?: boolean }) {

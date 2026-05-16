@@ -1332,6 +1332,36 @@ export type Database = {
           },
         ]
       }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          referral_code: string
+          referred_id: string
+          referrer_id: string
+          reward_coins: number
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referral_code: string
+          referred_id: string
+          referrer_id: string
+          reward_coins?: number
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referred_id?: string
+          referrer_id?: string
+          reward_coins?: number
+          status?: string
+        }
+        Relationships: []
+      }
       student_profiles: {
         Row: {
           avatar_url: string | null
@@ -1342,6 +1372,8 @@ export type Database = {
           id: string
           interests: string[] | null
           is_public: boolean | null
+          referral_code: string | null
+          referred_by: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -1352,6 +1384,8 @@ export type Database = {
           id: string
           interests?: string[] | null
           is_public?: boolean | null
+          referral_code?: string | null
+          referred_by?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -1362,6 +1396,8 @@ export type Database = {
           id?: string
           interests?: string[] | null
           is_public?: boolean | null
+          referral_code?: string | null
+          referred_by?: string | null
         }
         Relationships: [
           {
@@ -1968,6 +2004,17 @@ export type Database = {
         }
         Returns: Json
       }
+      process_referral: {
+        Args: {
+          _referred_user_id: string
+          _referral_code: string
+        }
+        Returns: Json
+      }
+      ensure_student_referral_code: {
+        Args: { _user_id: string }
+        Returns: string
+      }
     }
     Enums: {
       admin_rank: "Moderator" | "Organizer" | "Admin" | "Superadmin"
@@ -1986,6 +2033,7 @@ export type Database = {
         | "withdrawal_hold"
         | "withdrawal_release"
         | "admin_adjustment"
+        | "referral"
       withdrawal_status: "pending" | "approved" | "rejected" | "processed"
     }
     CompositeTypes: {
@@ -2130,6 +2178,7 @@ export const Constants = {
         "withdrawal_hold",
         "withdrawal_release",
         "admin_adjustment",
+        "referral",
       ],
       withdrawal_status: ["pending", "approved", "rejected", "processed"],
     },

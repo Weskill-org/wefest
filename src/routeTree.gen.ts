@@ -67,6 +67,7 @@ import { Route as StudentTicketsRouteImport } from './routes/_student.tickets'
 import { Route as StudentSocialRouteImport } from './routes/_student.social'
 import { Route as StudentShopRouteImport } from './routes/_student.shop'
 import { Route as StudentSettingsRouteImport } from './routes/_student.settings'
+import { Route as StudentReferralsRouteImport } from './routes/_student.referrals'
 import { Route as StudentOrdersRouteImport } from './routes/_student.orders'
 import { Route as StudentMemoriesRouteImport } from './routes/_student.memories'
 import { Route as StudentDashboardRouteImport } from './routes/_student.dashboard'
@@ -368,6 +369,11 @@ const StudentSettingsRoute = StudentSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => StudentRoute,
 } as any)
+const StudentReferralsRoute = StudentReferralsRouteImport.update({
+  id: '/referrals',
+  path: '/referrals',
+  getParentRoute: () => StudentRoute,
+} as any)
 const StudentOrdersRoute = StudentOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
@@ -448,6 +454,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof StudentDashboardRoute
   '/memories': typeof StudentMemoriesRoute
   '/orders': typeof StudentOrdersRoute
+  '/referrals': typeof StudentReferralsRoute
   '/settings': typeof StudentSettingsRoute
   '/shop': typeof StudentShopRoute
   '/social': typeof StudentSocialRoute
@@ -512,6 +519,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof StudentDashboardRoute
   '/memories': typeof StudentMemoriesRoute
   '/orders': typeof StudentOrdersRoute
+  '/referrals': typeof StudentReferralsRoute
   '/settings': typeof StudentSettingsRoute
   '/shop': typeof StudentShopRoute
   '/social': typeof StudentSocialRoute
@@ -584,6 +592,7 @@ export interface FileRoutesById {
   '/_student/dashboard': typeof StudentDashboardRoute
   '/_student/memories': typeof StudentMemoriesRoute
   '/_student/orders': typeof StudentOrdersRoute
+  '/_student/referrals': typeof StudentReferralsRoute
   '/_student/settings': typeof StudentSettingsRoute
   '/_student/shop': typeof StudentShopRoute
   '/_student/social': typeof StudentSocialRoute
@@ -656,6 +665,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/memories'
     | '/orders'
+    | '/referrals'
     | '/settings'
     | '/shop'
     | '/social'
@@ -720,6 +730,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/memories'
     | '/orders'
+    | '/referrals'
     | '/settings'
     | '/shop'
     | '/social'
@@ -791,6 +802,7 @@ export interface FileRouteTypes {
     | '/_student/dashboard'
     | '/_student/memories'
     | '/_student/orders'
+    | '/_student/referrals'
     | '/_student/settings'
     | '/_student/shop'
     | '/_student/social'
@@ -1270,6 +1282,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudentSettingsRouteImport
       parentRoute: typeof StudentRoute
     }
+    '/_student/referrals': {
+      id: '/_student/referrals'
+      path: '/referrals'
+      fullPath: '/referrals'
+      preLoaderRoute: typeof StudentReferralsRouteImport
+      parentRoute: typeof StudentRoute
+    }
     '/_student/orders': {
       id: '/_student/orders'
       path: '/orders'
@@ -1357,6 +1376,7 @@ interface StudentRouteChildren {
   StudentDashboardRoute: typeof StudentDashboardRoute
   StudentMemoriesRoute: typeof StudentMemoriesRoute
   StudentOrdersRoute: typeof StudentOrdersRoute
+  StudentReferralsRoute: typeof StudentReferralsRoute
   StudentSettingsRoute: typeof StudentSettingsRoute
   StudentShopRoute: typeof StudentShopRoute
   StudentSocialRoute: typeof StudentSocialRoute
@@ -1373,6 +1393,7 @@ const StudentRouteChildren: StudentRouteChildren = {
   StudentDashboardRoute: StudentDashboardRoute,
   StudentMemoriesRoute: StudentMemoriesRoute,
   StudentOrdersRoute: StudentOrdersRoute,
+  StudentReferralsRoute: StudentReferralsRoute,
   StudentSettingsRoute: StudentSettingsRoute,
   StudentShopRoute: StudentShopRoute,
   StudentSocialRoute: StudentSocialRoute,
