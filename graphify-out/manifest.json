@@ -44,8 +44,8 @@
     "hash": "d93c2ca8e7d85cf5e8516a76268026d5"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\event-card.tsx": {
-    "mtime": 1778944083.3744223,
-    "hash": "7d4a1e2dff1f633527e835675e1958e0"
+    "mtime": 1778980649.7820764,
+    "hash": "7b1251179dbe8c4f098c9f69c735d511"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\product-card.tsx": {
     "mtime": 1778760014.773242,
@@ -508,8 +508,8 @@
     "hash": "d0068f764be6cf04da9a2590c5ef0f01"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\fest.$slug.tsx": {
-    "mtime": 1778944063.38609,
-    "hash": "ef46d22f769932f0a2b25a6f46db07be"
+    "mtime": 1778980098.3576548,
+    "hash": "33710dde5d77d1c15b5e7fc08198b0d2"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\fest.index.tsx": {
     "mtime": 1778944024.2457461,
@@ -532,8 +532,8 @@
     "hash": "8065ccd5cd983ab2fc14b974bcd45675"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.events.$eventId.edit.tsx": {
-    "mtime": 1778942448.605404,
-    "hash": "22dd05fb40cfd4ad336a82a8965e37b4"
+    "mtime": 1778980737.16776,
+    "hash": "f6976ac47071ca14885265208c2bf9da"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.events.$eventId.tsx": {
     "mtime": 1778939979.4210503,
@@ -548,8 +548,8 @@
     "hash": "8a00b09729eaa8f6783f1b6f1738883c"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.new.tsx": {
-    "mtime": 1778939912.9679909,
-    "hash": "6fe7c11222ed0df05a42332e4d724ffb"
+    "mtime": 1778980705.146842,
+    "hash": "c471116cae4fe694a37b6e27ddede30f"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.scan.tsx": {
     "mtime": 1778917153.8245378,
@@ -664,8 +664,8 @@
     "hash": "5ef22ee6ba5b5ffc10549e84aa087151"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\_student.tsx": {
-    "mtime": 1778944077.6350138,
-    "hash": "077d8741ad69039134a5b23bc6d03b28"
+    "mtime": 1778944182.5532339,
+    "hash": "489b8a6684ea61c3b2d6595f777c7bff"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\_student.wallet.tsx": {
     "mtime": 1778916983.0406096,
