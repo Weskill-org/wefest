@@ -16,18 +16,58 @@ function StudentActivityPage() {
   const { data: sponsors } = useQuery({
     queryKey: ["active-sponsors-pulse", profile?.college_id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // 1. Fetch accepted proposals (optionally filtered by college if we join events)
+      const query = supabase
         .from("sponsorship_proposals")
         .select(`
           *,
-          company_users!inner (
-            full_name
+          events!inner (
+            college_id
           )
         `)
-        .eq("status", "accepted")
-        .limit(6);
-      if (error) throw error;
-      return data;
+        .eq("status", "accepted");
+
+      if (profile?.college_id) {
+        query.eq("events.college_id", profile.college_id);
+      }
+
+      const { data: proposals, error } = await query.limit(6);
+        
+      if (error) {
+        console.error("Error fetching sponsorships:", error);
+        throw error;
+      }
+      
+      if (!proposals || proposals.length === 0) return [];
+
+      // 2. Extract unique company user IDs
+      const companyIds = [...new Set(proposals.map(p => p.company_user_id).filter(Boolean))];
+      
+      if (companyIds.length === 0) {
+        return proposals.map(p => ({ ...p, company_users: null }));
+      }
+
+      // 3. Fetch company names from company_profiles
+      const { data: profilesData, error: profilesError } = await supabase
+        .from("company_profiles")
+        .select("user_id, company_name")
+        .in("user_id", companyIds);
+
+      if (profilesError) {
+        console.error("Error fetching company profiles:", profilesError);
+        return proposals.map(p => ({ ...p, company_users: null }));
+      }
+
+      // 4. Map them back to the proposals so the UI can render `company_users.full_name`
+      return proposals.map(proposal => {
+        const profile = profilesData?.find(p => p.user_id === proposal.company_user_id);
+        return {
+          ...proposal,
+          company_users: {
+            full_name: profile?.company_name || "Official Sponsor"
+          }
+        };
+      });
     }
   });
 
