@@ -52,11 +52,12 @@ function CompanyScan() {
 
   const scanMutation = useMutation({
     mutationFn: async ({ ticketCode, eventId }: { ticketCode: string; eventId: string }) => {
+      const cleanCode = ticketCode.trim().toUpperCase();
       const { data: ticket, error: ticketError } = await supabase
         .from("tickets")
         .select("*")
-        .eq("code", ticketCode)
-        .single();
+        .eq("code", cleanCode)
+        .maybeSingle();
 
       if (ticketError || !ticket) throw new Error("Invalid ticket code");
 
@@ -68,17 +69,20 @@ function CompanyScan() {
           student_user_id: ticket.user_id,
         });
 
-      if (visitError) throw visitError;
-      return ticketCode;
+      if (visitError) {
+        if (visitError.code === "23505") throw new Error("Student already logged for this event");
+        throw visitError;
+      }
+      return cleanCode;
     },
     onSuccess: (ticketCode) => {
       toast.success("Visit logged successfully!");
       setLog((l) => [{ code: ticketCode, ok: true, t: new Date().toLocaleTimeString() }, ...l]);
       setCode("");
     },
-    onError: (error: any) => {
+    onError: (error: any, variables) => {
       toast.error(error.message || "Failed to log visit");
-      setLog((l) => [{ code, ok: false, t: new Date().toLocaleTimeString(), error: error.message }, ...l]);
+      setLog((l) => [{ code: variables.ticketCode, ok: false, t: new Date().toLocaleTimeString(), error: error.message }, ...l]);
     }
   });
 
@@ -88,8 +92,8 @@ function CompanyScan() {
       toast.error("Please select an event first");
       return;
     }
-    if (!code) return;
-    scanMutation.mutate({ ticketCode: code, eventId: selectedEventId });
+    if (!code.trim()) return;
+    scanMutation.mutate({ ticketCode: code.trim().toUpperCase(), eventId: selectedEventId });
   };
 
   const successCount = log.filter(l => l.ok).length;

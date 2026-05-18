@@ -333,7 +333,7 @@ function AlertsPage() {
                         className="h-8 rounded-lg border-amber-500/30 text-amber-400 font-bold text-xs"
                         asChild
                       >
-                        <Link to="/organizer/team" onClick={() => markReadMutation.mutate(n.id)}>
+                        <Link to="/organizer" onClick={() => markReadMutation.mutate(n.id)}>
                           Open Team Tools
                         </Link>
                       </Button>

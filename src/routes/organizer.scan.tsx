@@ -52,7 +52,7 @@ function Scan() {
 
   const scan = useMutation({
     mutationFn: async ({ ticketCode, evId }: { ticketCode: string; evId: string }) => {
-      const trimmedCode = ticketCode.trim();
+      const trimmedCode = ticketCode.trim().toUpperCase();
       const { data: ticket, error } = await supabase
         .from("tickets")
         .select("id, event_id, scanned_at, tier")
@@ -88,7 +88,7 @@ function Scan() {
     e?.preventDefault();
     if (!eventId) return toast.error("Please select an event first");
     if (!code.trim()) return;
-    scan.mutate({ ticketCode: code, evId: eventId });
+    scan.mutate({ ticketCode: code.trim().toUpperCase(), evId: eventId });
   };
 
   const handleScanSuccess = (decodedText: string) => {
@@ -100,8 +100,9 @@ function Scan() {
     }
     
     // We update state and mutate immediately
-    setCode(finalCode);
-    scan.mutate({ ticketCode: finalCode, evId: eventId });
+    const cleanCode = finalCode.trim().toUpperCase();
+    setCode(cleanCode);
+    scan.mutate({ ticketCode: cleanCode, evId: eventId });
   };
 
   const scannedCount = log.filter(l => l.ok).length;

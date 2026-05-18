@@ -38,7 +38,7 @@ function SponsorScan() {
 
   const scanMutation = useMutation({
     mutationFn: async ({ ticketCode, eventId }: { ticketCode: string; eventId: string }) => {
-      const trimmedCode = ticketCode.trim();
+      const trimmedCode = ticketCode.trim().toUpperCase();
       // 1. Verify ticket exists
       const { data: ticket, error: ticketError } = await supabase
         .from("tickets")
@@ -81,8 +81,8 @@ function SponsorScan() {
       toast.error("Please select an event first");
       return;
     }
-    if (!code) return;
-    scanMutation.mutate({ ticketCode: code, eventId: selectedEventId });
+    if (!code.trim()) return;
+    scanMutation.mutate({ ticketCode: code.trim().toUpperCase(), eventId: selectedEventId });
   };
 
   const handleScanSuccess = (decodedText: string) => {
@@ -91,8 +91,9 @@ function SponsorScan() {
     if (decodedText.includes("/")) {
       finalCode = decodedText.split("/").pop() || decodedText;
     }
-    setCode(finalCode);
-    scanMutation.mutate({ ticketCode: finalCode, eventId: selectedEventId });
+    const cleanCode = finalCode.trim().toUpperCase();
+    setCode(cleanCode);
+    scanMutation.mutate({ ticketCode: cleanCode, eventId: selectedEventId });
   };
 
   return (

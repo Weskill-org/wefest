@@ -48,6 +48,27 @@ export function getDashboardRedirect(role: UserRole, isAdmin: boolean): string {
   return "/dashboard";
 }
 
+/** Approved committee membership (student join flow) grants organizer portal access. */
+export function canAccessOrganizerPortal(
+  role: UserRole,
+  membership: { is_approved?: boolean | null } | null | undefined
+): boolean {
+  if (role === "college") return true;
+  return membership?.is_approved === true;
+}
+
+export async function getCollegeMembership(userId: string) {
+  const { data } = await supabase
+    .from("college_members")
+    .select(`
+      *,
+      colleges (id, name, status)
+    `)
+    .eq("user_id", userId)
+    .maybeSingle();
+  return data;
+}
+
 /** Bearer headers for authenticated serverFn calls (wallet pay, redeem, etc.). */
 export async function getSupabaseAuthHeaders(): Promise<Record<string, string>> {
   const { data: { session } } = await supabase.auth.getSession();

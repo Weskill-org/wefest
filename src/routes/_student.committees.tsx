@@ -227,12 +227,16 @@ function CommitteesPage() {
           </p>
         </div>
         {isMember && (
-          <Link
-            to="/organizer/team"
-            className="inline-flex items-center gap-2 text-xs font-bold text-amber-500 hover:text-amber-400 transition-colors shrink-0"
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="rounded-xl border-amber-500/30 text-amber-500 hover:bg-amber-500/10 hover:text-amber-400 shrink-0 font-bold"
           >
-            My organizer tools <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
+            <Link to="/organizer">
+              My organizer tools <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </Button>
         )}
       </div>
 
@@ -378,12 +382,9 @@ function CommitteesPage() {
                           )}
                           <p className="text-[10px] text-emerald-400 font-bold uppercase mt-1">{m.role}</p>
                         </div>
-                        <Link
-                          to="/organizer/team"
-                          className="text-[10px] font-bold text-primary hover:underline shrink-0"
-                        >
-                          Open
-                        </Link>
+                        <Button asChild variant="ghost" size="sm" className="h-8 px-3 text-xs font-bold text-primary shrink-0">
+                          <Link to="/organizer">Open</Link>
+                        </Button>
                       </div>
                     ))}
                   </div>

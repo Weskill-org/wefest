@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { 
   Building2, CheckCircle2, Clock, XCircle, Search, 
   ArrowUpRight, IndianRupee, MapPin, Users2, CalendarDays, ExternalLink,
-  Handshake, MessagesSquare
+  Handshake, MessagesSquare, Trash2
 } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/company/proposals")({
   head: () => ({
@@ -46,7 +56,31 @@ interface Proposal {
 function CompanyProposals() {
   const queryClient = useQueryClient();
   const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
+  const [proposalToRemove, setProposalToRemove] = useState<Proposal | null>(null);
+  const [isRemoving, setIsRemoving] = useState(false);
   
+  const handleRemoveProposal = async (proposalId: string) => {
+    setIsRemoving(true);
+    try {
+      const { error } = await supabase
+        .from("sponsorship_proposals")
+        .delete()
+        .eq("id", proposalId);
+
+      if (error) throw error;
+
+      toast.success("Proposal removed successfully");
+      queryClient.invalidateQueries({ queryKey: ["my-proposals", user?.id] });
+      setSelectedProposal(null);
+      setProposalToRemove(null);
+    } catch (error: any) {
+      console.error("Error removing proposal:", error);
+      toast.error(error.message || "Failed to remove proposal");
+    } finally {
+      setIsRemoving(false);
+    }
+  };
+
   const { data: user } = useQuery({
     queryKey: ["current-user"],
     queryFn: async () => {
@@ -94,9 +128,11 @@ function CompanyProposals() {
         (payload) => {
           console.log("Real-time update received for proposals:", payload);
           queryClient.invalidateQueries({ queryKey: ["my-proposals", user.id] });
-          toast.success("Proposal updated!", {
-            description: "The status of one of your proposals has changed."
-          });
+          if (payload.eventType === 'UPDATE') {
+            toast.success("Proposal updated!", {
+              description: "The status of one of your proposals has changed."
+            });
+          }
         }
       )
       .subscribe((status) => {
@@ -182,16 +218,16 @@ function CompanyProposals() {
         </TabsList>
 
         <TabsContent value="all" className="mt-0">
-          <ProposalList proposals={allProposals} onViewDetails={setSelectedProposal} />
+          <ProposalList proposals={allProposals} onViewDetails={setSelectedProposal} onRemoveProposal={setProposalToRemove} />
         </TabsContent>
         <TabsContent value="pending" className="mt-0">
-          <ProposalList proposals={pending} onViewDetails={setSelectedProposal} emptyMessage="No pending proposals right now." />
+          <ProposalList proposals={pending} onViewDetails={setSelectedProposal} onRemoveProposal={setProposalToRemove} emptyMessage="No pending proposals right now." />
         </TabsContent>
         <TabsContent value="confirmed" className="mt-0">
-          <ProposalList proposals={confirmed} onViewDetails={setSelectedProposal} emptyMessage="No confirmed sponsorships yet." />
+          <ProposalList proposals={confirmed} onViewDetails={setSelectedProposal} onRemoveProposal={setProposalToRemove} emptyMessage="No confirmed sponsorships yet." />
         </TabsContent>
         <TabsContent value="rejected" className="mt-0">
-          <ProposalList proposals={rejected} onViewDetails={setSelectedProposal} emptyMessage="No rejected proposals." />
+          <ProposalList proposals={rejected} onViewDetails={setSelectedProposal} onRemoveProposal={setProposalToRemove} emptyMessage="No rejected proposals." />
         </TabsContent>
       </Tabs>
 
@@ -249,6 +285,15 @@ function CompanyProposals() {
                 
                 <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
                   <Button variant="ghost" onClick={() => setSelectedProposal(null)}>Close</Button>
+                  {selectedProposal.status === 'pending' && (
+                    <Button 
+                      variant="destructive"
+                      onClick={() => setProposalToRemove(selectedProposal)}
+                      className="bg-rose-600 hover:bg-rose-500 text-white font-bold"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" /> Remove Proposal
+                    </Button>
+                  )}
                   <Button asChild className="bg-primary text-primary-foreground font-bold">
                      <Link to="/events/$eventId" params={{ eventId: selectedProposal.event.id }}>View Event Page</Link>
                   </Button>
@@ -258,11 +303,45 @@ function CompanyProposals() {
           )}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!proposalToRemove} onOpenChange={(open) => !open && setProposalToRemove(null)}>
+        <AlertDialogContent className="glass border-white/10">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display font-black text-xl text-foreground">Remove Proposal?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground text-sm">
+              Are you sure you want to remove your pending sponsorship proposal for{" "}
+              <span className="font-bold text-foreground">"{proposalToRemove?.event?.title}"</span>? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-6 gap-2">
+            <AlertDialogCancel className="bg-white/5 border-white/10 hover:bg-white/10 hover:text-foreground text-muted-foreground rounded-xl">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isRemoving}
+              onClick={() => proposalToRemove && handleRemoveProposal(proposalToRemove.id)}
+              className="bg-rose-600 hover:bg-rose-500 text-white rounded-xl shadow-lg shadow-rose-600/20 font-bold"
+            >
+              {isRemoving ? "Removing..." : "Remove Proposal"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
 
-function ProposalList({ proposals, emptyMessage = "No proposals found.", onViewDetails }: { proposals: Proposal[], emptyMessage?: string, onViewDetails: (p: Proposal) => void }) {
+function ProposalList({ 
+  proposals, 
+  emptyMessage = "No proposals found.", 
+  onViewDetails,
+  onRemoveProposal
+}: { 
+  proposals: Proposal[], 
+  emptyMessage?: string, 
+  onViewDetails: (p: Proposal) => void,
+  onRemoveProposal?: (p: Proposal) => void
+}) {
   if (proposals.length === 0) {
     return (
       <div className="glass rounded-[32px] p-16 text-center border-dashed border-white/10 bg-white/[0.01]">
@@ -314,6 +393,21 @@ function ProposalList({ proposals, emptyMessage = "No proposals found.", onViewD
                 {format(new Date(p.created_at), "MMM dd, yyyy")}
               </div>
             </div>
+
+            {p.status === 'pending' && onRemoveProposal && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemoveProposal(p);
+                }}
+                className="h-10 w-10 rounded-xl hover:bg-rose-500/10 hover:text-rose-500 transition-all border border-white/5"
+                title="Remove Proposal"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
 
             <Button 
               variant="ghost" 

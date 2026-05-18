@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, redirect, Link, useMatchRoute, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { getAuthSession } from "@/lib/auth";
+import { getAuthSession, canAccessOrganizerPortal } from "@/lib/auth";
 import { Clock, LayoutDashboard, CalendarPlus, CalendarRange, ScanLine, Users, BadgeCheck, Menu, X, LogOut, ChevronLeft, ChevronRight, Settings, BarChart3, IndianRupee, ShoppingBag, Zap, ImageIcon, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -29,10 +29,6 @@ export const Route = createFileRoute("/organizer")({
       });
     }
     
-    if (session.role !== "college") {
-      throw redirect({ to: '/' });
-    }
-
     const currentUser = session.user;
 
     // Fetch college membership
@@ -42,12 +38,15 @@ export const Route = createFileRoute("/organizer")({
         *,
         colleges (id, name, status)
       `)
-      .eq("user_id", session.user.id)
+      .eq("user_id", currentUser.id)
       .maybeSingle();
 
-    // Fallback: The college user IS the college.
-    // If no membership exists, find the college by name and auto-repair.
-    if (!membership?.colleges) {
+    if (!canAccessOrganizerPortal(session.role, membership)) {
+      throw redirect({ to: "/" });
+    }
+
+    // Fallback: college account holders may need membership auto-repair.
+    if (session.role === "college" && !membership?.colleges) {
       const userCollegeName = session.user.user_metadata?.full_name;
       if (userCollegeName) {
         const { data: collegeByName } = await supabase
