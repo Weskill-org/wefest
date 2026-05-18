@@ -14,6 +14,8 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { generateEventSlug, formatSlug, parseSlug } from "@/lib/event-words";
+import { capacityFromDb, capacityToDb } from "@/lib/event-capacity";
+import { CapacityField } from "@/components/organizer/capacity-field";
 
 export const Route = createFileRoute("/organizer/events/$eventId/edit")({
   loader: async ({ params }) => {
@@ -68,6 +70,7 @@ function EditEvent() {
   // Initialise tags as string[]
   const initialTags: string[] = Array.isArray(event.tags) ? (event.tags as string[]) : [];
 
+  const initialCapacity = capacityFromDb(event.attendees);
   const [form, setForm] = useState({
     title: event.title || "",
     date: event.date ? event.date.slice(0, 10) : "",
@@ -75,7 +78,8 @@ function EditEvent() {
     category: event.category || "Cultural",
     description: event.description || "",
     price_from: event.price_from?.toString() || "",
-    attendees: event.attendees?.toString() || "",
+    capacity_unlimited: initialCapacity.unlimited,
+    capacity: initialCapacity.value,
     status: (event.status || "draft") as "draft" | "published" | "archived" | "cancelled",
     venue: (event as any).venue || "",
     time: (event as any).time || "",
@@ -137,7 +141,7 @@ function EditEvent() {
   };
 
   const updateMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (finalMembers: any[]) => {
       const { error } = await supabase
         .from("events")
         .update({
@@ -147,12 +151,12 @@ function EditEvent() {
           category: form.category,
           description: form.description,
           price_from: form.price_from ? parseFloat(form.price_from) : undefined,
-          attendees: form.attendees ? parseInt(form.attendees) : undefined,
+          attendees: capacityToDb(form.capacity_unlimited, form.capacity),
           status: form.status,
           venue: form.venue,
           time: form.time,
           tags: form.tags,
-          team_members: form.team_members,
+          team_members: finalMembers,
           pass_settings: form.pass_settings
         })
         .eq("id", eventId);
@@ -173,11 +177,21 @@ function EditEvent() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    updateMutation.mutate();
+    
+    // Auto-add pending team member
+    let finalMembers = form.team_members;
+    if (newMemberName.trim()) {
+      finalMembers = [...form.team_members, { name: newMemberName.trim(), role: newMemberRole.trim() || "Member" }];
+      setForm(f => ({ ...f, team_members: finalMembers }));
+      setNewMemberName("");
+      setNewMemberRole("");
+    }
+    
+    updateMutation.mutate(finalMembers);
   };
 
   return (
-    <div className="px-6 py-8 lg:px-10 lg:py-10 max-w-3xl">
+    <div className="px-6 py-8 lg:px-10 lg:py-10 max-w-3xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
         <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
@@ -257,14 +271,12 @@ function EditEvent() {
               className="h-11 rounded-xl border-border/50 bg-muted/5"
             />
           </Field>
-          <Field label="Expected Attendees" icon={Info}>
-            <Input
-              type="number"
-              min="0"
-              value={form.attendees}
-              onChange={(e) => set("attendees", e.target.value)}
-              placeholder="e.g. 5000"
-              className="h-11 rounded-xl border-border/50 bg-muted/5"
+          <Field label="Event capacity" icon={Users}>
+            <CapacityField
+              unlimited={form.capacity_unlimited}
+              value={form.capacity}
+              onUnlimitedChange={(v) => set("capacity_unlimited", v)}
+              onValueChange={(v) => set("capacity", v)}
             />
           </Field>
         </div>
@@ -414,35 +426,30 @@ function EditEvent() {
             Add or remove committee members organizing this event.
           </p>
 
-          {/* Add member row */}
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Input
               value={newMemberName}
               onChange={(e) => setNewMemberName(e.target.value)}
               placeholder="Full name"
-              className="h-9 rounded-lg border-border/40 bg-muted/5 text-sm flex-1"
+              className="h-10 rounded-lg border-border/40 bg-muted/5 text-sm sm:flex-1"
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTeamMember(); }}}
             />
             <Input
               value={newMemberRole}
               onChange={(e) => setNewMemberRole(e.target.value)}
               placeholder="Role (e.g. Coordinator)"
-              className="h-9 rounded-lg border-border/40 bg-muted/5 text-sm flex-1"
+              className="h-10 rounded-lg border-border/40 bg-muted/5 text-sm sm:flex-1"
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTeamMember(); }}}
             />
-            <button
+            <Button
               type="button"
               onClick={addTeamMember}
               disabled={!newMemberName.trim()}
-              className={cn(
-                "h-9 w-9 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150",
-                newMemberName.trim()
-                  ? "bg-primary text-primary-foreground hover:opacity-90"
-                  : "bg-muted/30 text-muted-foreground cursor-not-allowed"
-              )}
+              className="h-10 shrink-0 rounded-lg font-bold text-xs gap-1.5 px-4"
             >
               <Plus className="h-4 w-4" />
-            </button>
+              Add member
+            </Button>
           </div>
 
           {/* Team member list */}

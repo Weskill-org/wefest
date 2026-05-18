@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { formatEventCapacity } from "@/lib/event-capacity";
 
 
 export const Route = createFileRoute("/organizer/events/$eventId")({
@@ -563,7 +564,7 @@ function OrganizerEventDashboard() {
                 <Activity className="h-5 w-5" />
                 <span className="text-sm font-semibold">Expected Footfall</span>
               </div>
-              <div className="mt-4 text-3xl font-bold">{(event?.attendees || 0).toLocaleString()}</div>
+              <div className="mt-4 text-3xl font-bold">{formatEventCapacity(event?.attendees)}</div>
             </div>
           </div>
           

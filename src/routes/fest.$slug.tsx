@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { useRegion } from "@/contexts/RegionContext";
 import { ShareEventDialog } from "@/components/events/share-event-dialog";
 import { StudentAppLayout } from "@/components/layout/StudentAppLayout";
+import { formatEventCapacity } from "@/lib/event-capacity";
 
 export const Route = createFileRoute("/fest/$slug")({
   loader: async ({ params }) => {
@@ -287,7 +288,7 @@ function FullEventDetail() {
               )}
               <span className="flex items-center gap-2 border-l border-border/40 pl-4">
                 <Users className="h-4 w-4 text-primary" />
-                {event.attendees.toLocaleString("en-IN")} capacity
+                {formatEventCapacity(event.attendees)} capacity
               </span>
             </div>
           </section>

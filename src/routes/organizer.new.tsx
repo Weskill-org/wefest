@@ -28,6 +28,8 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { generateEventSlug, formatSlug } from "@/lib/event-words";
+import { capacityToDb } from "@/lib/event-capacity";
+import { CapacityField } from "@/components/organizer/capacity-field";
 
 export const Route = createFileRoute("/organizer/new")({
   head: () => ({ 
@@ -57,14 +59,6 @@ function NewEvent() {
   const [slugStatus, setSlugStatus] = useState<"idle" | "checking" | "available" | "taken">("idle");
   const slugCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Auto-generate on mount
-  useEffect(() => {
-    const initial = generateEventSlug();
-    const [w1, w2] = initial.split(".");
-    setSlugWord1(w1);
-    setSlugWord2(w2);
-  }, []);
-
   // Debounced uniqueness check
   const checkSlugUniqueness = useCallback((w1: string, w2: string) => {
     if (slugCheckTimer.current) clearTimeout(slugCheckTimer.current);
@@ -79,6 +73,14 @@ function NewEvent() {
       setSlugStatus(data ? "taken" : "available");
     }, 500);
   }, []);
+
+  useEffect(() => {
+    const initial = generateEventSlug();
+    const [w1, w2] = initial.split(".");
+    setSlugWord1(w1);
+    setSlugWord2(w2);
+    checkSlugUniqueness(w1, w2);
+  }, [checkSlugUniqueness]);
 
   const handleSlugWord1 = (val: string) => {
     const clean = val.toLowerCase().replace(/[^a-z]/g, "");
@@ -107,6 +109,9 @@ function NewEvent() {
     category: "Cultural",
     description: "",
     college_id: "",
+    price_from: "",
+    capacity_unlimited: true,
+    capacity: "",
     status: "draft" as "draft" | "published" | "archived" | "cancelled",
     venue: "",
     time: "",
@@ -158,44 +163,60 @@ function NewEvent() {
     }
   }, [userData, membership, form.college_id, colleges]);
 
+  const validateForm = (isDraft = false): string | null => {
+    if (!form.title.trim()) return "Event title is required";
+    if (!form.college_id) return "Your account must be linked to a college";
+    if (isDraft) return null;
+    if (!form.date) return "Event date is required";
+    if (!form.city.trim()) return "City is required";
+    if (!slugWord1 || !slugWord2 || slugWord1.length < 2 || slugWord2.length < 2) {
+      return "Enter a valid two-word event code";
+    }
+    if (slugStatus === "taken") return "This event code is already taken";
+    if (slugStatus === "checking") return "Still checking event code availability";
+    if (!form.capacity_unlimited) {
+      const cap = parseInt(form.capacity, 10);
+      if (!Number.isFinite(cap) || cap < 1) {
+        return "Enter maximum attendees or enable unlimited capacity";
+      }
+    }
+    return null;
+  };
+
   const createMutation = useMutation({
-    mutationFn: async (status: "draft" | "published") => {
+    mutationFn: async ({ status, finalMembers }: { status: "draft" | "published" | "archived" | "cancelled", finalMembers: any[] }) => {
       if (!userData) throw new Error("Please login to create events");
-      
-      // For debugging: log the data being sent
-      console.log("Creating event with data:", { ...form, status });
+
+      const validationError = validateForm(status === "draft");
+      if (validationError) throw new Error(validationError);
 
       const selectedCollege = colleges?.find(c => c.id === form.college_id);
-
       const eventSlug = formatSlug(slugWord1, slugWord2);
 
       const { error } = await supabase.from("events").insert({
-        title: form.title,
+        title: form.title.trim(),
         date: form.date,
-        city: form.city,
+        city: form.city.trim(),
         category: form.category,
-        description: form.description,
-        price_from: (form as any).price_from ? parseFloat((form as any).price_from) : 0,
-        attendees: (form as any).attendees ? parseInt((form as any).attendees) : 0,
+        description: form.description.trim(),
+        price_from: form.price_from ? parseFloat(form.price_from) : 0,
+        attendees: capacityToDb(form.capacity_unlimited, form.capacity),
         college_id: form.college_id || null,
         college_name: membership?.colleges?.name || selectedCollege?.name || "Institutional Event",
         organizer_user_id: userData.id,
         organizer: membership?.colleges?.name || userData.user_metadata?.full_name || userData.email || "Organizer",
-        status: status,
-        venue: form.venue,
-        time: form.time,
+        status,
+        venue: form.venue.trim(),
+        time: form.time.trim(),
         tags: form.tags,
-        team_members: form.team_members,
+        team_members: finalMembers,
         pass_settings: form.pass_settings,
-        slug: eventSlug
+        slug: eventSlug,
       });
 
-      if (error) {
-        console.error("Supabase error creating event:", error);
-        throw error;
-      }
+      if (error) throw error;
     },
-    onSuccess: (_, status) => {
+    onSuccess: (_, { status }) => {
       toast.success(`${form.title} has been created!`, {
         description: status === "published" 
           ? "Your festival is now visible on the marketplace." 
@@ -214,26 +235,41 @@ function NewEvent() {
 
   const launch = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!form.college_id) {
-      toast.error("Institutional ID missing", {
-        description: "Your account is not linked to a college. Please ensure your profile name matches your institution or contact support."
-      });
+    const err = validateForm(false);
+    if (err) {
+      toast.error(err);
       return;
     }
-
-    createMutation.mutate("published");
+    
+    // Auto-add pending team member
+    let finalMembers = form.team_members;
+    if (newMemberName.trim()) {
+      finalMembers = [...form.team_members, { name: newMemberName.trim(), role: newMemberRole.trim() || "Member" }];
+      setForm(f => ({ ...f, team_members: finalMembers }));
+      setNewMemberName("");
+      setNewMemberRole("");
+    }
+    
+    createMutation.mutate({ status: form.status === "draft" ? "published" : form.status, finalMembers });
   };
 
   const saveDraft = () => {
-    if (!form.college_id) {
-      toast.error("Institutional ID missing", {
-        description: "Your account is not linked to a college. Please ensure your profile name matches your institution or contact support."
-      });
+    const err = validateForm(true);
+    if (err) {
+      toast.error(err);
       return;
     }
     
-    createMutation.mutate("draft");
+    // Auto-add pending team member
+    let finalMembers = form.team_members;
+    if (newMemberName.trim()) {
+      finalMembers = [...form.team_members, { name: newMemberName.trim(), role: newMemberRole.trim() || "Member" }];
+      setForm(f => ({ ...f, team_members: finalMembers }));
+      setNewMemberName("");
+      setNewMemberRole("");
+    }
+    
+    createMutation.mutate({ status: "draft", finalMembers });
   };
 
   const set = (k: string, v: any) => setForm((f) => ({ ...f, [k]: v }));
@@ -283,7 +319,7 @@ function NewEvent() {
   };
 
   return (
-    <div className="px-6 py-8 lg:px-10 lg:py-10 max-w-3xl">
+    <div className="px-6 py-8 lg:px-10 lg:py-10 max-w-3xl mx-auto">
       <div className="mb-8">
         <h1 className="font-display text-2xl font-black tracking-tight lg:text-3xl">
           Create Festival
@@ -440,6 +476,28 @@ function NewEvent() {
         </Field>
 
         <div className="grid gap-6 sm:grid-cols-2 border-t border-border/20 pt-6">
+          <Field label="Starting price (₹)" icon={Ticket}>
+            <Input
+              type="number"
+              min="0"
+              step="1"
+              value={form.price_from}
+              onChange={(e) => set("price_from", e.target.value)}
+              placeholder="e.g. 299"
+              className="h-11 rounded-xl border-border/50 bg-muted/5"
+            />
+          </Field>
+          <Field label="Event capacity" icon={Users}>
+            <CapacityField
+              unlimited={form.capacity_unlimited}
+              value={form.capacity}
+              onUnlimitedChange={(v) => set("capacity_unlimited", v)}
+              onValueChange={(v) => set("capacity", v)}
+            />
+          </Field>
+        </div>
+
+        <div className="grid gap-6 sm:grid-cols-2">
           <Field label="Venue" icon={MapPin}>
             <Input 
               value={form.venue} 
@@ -554,35 +612,30 @@ function NewEvent() {
             Add the core committee members organizing this event. You can add coordinators, volunteers, etc.
           </p>
 
-          {/* Add member row */}
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Input
               value={newMemberName}
               onChange={(e) => setNewMemberName(e.target.value)}
               placeholder="Full name"
-              className="h-9 rounded-lg border-border/40 bg-muted/5 text-sm flex-1"
+              className="h-10 rounded-lg border-border/40 bg-muted/5 text-sm sm:flex-1"
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTeamMember(); }}}
             />
             <Input
               value={newMemberRole}
               onChange={(e) => setNewMemberRole(e.target.value)}
               placeholder="Role (e.g. Coordinator)"
-              className="h-9 rounded-lg border-border/40 bg-muted/5 text-sm flex-1"
+              className="h-10 rounded-lg border-border/40 bg-muted/5 text-sm sm:flex-1"
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTeamMember(); }}}
             />
-            <button
+            <Button
               type="button"
               onClick={addTeamMember}
               disabled={!newMemberName.trim()}
-              className={cn(
-                "h-9 w-9 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150",
-                newMemberName.trim()
-                  ? "bg-primary text-primary-foreground hover:opacity-90"
-                  : "bg-muted/30 text-muted-foreground cursor-not-allowed"
-              )}
+              className="h-10 shrink-0 rounded-lg font-bold text-xs gap-1.5 px-4"
             >
               <Plus className="h-4 w-4" />
-            </button>
+              Add member
+            </Button>
           </div>
 
           {/* Team member list */}
@@ -619,7 +672,10 @@ function NewEvent() {
           
           <div className="grid gap-6 md:grid-cols-2">
             {/* Normal Pass */}
-            <div className="rounded-2xl border border-border/40 bg-muted/5 p-5 space-y-4">
+            <div className={cn(
+              "rounded-2xl border border-border/40 bg-muted/5 p-5 space-y-4 transition-opacity",
+              !form.pass_settings.normal.enabled && "opacity-50"
+            )}>
               <div className="flex items-center justify-between">
                 <Label className="font-black uppercase tracking-widest text-xs">Normal Pass</Label>
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -632,12 +688,13 @@ function NewEvent() {
                   <span className="text-[10px] font-bold">Enabled</span>
                 </label>
               </div>
-              <div className="grid gap-3">
+              <div className={cn("grid gap-3", !form.pass_settings.normal.enabled && "pointer-events-none")}>
                 <div className="grid gap-1.5">
                   <Label className="text-[10px] font-bold uppercase opacity-60">Full Pass Price (₹)</Label>
                   <Input 
                     type="number"
                     min="0"
+                    disabled={!form.pass_settings.normal.enabled}
                     value={form.pass_settings.normal.price}
                     onChange={(e) => updatePass('normal', 'price', parseInt(e.target.value) || 0)}
                     className="h-9 rounded-lg border-border/30 bg-background"
@@ -679,7 +736,10 @@ function NewEvent() {
             </div>
 
             {/* VIP Pass */}
-            <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 space-y-4">
+            <div className={cn(
+              "rounded-2xl border border-primary/20 bg-primary/5 p-5 space-y-4 transition-opacity",
+              !form.pass_settings.vip.enabled && "opacity-50"
+            )}>
               <div className="flex items-center justify-between">
                 <Label className="font-black uppercase tracking-widest text-xs text-primary">VIP Pass</Label>
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -692,12 +752,13 @@ function NewEvent() {
                   <span className="text-[10px] font-bold text-primary">Enabled</span>
                 </label>
               </div>
-              <div className="grid gap-3">
+              <div className={cn("grid gap-3", !form.pass_settings.vip.enabled && "pointer-events-none")}>
                 <div className="grid gap-1.5">
                   <Label className="text-[10px] font-bold uppercase opacity-60">Full Pass Price (₹)</Label>
                   <Input 
                     type="number"
                     min="0"
+                    disabled={!form.pass_settings.vip.enabled}
                     value={form.pass_settings.vip.price}
                     onChange={(e) => updatePass('vip', 'price', parseInt(e.target.value) || 0)}
                     className="h-9 rounded-lg border-border/30 bg-background"
@@ -772,8 +833,8 @@ function NewEvent() {
 
 function Field({ label, icon: Icon, children }: { label: string; icon: any; children: React.ReactNode }) {
   return (
-    <div className="grid gap-2">
-      <Label className="flex items-center gap-2 text-sm font-bold">
+    <div className="space-y-2">
+      <Label className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
         <Icon className="h-3.5 w-3.5 text-primary" />
         {label}
       </Label>

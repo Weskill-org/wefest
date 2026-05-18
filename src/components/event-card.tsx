@@ -97,7 +97,11 @@ export function EventCard({ event }: { event: Event }) {
               <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <Users className="h-3.5 w-3.5" />
               </div>
-              {(event.attendees / 1000).toFixed(0)}k+ Attending
+              {event.attendees < 0
+                ? "Unlimited"
+                : event.attendees > 0
+                  ? `${(event.attendees / 1000).toFixed(0)}k+ Attending`
+                  : "Open registration"}
             </div>
           </div>
 
