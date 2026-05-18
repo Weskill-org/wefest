@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
@@ -12,10 +12,28 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/colleges/$collegeSlug")({
-  head: () => ({
+  loader: async ({ params }) => {
+    const { data: college, error } = await supabase
+      .from("colleges")
+      .select(`*, events (*)`)
+      .eq("slug", params.collegeSlug)
+      .single();
+
+    if (error || !college) throw notFound();
+    return college;
+  },
+  head: ({ loaderData }) => ({
     meta: [
-      { title: "College Profile — WeFest" },
-      { name: "description", content: "Explore this college's festivals, events, and campus life on WeFest." },
+      { title: loaderData ? `${loaderData.name} Festivals, Events & Campus Life | WeFest` : "College Profile — WeFest" },
+      { name: "description", content: loaderData ? `Explore ${loaderData.name}'s upcoming college festivals, cultural fests, tech summits, and past event history on WeFest. Book tickets instantly!` : "Explore this college's festivals, events, and campus life on WeFest." },
+      { name: "keywords", content: loaderData ? `${loaderData.name} fests, ${loaderData.name} events, ${loaderData.city} college fests, WeFest college` : "college profile, college fests, WeFest" },
+      { property: "og:title", content: loaderData ? `${loaderData.name} Festivals, Events & Campus Life | WeFest` : "College Profile — WeFest" },
+      { property: "og:description", content: loaderData ? `Explore ${loaderData.name}'s upcoming college festivals, cultural fests, tech summits, and past event history on WeFest.` : "Explore this college's festivals, events, and campus life on WeFest." },
+      { property: "og:url", content: loaderData ? `https://wefest.in/colleges/${loaderData.slug}` : "https://wefest.in/colleges" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: loaderData ? `${loaderData.name} Festivals, Events & Campus Life | WeFest` : "College Profile — WeFest" },
+      { name: "twitter:description", content: loaderData ? `Explore ${loaderData.name}'s upcoming college festivals and events on WeFest.` : "Explore this college's festivals, events, and campus life on WeFest." },
     ],
   }),
   component: CollegeProfilePage,
@@ -49,6 +67,7 @@ function relativeDate(d: string) {
 
 /* ───────── component ───────── */
 function CollegeProfilePage() {
+  const college = Route.useLoaderData();
   const { collegeSlug } = Route.useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming");
@@ -59,20 +78,6 @@ function CollegeProfilePage() {
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       return user;
-    },
-  });
-
-  /* ── college + events ── */
-  const { data: college, isLoading } = useQuery({
-    queryKey: ["college-profile", collegeSlug],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("colleges")
-        .select(`*, events (*)`)
-        .eq("slug", collegeSlug)
-        .single();
-      if (error) throw error;
-      return data;
     },
   });
 
@@ -102,35 +107,7 @@ function CollegeProfilePage() {
     },
   });
 
-  /* ── loading ── */
-  if (isLoading) {
-    return (
-      <div className="flex min-h-[70vh] items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
-          <span className="text-sm text-muted-foreground font-medium">Loading profile…</span>
-        </div>
-      </div>
-    );
-  }
 
-  /* ── not found ── */
-  if (!college) {
-    return (
-      <div className="container mx-auto px-6 py-20 text-center">
-        <div className="mx-auto h-24 w-24 rounded-3xl bg-muted/20 flex items-center justify-center mb-6">
-          <Building2 className="h-12 w-12 text-muted-foreground/40" />
-        </div>
-        <h1 className="text-3xl font-black">College not found</h1>
-        <p className="mt-2 text-muted-foreground max-w-sm mx-auto">
-          This institution may not exist or hasn't been verified yet.
-        </p>
-        <Button asChild className="mt-6 bg-brand-gradient text-white rounded-xl shadow-glow">
-          <Link to="/colleges">Browse All Colleges</Link>
-        </Button>
-      </div>
-    );
-  }
 
   /* ── derived data ── */
   const grad = hashGradient(college.name);
@@ -142,8 +119,26 @@ function CollegeProfilePage() {
   const displayEvents = activeTab === "upcoming" ? upcomingEvents : pastEvents;
   const totalAttendees = allEvents.reduce((a: number, e: any) => a + (e.attendees || 0), 0);
 
+  const collegeSchema = {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    "name": college.name,
+    "url": `https://wefest.in/colleges/${college.slug}`,
+    "logo": college.logo || undefined,
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": college.city || "India",
+      "addressCountry": "IN"
+    },
+    "sameAs": college.domain ? [`https://${college.domain}`] : undefined
+  };
+
   return (
     <div className="min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collegeSchema) }}
+      />
       {/* ═══════ HERO ═══════ */}
       <div className="relative overflow-hidden">
         {/* background gradient */}

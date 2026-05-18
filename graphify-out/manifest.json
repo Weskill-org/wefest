@@ -23,9 +23,15 @@
     "mtime": 1778147124.5158572,
     "hash": "5622542c835e74c8a5a414b879d4b53b"
   },
+<<<<<<< Updated upstream
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routeTree.gen.ts": {
     "mtime": 1778944032.5967343,
     "hash": "f6b3c06931321365773637338dcd0f9f"
+=======
+  "C:\\Users\\ppdub\\Documents\\Official Work\\Weskill\\WeFest\\git\\wefest\\src\\routeTree.gen.ts": {
+    "mtime": 1779032462.622424,
+    "hash": "7e10dfaf85c870b5924e5813e3b58de2"
+>>>>>>> Stashed changes
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\start.ts": {
     "mtime": 1778911485.5079613,
@@ -51,6 +57,7 @@
     "mtime": 1778760014.773242,
     "hash": "35fd0f4efe9c323b69d2da28bdee7b1d"
   },
+<<<<<<< Updated upstream
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\qr-scanner.tsx": {
     "mtime": 1778831811.5149677,
     "hash": "5c7553c184d4a6515af3ecb3443eb2d4"
@@ -58,6 +65,11 @@
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\site-header.tsx": {
     "mtime": 1778740791.9935925,
     "hash": "989d9c2d4258bce698ba3006b65689b8"
+=======
+  "C:\\Users\\ppdub\\Documents\\Official Work\\Weskill\\WeFest\\git\\wefest\\src\\components\\site-header.tsx": {
+    "mtime": 1779031378.458703,
+    "hash": "ca4841d6e5873d249c6116b70eae7505"
+>>>>>>> Stashed changes
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\auth\\LoadingScreen.tsx": {
     "mtime": 1778740706.1344495,
@@ -435,9 +447,15 @@
     "mtime": 1778157625.8273716,
     "hash": "e7ce055dfb509dc556645b209b09d4a7"
   },
+<<<<<<< Updated upstream
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\blog.$slug.tsx": {
     "mtime": 1778247366.8306978,
     "hash": "77da953c561e5b6a9155ea28dddb4145"
+=======
+  "C:\\Users\\ppdub\\Documents\\Official Work\\Weskill\\WeFest\\git\\wefest\\src\\routes\\blog.$slug.tsx": {
+    "mtime": 1779032158.5890026,
+    "hash": "33155cd6eb088d96bece0fc273ac8f4b"
+>>>>>>> Stashed changes
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\blog.index.tsx": {
     "mtime": 1778479529.8534203,
@@ -447,6 +465,7 @@
     "mtime": 1778594793.9021494,
     "hash": "10dbd57d6f3b0fc001392b8767c4c056"
   },
+<<<<<<< Updated upstream
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\colleges.$collegeSlug.tsx": {
     "mtime": 1778588274.0197625,
     "hash": "cb2530edb84b6810da952a12877506f2"
@@ -454,6 +473,15 @@
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\colleges.index.tsx": {
     "mtime": 1778481055.9429033,
     "hash": "07896df0b9156c7c67109494baaaf1cc"
+=======
+  "C:\\Users\\ppdub\\Documents\\Official Work\\Weskill\\WeFest\\git\\wefest\\src\\routes\\colleges.$collegeSlug.tsx": {
+    "mtime": 1779032134.0877335,
+    "hash": "52551878e9ec321f8a6b7f00fd9b5b5c"
+  },
+  "C:\\Users\\ppdub\\Documents\\Official Work\\Weskill\\WeFest\\git\\wefest\\src\\routes\\colleges.index.tsx": {
+    "mtime": 1779032119.216761,
+    "hash": "618801b43c219f3857fb8c134ab6d1e9"
+>>>>>>> Stashed changes
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\colleges.tsx": {
     "mtime": 1778594800.55359,
@@ -495,6 +523,7 @@
     "mtime": 1778246992.4124575,
     "hash": "e911fba1746c31a8869d0f0e269fcfb7"
   },
+<<<<<<< Updated upstream
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\events.$eventId.tsx": {
     "mtime": 1778943727.8472748,
     "hash": "b8f8c483b8bb2684c6c7a8acb6ed56eb"
@@ -502,14 +531,29 @@
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\events.index.tsx": {
     "mtime": 1778943759.8824563,
     "hash": "98e842aa5e3235243120b7c8c91ebbb6"
+=======
+  "C:\\Users\\ppdub\\Documents\\Official Work\\Weskill\\WeFest\\git\\wefest\\src\\routes\\events.$eventId.tsx": {
+    "mtime": 1779032149.090823,
+    "hash": "d14d3e92aee0bf9def670d07a0422844"
+  },
+  "C:\\Users\\ppdub\\Documents\\Official Work\\Weskill\\WeFest\\git\\wefest\\src\\routes\\events.index.tsx": {
+    "mtime": 1779032111.7829847,
+    "hash": "22893f55773090ac56dfc5f95309334f"
+>>>>>>> Stashed changes
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\events.tsx": {
     "mtime": 1778594472.9014628,
     "hash": "d0068f764be6cf04da9a2590c5ef0f01"
   },
+<<<<<<< Updated upstream
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\fest.$slug.tsx": {
     "mtime": 1778980098.3576548,
     "hash": "33710dde5d77d1c15b5e7fc08198b0d2"
+=======
+  "C:\\Users\\ppdub\\Documents\\Official Work\\Weskill\\WeFest\\git\\wefest\\src\\routes\\index.tsx": {
+    "mtime": 1779032104.0571747,
+    "hash": "9fa6187d69f5322efaf7123f8fabbe02"
+>>>>>>> Stashed changes
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\fest.index.tsx": {
     "mtime": 1778944024.2457461,
@@ -583,6 +627,7 @@
     "mtime": 1778246984.315193,
     "hash": "daaffb85be860765cd44c931effd290a"
   },
+<<<<<<< Updated upstream
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\signup.tsx": {
     "mtime": 1778931356.7930965,
     "hash": "7db035baf0918053e5f87c23b175cd49"
@@ -590,6 +635,23 @@
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\sponsor.dashboard.tsx": {
     "mtime": 1778917037.484202,
     "hash": "91180fa6c35b8a49fd82bbdddb5f3c66"
+=======
+  "C:\\Users\\ppdub\\Documents\\Official Work\\Weskill\\WeFest\\git\\wefest\\src\\routes\\robots[.]txt.ts": {
+    "mtime": 1779032457.3803022,
+    "hash": "07ee1ed25d12ee2bbdbb95f3dbdf2f3a"
+  },
+  "C:\\Users\\ppdub\\Documents\\Official Work\\Weskill\\WeFest\\git\\wefest\\src\\routes\\signup.tsx": {
+    "mtime": 1778770720.9527547,
+    "hash": "548f4a65db9538e23d078ca668cea62a"
+  },
+  "C:\\Users\\ppdub\\Documents\\Official Work\\Weskill\\WeFest\\git\\wefest\\src\\routes\\sitemap[.]xml.ts": {
+    "mtime": 1779032453.0400758,
+    "hash": "b3d8b35c59a27b579ab842e0943c52b2"
+  },
+  "C:\\Users\\ppdub\\Documents\\Official Work\\Weskill\\WeFest\\git\\wefest\\src\\routes\\sponsor.dashboard.tsx": {
+    "mtime": 1778770720.9556158,
+    "hash": "1e5c1e7627c895f99e9f93ee57af7a88"
+>>>>>>> Stashed changes
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\sponsor.pricing.tsx": {
     "mtime": 1778154913.490633,

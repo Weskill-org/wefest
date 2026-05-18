@@ -8,8 +8,16 @@ export const Route = createFileRoute("/blog/$slug")({
     const post = BLOG_POSTS.find(p => p.slug === params.slug);
     return {
       meta: [
-        { title: `${post?.title || "Blog Post"} | WeFest Blog` },
-        { name: "description", content: post?.excerpt || "Read our latest insights on college festivals and campus trends." },
+        { title: post ? `${post.title} | WeFest Blog` : "Blog Post | WeFest Blog" },
+        { name: "description", content: post ? post.excerpt : "Read our latest insights on college festivals and campus trends." },
+        { name: "keywords", content: post ? `${post.title.toLowerCase().split(' ').slice(0, 5).join(', ')}, college festivals, WeFest blog` : "college fests blog, campus trends" },
+        { property: "og:title", content: post ? `${post.title} | WeFest Blog` : "Blog Post | WeFest Blog" },
+        { property: "og:description", content: post ? post.excerpt : "Read our latest insights on college festivals and campus trends." },
+        { property: "og:url", content: post ? `https://wefest.in/blog/${post.slug}` : "https://wefest.in/blog" },
+        { property: "og:type", content: "article" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: post ? `${post.title} | WeFest Blog` : "Blog Post | WeFest Blog" },
+        { name: "twitter:description", content: post ? post.excerpt : "Read our latest insights on college festivals and campus trends." },
       ],
     };
   },
@@ -32,8 +40,36 @@ function BlogPostPage() {
     );
   }
 
+  const blogSchema = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": post.title,
+    "description": post.excerpt,
+    "datePublished": post.date,
+    "author": {
+      "@type": "Person",
+      "name": post.author
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "WeFest",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://wefest.in/logo.png"
+      }
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": `https://wefest.in/blog/${post.slug}`
+    }
+  };
+
   return (
     <article className="container mx-auto px-6 py-24 max-w-4xl">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogSchema) }}
+      />
       <Link 
         to="/blog" 
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-8 transition-colors"

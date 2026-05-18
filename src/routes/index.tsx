@@ -9,8 +9,16 @@ import { AdBanner } from "@/components/ad-banner";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "WeFest — College festivals, reimagined" },
-      { name: "description", content: "Discover, ticket and sponsor India's biggest college festivals on one identity-verified platform." },
+      { title: "WeFest — India's Premier College Festival & Event Ticketing Platform" },
+      { name: "description", content: "Discover, ticket, and sponsor India's biggest college festivals (cultural fests, tech summits, sports meets) on WeFest. The unified, identity-verified campus ecosystem." },
+      { name: "keywords", content: "WeFest, college festivals, campus fests, tech summits, cultural events, ticketing platform, college sponsors, Indian college fests" },
+      { property: "og:title", content: "WeFest — India's Premier College Festival & Event Ticketing Platform" },
+      { property: "og:description", content: "Discover, ticket, and sponsor India's biggest college festivals (cultural fests, tech summits, sports meets) on WeFest. The unified, identity-verified campus ecosystem." },
+      { property: "og:url", content: "https://wefest.in" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "WeFest — India's Premier College Festival & Event Ticketing Platform" },
+      { name: "twitter:description", content: "Discover, ticket, and sponsor India's biggest college festivals on WeFest." },
     ],
   }),
   beforeLoad: async () => {
@@ -116,8 +124,41 @@ function Home() {
 
   const featured = events || [];
 
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "WeFest",
+    "url": "https://wefest.in",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://wefest.in/events?search={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  };
+
+  const orgSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "WeFest",
+    "url": "https://wefest.in",
+    "logo": "https://wefest.in/logo.png",
+    "sameAs": [
+      "https://instagram.com/wefest.in",
+      "https://twitter.com/wefest_in",
+      "https://linkedin.com/company/wefest-in"
+    ]
+  };
+
   return (
     <div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
+      />
       {/* HERO */}
       <section className="relative overflow-hidden bg-hero">
         <div className="container relative mx-auto grid gap-12 px-6 py-24 md:grid-cols-2 md:py-32">

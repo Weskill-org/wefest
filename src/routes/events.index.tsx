@@ -26,12 +26,20 @@ const categories = ["All", "Cultural", "Tech", "Sports", "Business", "Arts"] as 
 export const Route = createFileRoute("/events/")({
   head: () => ({
     meta: [
-      { title: "Events & Festivals — WeFest" },
+      { title: "Discover College Festivals & Events Near Me | WeFest" },
       {
         name: "description",
         content:
-          "Discover India's biggest college festivals — cultural fests, tech summits, sports meets, and more. Browse, filter, and grab your tickets on WeFest.",
+          "Discover and register for India's biggest college festivals. Filter by cultural, tech, sports, business, and arts events across IITs, IIMs, DU, and top campuses.",
       },
+      { name: "keywords", content: "college festivals near me, campus events calendar, cultural fests registration, tech summits tickets, sports meet, WeFest directory" },
+      { property: "og:title", content: "Discover College Festivals & Events Near Me | WeFest" },
+      { property: "og:description", content: "Discover and register for India's biggest college festivals. Filter by cultural, tech, sports, business, and arts events across top campuses." },
+      { property: "og:url", content: "https://wefest.in/events" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Discover College Festivals & Events Near Me | WeFest" },
+      { name: "twitter:description", content: "Discover and register for India's biggest college festivals on WeFest." },
     ],
   }),
   component: EventsIndexPage,
@@ -136,6 +144,36 @@ function EventsIndexPage() {
   ).length;
   const totalAttendees = mappedEvents.reduce((a, e) => a + e.attendees, 0);
 
+  const itemListSchema = useMemo(() => {
+    if (!mappedEvents || mappedEvents.length === 0) return null;
+    return {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "Upcoming College Festivals & Events",
+      "description": "List of active and upcoming college festivals and student events across top Indian institutions.",
+      "itemListElement": mappedEvents.slice(0, 10).map((e, index) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "item": {
+          "@type": "Event",
+          "name": e.title,
+          "description": e.description || "An exciting college festival event on WeFest.",
+          "startDate": e.date,
+          "url": `https://wefest.in/events/${e.id}`,
+          "location": {
+            "@type": "Place",
+            "name": e.college,
+            "address": {
+              "@type": "PostalAddress",
+              "addressLocality": e.city || "India",
+              "addressCountry": "IN"
+            }
+          }
+        }
+      }))
+    };
+  }, [mappedEvents]);
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-6 py-12">
@@ -151,6 +189,12 @@ function EventsIndexPage() {
 
   return (
     <div className="container mx-auto px-6 py-12">
+      {itemListSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
+        />
+      )}
       {/* ─── Hero Section ─── */}
       <div className="relative overflow-hidden rounded-3xl bg-brand-gradient p-8 text-white shadow-2xl md:p-12">
         <div className="relative z-10">

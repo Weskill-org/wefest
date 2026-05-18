@@ -29,7 +29,7 @@ export function SiteHeader() {
             <Sparkles className="h-4 w-4 text-primary-foreground" />
           </span>
           <span className="text-lg">
-            we<span className="text-gradient">fest</span>
+            We<span className="text-gradient">Fest</span>
           </span>
         </Link>
 
@@ -85,7 +85,7 @@ export function SiteFooter() {
                 <Sparkles className="h-5 w-5 text-primary-foreground" />
               </span>
               <span className="text-2xl">
-                we<span className="text-gradient">fest</span>
+                We<span className="text-gradient">Fest</span>
               </span>
             </Link>
             <p className="mt-6 max-w-sm text-sm leading-relaxed text-muted-foreground/90">

@@ -21,12 +21,20 @@ import {
 export const Route = createFileRoute("/colleges/")({
   head: () => ({
     meta: [
-      { title: "College Network — WeFest" },
+      { title: "Top Colleges & Universities Campus Network | WeFest" },
       {
         name: "description",
         content:
-          "Discover colleges on WeFest — the premier network for campus festivals and cultural events across India.",
+          "Explore the premier campus network of India's top colleges. Browse verified educational institutions, tech fests, cultural events, and past archives on WeFest.",
       },
+      { name: "keywords", content: "college campus network, Indian universities, tech fests colleges, DU colleges fests, IIT college festivals, verified campus network, WeFest colleges" },
+      { property: "og:title", content: "Top Colleges & Universities Campus Network | WeFest" },
+      { property: "og:description", content: "Explore the premier campus network of India's top colleges. Browse verified educational institutions, tech fests, cultural events, and past archives on WeFest." },
+      { property: "og:url", content: "https://wefest.in/colleges" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Top Colleges & Universities Campus Network | WeFest" },
+      { name: "twitter:description", content: "Explore the premier campus network of India's top colleges on WeFest." },
     ],
   }),
   component: CollegesIndexPage,
@@ -124,8 +132,33 @@ function CollegesIndexPage() {
     );
   }
 
+  const collegesListSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "WeFest Partner Colleges & Campus Network",
+    "description": "Directory of verified universities and college communities hosting festivals on WeFest.",
+    "itemListElement": realColleges.slice(0, 15).map((c, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "item": {
+        "@type": "EducationalOrganization",
+        "name": c.name,
+        "url": `https://wefest.in/colleges/${c.slug}`,
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": c.city || "India",
+          "addressCountry": "IN"
+        }
+      }
+    }))
+  };
+
   return (
     <div className="container mx-auto px-6 py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collegesListSchema) }}
+      />
       {/* ─── Hero Section ─── */}
       <div className="relative overflow-hidden rounded-3xl bg-brand-gradient p-8 text-white shadow-2xl md:p-12">
         <div className="relative z-10">

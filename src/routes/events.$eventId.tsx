@@ -45,8 +45,18 @@ export const Route = createFileRoute("/events/$eventId")({
   },
   head: ({ loaderData }) => ({
     meta: [
-      { title: loaderData ? `${loaderData.title} — WeFest` : "Event — WeFest" },
-      { name: "description", content: loaderData?.description ?? "Festival event on WeFest — India's college festival platform." },
+      { title: loaderData ? `${loaderData.title} Registration & Tickets | WeFest` : "Event — WeFest" },
+      { name: "description", content: loaderData ? `Register for ${loaderData.title} on WeFest. Date: ${new Date(loaderData.date).toLocaleDateString()}. Category: ${loaderData.category}. Location: ${loaderData.college || "India"}. Book slots today!` : "Festival event on WeFest — India's college festival platform." },
+      { name: "keywords", content: loaderData ? `${loaderData.title}, ${loaderData.college} fests, ${loaderData.category} college competition, WeFest tickets` : "college events, WeFest tickets" },
+      { property: "og:title", content: loaderData ? `${loaderData.title} Registration & Tickets | WeFest` : "Event — WeFest" },
+      { property: "og:description", content: loaderData ? `Register for ${loaderData.title} on WeFest. Date: ${new Date(loaderData.date).toLocaleDateString()}. Category: ${loaderData.category}. Location: ${loaderData.college || "India"}.` : "Festival event on WeFest — India's college festival platform." },
+      { property: "og:image", content: loaderData?.image || "https://wefest.in/og-image.png" },
+      { property: "og:url", content: loaderData ? `https://wefest.in/events/${loaderData.id}` : "https://wefest.in/events" },
+      { property: "og:type", content: "article" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: loaderData ? `${loaderData.title} | WeFest` : "Event — WeFest" },
+      { name: "twitter:description", content: loaderData ? `Register for ${loaderData.title} on WeFest.` : "Explore this college festival event." },
+      { name: "twitter:image", content: loaderData?.image || "https://wefest.in/og-image.png" },
     ],
   }),
   errorComponent: ({ error }) => (
@@ -200,8 +210,45 @@ function PublicEventDetail() {
     "Esports Arena",
   ];
 
+  const eventSchema = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    "name": event.title,
+    "description": event.description || `Register for ${event.title} on WeFest.`,
+    "startDate": new Date(event.date).toISOString(),
+    "endDate": new Date(new Date(event.date).getTime() + 8*60*60*1000).toISOString(),
+    "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+    "eventStatus": "https://schema.org/EventScheduled",
+    "location": {
+      "@type": "Place",
+      "name": event.college || "Campus Arena",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": event.city || "India",
+        "addressCountry": "IN"
+      }
+    },
+    "offers": {
+      "@type": "AggregateOffer",
+      "priceCurrency": "INR",
+      "lowPrice": event.price_from || 0,
+      "highPrice": tiers[tiers.length - 1]?.price || event.price_from || 999,
+      "offerCount": tiers.length,
+      "url": `https://wefest.in/events/${event.id}`
+    },
+    "organizer": {
+      "@type": "Organization",
+      "name": "WeFest",
+      "url": "https://wefest.in"
+    }
+  };
+
   return (
     <div className="animate-in fade-in duration-500">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(eventSchema) }}
+      />
       {/* Hero Banner */}
       <div className={`relative h-[340px] md:h-[400px] bg-gradient-to-br ${event.cover}`}>
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
