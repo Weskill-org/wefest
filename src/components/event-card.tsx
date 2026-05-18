@@ -52,11 +52,13 @@ export function EventCard({ event }: { event: Event }) {
         </div>
 
         {/* Price Tag */}
-        <div className="absolute right-4 top-4">
-          <span className="rounded-xl bg-brand-gradient px-3 py-1.5 text-xs font-bold text-primary-foreground shadow-glow">
-            {event.priceFrom === 0 ? "Free" : `${formatPrice(event.priceFrom)}+`}
-          </span>
-        </div>
+        {event.priceFrom > 0 && (
+          <div className="absolute right-4 top-4">
+            <span className="rounded-xl bg-brand-gradient px-3 py-1.5 text-xs font-bold text-primary-foreground shadow-glow">
+              {`${formatPrice(event.priceFrom)}+`}
+            </span>
+          </div>
+        )}
 
         {/* College & Verification */}
         <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">

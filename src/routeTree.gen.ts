@@ -45,6 +45,7 @@ import { Route as OrganizerSponsorAssetsRouteImport } from './routes/organizer.s
 import { Route as OrganizerSettingsRouteImport } from './routes/organizer.settings'
 import { Route as OrganizerScanRouteImport } from './routes/organizer.scan'
 import { Route as OrganizerNewRouteImport } from './routes/organizer.new'
+import { Route as OrganizerAlertsRouteImport } from './routes/organizer.alerts'
 import { Route as OrganizerActivityRouteImport } from './routes/organizer.activity'
 import { Route as FestSlugRouteImport } from './routes/fest.$slug'
 import { Route as EventsEventIdRouteImport } from './routes/events.$eventId'
@@ -54,6 +55,7 @@ import { Route as CompanyScanRouteImport } from './routes/company.scan'
 import { Route as CompanyProposalsRouteImport } from './routes/company.proposals'
 import { Route as CompanyMarketplaceRouteImport } from './routes/company.marketplace'
 import { Route as CompanyBrandAssetsRouteImport } from './routes/company.brand-assets'
+import { Route as CompanyAlertsRouteImport } from './routes/company.alerts'
 import { Route as CollegesCollegeSlugRouteImport } from './routes/colleges.$collegeSlug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
@@ -264,6 +266,11 @@ const OrganizerNewRoute = OrganizerNewRouteImport.update({
   path: '/new',
   getParentRoute: () => OrganizerRoute,
 } as any)
+const OrganizerAlertsRoute = OrganizerAlertsRouteImport.update({
+  id: '/alerts',
+  path: '/alerts',
+  getParentRoute: () => OrganizerRoute,
+} as any)
 const OrganizerActivityRoute = OrganizerActivityRouteImport.update({
   id: '/activity',
   path: '/activity',
@@ -307,6 +314,11 @@ const CompanyMarketplaceRoute = CompanyMarketplaceRouteImport.update({
 const CompanyBrandAssetsRoute = CompanyBrandAssetsRouteImport.update({
   id: '/brand-assets',
   path: '/brand-assets',
+  getParentRoute: () => CompanyRoute,
+} as any)
+const CompanyAlertsRoute = CompanyAlertsRouteImport.update({
+  id: '/alerts',
+  path: '/alerts',
   getParentRoute: () => CompanyRoute,
 } as any)
 const CollegesCollegeSlugRoute = CollegesCollegeSlugRouteImport.update({
@@ -507,6 +519,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/colleges/$collegeSlug': typeof CollegesCollegeSlugRoute
+  '/company/alerts': typeof CompanyAlertsRoute
   '/company/brand-assets': typeof CompanyBrandAssetsRoute
   '/company/marketplace': typeof CompanyMarketplaceRoute
   '/company/proposals': typeof CompanyProposalsRoute
@@ -516,6 +529,7 @@ export interface FileRoutesByFullPath {
   '/events/$eventId': typeof EventsEventIdRoute
   '/fest/$slug': typeof FestSlugRoute
   '/organizer/activity': typeof OrganizerActivityRoute
+  '/organizer/alerts': typeof OrganizerAlertsRoute
   '/organizer/new': typeof OrganizerNewRoute
   '/organizer/scan': typeof OrganizerScanRoute
   '/organizer/settings': typeof OrganizerSettingsRoute
@@ -576,6 +590,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/colleges/$collegeSlug': typeof CollegesCollegeSlugRoute
+  '/company/alerts': typeof CompanyAlertsRoute
   '/company/brand-assets': typeof CompanyBrandAssetsRoute
   '/company/marketplace': typeof CompanyMarketplaceRoute
   '/company/proposals': typeof CompanyProposalsRoute
@@ -585,6 +600,7 @@ export interface FileRoutesByTo {
   '/events/$eventId': typeof EventsEventIdRoute
   '/fest/$slug': typeof FestSlugRoute
   '/organizer/activity': typeof OrganizerActivityRoute
+  '/organizer/alerts': typeof OrganizerAlertsRoute
   '/organizer/new': typeof OrganizerNewRoute
   '/organizer/scan': typeof OrganizerScanRoute
   '/organizer/settings': typeof OrganizerSettingsRoute
@@ -654,6 +670,7 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/colleges/$collegeSlug': typeof CollegesCollegeSlugRoute
+  '/company/alerts': typeof CompanyAlertsRoute
   '/company/brand-assets': typeof CompanyBrandAssetsRoute
   '/company/marketplace': typeof CompanyMarketplaceRoute
   '/company/proposals': typeof CompanyProposalsRoute
@@ -663,6 +680,7 @@ export interface FileRoutesById {
   '/events/$eventId': typeof EventsEventIdRoute
   '/fest/$slug': typeof FestSlugRoute
   '/organizer/activity': typeof OrganizerActivityRoute
+  '/organizer/alerts': typeof OrganizerAlertsRoute
   '/organizer/new': typeof OrganizerNewRoute
   '/organizer/scan': typeof OrganizerScanRoute
   '/organizer/settings': typeof OrganizerSettingsRoute
@@ -732,6 +750,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/blog/$slug'
     | '/colleges/$collegeSlug'
+    | '/company/alerts'
     | '/company/brand-assets'
     | '/company/marketplace'
     | '/company/proposals'
@@ -741,6 +760,7 @@ export interface FileRouteTypes {
     | '/events/$eventId'
     | '/fest/$slug'
     | '/organizer/activity'
+    | '/organizer/alerts'
     | '/organizer/new'
     | '/organizer/scan'
     | '/organizer/settings'
@@ -801,6 +821,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/blog/$slug'
     | '/colleges/$collegeSlug'
+    | '/company/alerts'
     | '/company/brand-assets'
     | '/company/marketplace'
     | '/company/proposals'
@@ -810,6 +831,7 @@ export interface FileRouteTypes {
     | '/events/$eventId'
     | '/fest/$slug'
     | '/organizer/activity'
+    | '/organizer/alerts'
     | '/organizer/new'
     | '/organizer/scan'
     | '/organizer/settings'
@@ -878,6 +900,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/blog/$slug'
     | '/colleges/$collegeSlug'
+    | '/company/alerts'
     | '/company/brand-assets'
     | '/company/marketplace'
     | '/company/proposals'
@@ -887,6 +910,7 @@ export interface FileRouteTypes {
     | '/events/$eventId'
     | '/fest/$slug'
     | '/organizer/activity'
+    | '/organizer/alerts'
     | '/organizer/new'
     | '/organizer/scan'
     | '/organizer/settings'
@@ -1189,6 +1213,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrganizerNewRouteImport
       parentRoute: typeof OrganizerRoute
     }
+    '/organizer/alerts': {
+      id: '/organizer/alerts'
+      path: '/alerts'
+      fullPath: '/organizer/alerts'
+      preLoaderRoute: typeof OrganizerAlertsRouteImport
+      parentRoute: typeof OrganizerRoute
+    }
     '/organizer/activity': {
       id: '/organizer/activity'
       path: '/activity'
@@ -1250,6 +1281,13 @@ declare module '@tanstack/react-router' {
       path: '/brand-assets'
       fullPath: '/company/brand-assets'
       preLoaderRoute: typeof CompanyBrandAssetsRouteImport
+      parentRoute: typeof CompanyRoute
+    }
+    '/company/alerts': {
+      id: '/company/alerts'
+      path: '/alerts'
+      fullPath: '/company/alerts'
+      preLoaderRoute: typeof CompanyAlertsRouteImport
       parentRoute: typeof CompanyRoute
     }
     '/colleges/$collegeSlug': {
@@ -1561,6 +1599,7 @@ const CollegesRouteWithChildren = CollegesRoute._addFileChildren(
 )
 
 interface CompanyRouteChildren {
+  CompanyAlertsRoute: typeof CompanyAlertsRoute
   CompanyBrandAssetsRoute: typeof CompanyBrandAssetsRoute
   CompanyMarketplaceRoute: typeof CompanyMarketplaceRoute
   CompanyProposalsRoute: typeof CompanyProposalsRoute
@@ -1571,6 +1610,7 @@ interface CompanyRouteChildren {
 }
 
 const CompanyRouteChildren: CompanyRouteChildren = {
+  CompanyAlertsRoute: CompanyAlertsRoute,
   CompanyBrandAssetsRoute: CompanyBrandAssetsRoute,
   CompanyMarketplaceRoute: CompanyMarketplaceRoute,
   CompanyProposalsRoute: CompanyProposalsRoute,
@@ -1624,6 +1664,7 @@ const OrganizerEventsEventIdRouteWithChildren =
 
 interface OrganizerRouteChildren {
   OrganizerActivityRoute: typeof OrganizerActivityRoute
+  OrganizerAlertsRoute: typeof OrganizerAlertsRoute
   OrganizerNewRoute: typeof OrganizerNewRoute
   OrganizerScanRoute: typeof OrganizerScanRoute
   OrganizerSettingsRoute: typeof OrganizerSettingsRoute
@@ -1637,6 +1678,7 @@ interface OrganizerRouteChildren {
 
 const OrganizerRouteChildren: OrganizerRouteChildren = {
   OrganizerActivityRoute: OrganizerActivityRoute,
+  OrganizerAlertsRoute: OrganizerAlertsRoute,
   OrganizerNewRoute: OrganizerNewRoute,
   OrganizerScanRoute: OrganizerScanRoute,
   OrganizerSettingsRoute: OrganizerSettingsRoute,

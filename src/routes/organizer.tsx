@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 import { ActivityFeedPopover } from "@/components/activity-feed-popover";
+import { useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/organizer")({
   head: () => ({ 
@@ -94,6 +95,7 @@ const sidebarLinks = [
   { to: "/organizer/team", label: "Team", icon: Users },
   { to: "/organizer/sponsor-assets", label: "Sponsor Assets", icon: ImageIcon },
   { to: "/organizer/activity", label: "Recent Activity", icon: Bell },
+  { to: "/organizer/alerts", label: "Alerts", icon: Bell, badge: true },
 ];
 
 function OrganizerLayout() {
@@ -104,6 +106,22 @@ function OrganizerLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const matchRoute = useMatchRoute();
+
+  const { data: alertsData } = useQuery({
+    queryKey: ["organizer-unread-alerts-count"],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      const { count } = await supabase
+        .from("notification_logs")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("is_read", false);
+      return count || 0;
+    },
+    enabled: !!user?.id,
+  });
+
+  const totalAlertsCount = alertsData || 0;
 
   if (membership && !membership.is_approved) {
     return (
@@ -176,8 +194,15 @@ function OrganizerLayout() {
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
               )}
             >
-              <link.icon className={cn("h-[18px] w-[18px] shrink-0", isActive && "text-primary")} />
-              {!collapsed && <span>{link.label}</span>}
+              <div className="relative shrink-0">
+                <link.icon className={cn("h-[18px] w-[18px] transition-colors", isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
+                {(link as any).badge && totalAlertsCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 rounded-full bg-primary text-white text-[8px] font-bold flex items-center justify-center">
+                    {totalAlertsCount > 9 ? "9+" : totalAlertsCount}
+                  </span>
+                )}
+              </div>
+              {!collapsed && <span className="truncate flex-1">{link.label}</span>}
               {isActive && !collapsed && (
                 <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
               )}

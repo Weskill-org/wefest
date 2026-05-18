@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getAuthSession } from "@/lib/auth";
 import {
   LayoutDashboard, Search, ScanLine, Settings, Menu, X,
-  LogOut, ChevronLeft, ChevronRight, Building2, Briefcase, Handshake, ImageIcon
+  LogOut, ChevronLeft, ChevronRight, Building2, Briefcase, Handshake, ImageIcon, Bell
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -46,6 +46,7 @@ const sidebarLinks = [
   { to: "/company/marketplace", label: "Marketplace", icon: Search },
   { to: "/company/scan", label: "Booth Scanner", icon: ScanLine },
   { to: "/company/brand-assets", label: "Brand Assets", icon: ImageIcon },
+  { to: "/company/alerts", label: "Alerts", icon: Bell, badge: true },
 ];
 
 const bottomLinks = [
@@ -73,6 +74,22 @@ function CompanyLayout() {
     },
   });
 
+  const { data: alertsData } = useQuery({
+    queryKey: ["company-unread-alerts-count"],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      const { count } = await supabase
+        .from("notification_logs")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("is_read", false);
+      return count || 0;
+    },
+    enabled: !!user?.id,
+  });
+
+  const totalAlertsCount = alertsData || 0;
+
   const companyName = companyProfile?.company_name || user?.user_metadata?.full_name || "Company";
   const industry = companyProfile?.industry || "Brand";
   const initials = companyName.substring(0, 2).toUpperCase();
@@ -84,7 +101,7 @@ function CompanyLayout() {
     navigate({ to: "/" });
   };
 
-  const NavItem = ({ link, onClick }: { link: typeof sidebarLinks[0]; onClick?: () => void }) => {
+  const NavItem = ({ link, onClick }: { link: any; onClick?: () => void }) => {
     const isActive = link.exact
       ? matchRoute({ to: link.to, fuzzy: false })
       : matchRoute({ to: link.to, fuzzy: true });
@@ -101,8 +118,15 @@ function CompanyLayout() {
             : "text-muted-foreground hover:text-foreground hover:bg-white/5"
         )}
       >
-        <link.icon className={cn("h-[18px] w-[18px] shrink-0 transition-colors", isActive ? "text-white" : "text-muted-foreground group-hover:text-foreground")} />
-        {!collapsed && <span className="truncate">{link.label}</span>}
+        <div className="relative shrink-0">
+          <link.icon className={cn("h-[18px] w-[18px] transition-colors", isActive ? "text-white" : "text-muted-foreground group-hover:text-foreground")} />
+          {link.badge && totalAlertsCount > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 rounded-full bg-primary text-white text-[8px] font-bold flex items-center justify-center">
+              {totalAlertsCount > 9 ? "9+" : totalAlertsCount}
+            </span>
+          )}
+        </div>
+        {!collapsed && <span className="truncate flex-1">{link.label}</span>}
         {isActive && !collapsed && (
           <div className="ml-auto h-1.5 w-1.5 rounded-full bg-white/40" />
         )}
