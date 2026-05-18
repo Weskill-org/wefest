@@ -1,11 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
 import {
   Building2, Eye, Users2, Loader2, IndianRupee, TrendingUp,
   ScanLine, Download, MapPin, Sparkles, Shield, AlertCircle,
   Info, ArrowUpRight, CalendarDays, UserCheck, Timer, ExternalLink,
-  ChevronRight, Search, PieChart as PieChartIcon, Zap
+  ChevronRight, Search, PieChart as PieChartIcon, Zap, MessageSquare
 } from "lucide-react";
 import { 
   Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, 
@@ -23,6 +24,15 @@ import {
 } from "@/components/ui/tooltip";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/company/")({
   head: () => ({ 
@@ -66,6 +76,8 @@ interface Proposal {
 const COLORS = ['#8B5CF6', '#10B981', '#F59E0B', '#3B82F6', '#EF4444', '#EC4899'];
 
 function CompanyDashboard() {
+  const navigate = useNavigate();
+
   const { data: user } = useQuery({
     queryKey: ["current-user"],
     queryFn: async () => {
@@ -90,30 +102,44 @@ function CompanyDashboard() {
   });
 
   const { data: visits, isLoading: loadingVisits } = useQuery({
-    queryKey: ["my-booth-visits"],
+    queryKey: ["my-booth-visits", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      // Joining with profiles and student_profiles to get interests
-      const { data, error } = await supabase
+      // 1. Fetch booth visits
+      const { data: visitsData, error: visitsError } = await supabase
         .from("sponsor_booth_visits")
         .select(`
-          *,
-          student:student_user_id(
-            full_name, 
-            email
-          ),
+          id,
+          created_at,
+          event_id,
+          student_user_id,
+          sponsor_user_id,
           event:event_id(title)
         `)
         .eq("sponsor_user_id", user!.id)
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
+      if (visitsError) throw visitsError;
+      if (!visitsData || visitsData.length === 0) return [];
 
-      // Manually fetch student profile data for interests if needed, or assume it's available via a view/join if defined
-      // For now, let's try to fetch interests for the top leads to show insights
-      return data as unknown as BoothVisit[];
+      // 2. Fetch profiles for these student user ids
+      const studentIds = [...new Set(visitsData.map(v => v.student_user_id))];
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, email")
+        .in("user_id", studentIds);
+
+      if (profilesError) throw profilesError;
+
+      const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+
+      return visitsData.map(visit => ({
+        ...visit,
+        student: profileMap.get(visit.student_user_id) || null
+      })) as unknown as BoothVisit[];
     }
   });
+
 
   const { data: subscription } = useQuery({
     queryKey: ["my-subscription"],
@@ -177,6 +203,8 @@ function CompanyDashboard() {
     document.body.removeChild(link);
     toast.success("Lead data exported successfully!");
   };
+  const activeProposals = proposals?.filter(p => p.status === 'accepted') || [];
+
 
   if (loadingProposals || loadingVisits) {
     return (
@@ -190,7 +218,6 @@ function CompanyDashboard() {
     );
   }
 
-  const activeProposals = proposals?.filter(p => p.status === 'accepted') || [];
   const pendingProposals = proposals?.filter(p => p.status === 'pending') || [];
   const totalReach = activeProposals.reduce((acc, p) => acc + (p.event?.attendees || 0), 0);
   const totalCommitted = activeProposals.reduce((acc, p) => acc + p.amount, 0);
@@ -221,6 +248,8 @@ function CompanyDashboard() {
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
+
+
           <Button variant="outline" size="lg" onClick={downloadLeadsCSV} className="rounded-xl border-white/10 hover:bg-white/5 transition-all group">
             <Download className="h-4 w-4 mr-2 group-hover:-translate-y-0.5 transition-transform" /> 
             Export Leads

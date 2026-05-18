@@ -45,6 +45,7 @@ import { Route as OrganizerSponsorAssetsRouteImport } from './routes/organizer.s
 import { Route as OrganizerSettingsRouteImport } from './routes/organizer.settings'
 import { Route as OrganizerScanRouteImport } from './routes/organizer.scan'
 import { Route as OrganizerNewRouteImport } from './routes/organizer.new'
+import { Route as OrganizerMessagesRouteImport } from './routes/organizer.messages'
 import { Route as OrganizerAlertsRouteImport } from './routes/organizer.alerts'
 import { Route as OrganizerActivityRouteImport } from './routes/organizer.activity'
 import { Route as FestSlugRouteImport } from './routes/fest.$slug'
@@ -53,6 +54,7 @@ import { Route as CompanyWalletRouteImport } from './routes/company.wallet'
 import { Route as CompanySettingsRouteImport } from './routes/company.settings'
 import { Route as CompanyScanRouteImport } from './routes/company.scan'
 import { Route as CompanyProposalsRouteImport } from './routes/company.proposals'
+import { Route as CompanyMessagesRouteImport } from './routes/company.messages'
 import { Route as CompanyMarketplaceRouteImport } from './routes/company.marketplace'
 import { Route as CompanyBrandAssetsRouteImport } from './routes/company.brand-assets'
 import { Route as CompanyAlertsRouteImport } from './routes/company.alerts'
@@ -62,6 +64,7 @@ import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminIntegrationsRouteImport } from './routes/admin.integrations'
 import { Route as AdminGiftCardsRouteImport } from './routes/admin.gift-cards'
 import { Route as AdminEventsRouteImport } from './routes/admin.events'
+import { Route as AdminCouponsRouteImport } from './routes/admin.coupons'
 import { Route as AdminCompaniesRouteImport } from './routes/admin.companies'
 import { Route as AdminCollegesRouteImport } from './routes/admin.colleges'
 import { Route as AdminCitiesRouteImport } from './routes/admin.cities'
@@ -266,6 +269,11 @@ const OrganizerNewRoute = OrganizerNewRouteImport.update({
   path: '/new',
   getParentRoute: () => OrganizerRoute,
 } as any)
+const OrganizerMessagesRoute = OrganizerMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => OrganizerRoute,
+} as any)
 const OrganizerAlertsRoute = OrganizerAlertsRouteImport.update({
   id: '/alerts',
   path: '/alerts',
@@ -304,6 +312,11 @@ const CompanyScanRoute = CompanyScanRouteImport.update({
 const CompanyProposalsRoute = CompanyProposalsRouteImport.update({
   id: '/proposals',
   path: '/proposals',
+  getParentRoute: () => CompanyRoute,
+} as any)
+const CompanyMessagesRoute = CompanyMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
   getParentRoute: () => CompanyRoute,
 } as any)
 const CompanyMarketplaceRoute = CompanyMarketplaceRouteImport.update({
@@ -349,6 +362,11 @@ const AdminGiftCardsRoute = AdminGiftCardsRouteImport.update({
 const AdminEventsRoute = AdminEventsRouteImport.update({
   id: '/events',
   path: '/events',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCouponsRoute = AdminCouponsRouteImport.update({
+  id: '/coupons',
+  path: '/coupons',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminCompaniesRoute = AdminCompaniesRouteImport.update({
@@ -513,6 +531,7 @@ export interface FileRoutesByFullPath {
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/colleges': typeof AdminCollegesRoute
   '/admin/companies': typeof AdminCompaniesRoute
+  '/admin/coupons': typeof AdminCouponsRoute
   '/admin/events': typeof AdminEventsRoute
   '/admin/gift-cards': typeof AdminGiftCardsRoute
   '/admin/integrations': typeof AdminIntegrationsRoute
@@ -522,6 +541,7 @@ export interface FileRoutesByFullPath {
   '/company/alerts': typeof CompanyAlertsRoute
   '/company/brand-assets': typeof CompanyBrandAssetsRoute
   '/company/marketplace': typeof CompanyMarketplaceRoute
+  '/company/messages': typeof CompanyMessagesRoute
   '/company/proposals': typeof CompanyProposalsRoute
   '/company/scan': typeof CompanyScanRoute
   '/company/settings': typeof CompanySettingsRoute
@@ -530,6 +550,7 @@ export interface FileRoutesByFullPath {
   '/fest/$slug': typeof FestSlugRoute
   '/organizer/activity': typeof OrganizerActivityRoute
   '/organizer/alerts': typeof OrganizerAlertsRoute
+  '/organizer/messages': typeof OrganizerMessagesRoute
   '/organizer/new': typeof OrganizerNewRoute
   '/organizer/scan': typeof OrganizerScanRoute
   '/organizer/settings': typeof OrganizerSettingsRoute
@@ -584,6 +605,7 @@ export interface FileRoutesByTo {
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/colleges': typeof AdminCollegesRoute
   '/admin/companies': typeof AdminCompaniesRoute
+  '/admin/coupons': typeof AdminCouponsRoute
   '/admin/events': typeof AdminEventsRoute
   '/admin/gift-cards': typeof AdminGiftCardsRoute
   '/admin/integrations': typeof AdminIntegrationsRoute
@@ -593,6 +615,7 @@ export interface FileRoutesByTo {
   '/company/alerts': typeof CompanyAlertsRoute
   '/company/brand-assets': typeof CompanyBrandAssetsRoute
   '/company/marketplace': typeof CompanyMarketplaceRoute
+  '/company/messages': typeof CompanyMessagesRoute
   '/company/proposals': typeof CompanyProposalsRoute
   '/company/scan': typeof CompanyScanRoute
   '/company/settings': typeof CompanySettingsRoute
@@ -601,6 +624,7 @@ export interface FileRoutesByTo {
   '/fest/$slug': typeof FestSlugRoute
   '/organizer/activity': typeof OrganizerActivityRoute
   '/organizer/alerts': typeof OrganizerAlertsRoute
+  '/organizer/messages': typeof OrganizerMessagesRoute
   '/organizer/new': typeof OrganizerNewRoute
   '/organizer/scan': typeof OrganizerScanRoute
   '/organizer/settings': typeof OrganizerSettingsRoute
@@ -664,6 +688,7 @@ export interface FileRoutesById {
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/colleges': typeof AdminCollegesRoute
   '/admin/companies': typeof AdminCompaniesRoute
+  '/admin/coupons': typeof AdminCouponsRoute
   '/admin/events': typeof AdminEventsRoute
   '/admin/gift-cards': typeof AdminGiftCardsRoute
   '/admin/integrations': typeof AdminIntegrationsRoute
@@ -673,6 +698,7 @@ export interface FileRoutesById {
   '/company/alerts': typeof CompanyAlertsRoute
   '/company/brand-assets': typeof CompanyBrandAssetsRoute
   '/company/marketplace': typeof CompanyMarketplaceRoute
+  '/company/messages': typeof CompanyMessagesRoute
   '/company/proposals': typeof CompanyProposalsRoute
   '/company/scan': typeof CompanyScanRoute
   '/company/settings': typeof CompanySettingsRoute
@@ -681,6 +707,7 @@ export interface FileRoutesById {
   '/fest/$slug': typeof FestSlugRoute
   '/organizer/activity': typeof OrganizerActivityRoute
   '/organizer/alerts': typeof OrganizerAlertsRoute
+  '/organizer/messages': typeof OrganizerMessagesRoute
   '/organizer/new': typeof OrganizerNewRoute
   '/organizer/scan': typeof OrganizerScanRoute
   '/organizer/settings': typeof OrganizerSettingsRoute
@@ -744,6 +771,7 @@ export interface FileRouteTypes {
     | '/admin/cities'
     | '/admin/colleges'
     | '/admin/companies'
+    | '/admin/coupons'
     | '/admin/events'
     | '/admin/gift-cards'
     | '/admin/integrations'
@@ -753,6 +781,7 @@ export interface FileRouteTypes {
     | '/company/alerts'
     | '/company/brand-assets'
     | '/company/marketplace'
+    | '/company/messages'
     | '/company/proposals'
     | '/company/scan'
     | '/company/settings'
@@ -761,6 +790,7 @@ export interface FileRouteTypes {
     | '/fest/$slug'
     | '/organizer/activity'
     | '/organizer/alerts'
+    | '/organizer/messages'
     | '/organizer/new'
     | '/organizer/scan'
     | '/organizer/settings'
@@ -815,6 +845,7 @@ export interface FileRouteTypes {
     | '/admin/cities'
     | '/admin/colleges'
     | '/admin/companies'
+    | '/admin/coupons'
     | '/admin/events'
     | '/admin/gift-cards'
     | '/admin/integrations'
@@ -824,6 +855,7 @@ export interface FileRouteTypes {
     | '/company/alerts'
     | '/company/brand-assets'
     | '/company/marketplace'
+    | '/company/messages'
     | '/company/proposals'
     | '/company/scan'
     | '/company/settings'
@@ -832,6 +864,7 @@ export interface FileRouteTypes {
     | '/fest/$slug'
     | '/organizer/activity'
     | '/organizer/alerts'
+    | '/organizer/messages'
     | '/organizer/new'
     | '/organizer/scan'
     | '/organizer/settings'
@@ -894,6 +927,7 @@ export interface FileRouteTypes {
     | '/admin/cities'
     | '/admin/colleges'
     | '/admin/companies'
+    | '/admin/coupons'
     | '/admin/events'
     | '/admin/gift-cards'
     | '/admin/integrations'
@@ -903,6 +937,7 @@ export interface FileRouteTypes {
     | '/company/alerts'
     | '/company/brand-assets'
     | '/company/marketplace'
+    | '/company/messages'
     | '/company/proposals'
     | '/company/scan'
     | '/company/settings'
@@ -911,6 +946,7 @@ export interface FileRouteTypes {
     | '/fest/$slug'
     | '/organizer/activity'
     | '/organizer/alerts'
+    | '/organizer/messages'
     | '/organizer/new'
     | '/organizer/scan'
     | '/organizer/settings'
@@ -1213,6 +1249,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrganizerNewRouteImport
       parentRoute: typeof OrganizerRoute
     }
+    '/organizer/messages': {
+      id: '/organizer/messages'
+      path: '/messages'
+      fullPath: '/organizer/messages'
+      preLoaderRoute: typeof OrganizerMessagesRouteImport
+      parentRoute: typeof OrganizerRoute
+    }
     '/organizer/alerts': {
       id: '/organizer/alerts'
       path: '/alerts'
@@ -1267,6 +1310,13 @@ declare module '@tanstack/react-router' {
       path: '/proposals'
       fullPath: '/company/proposals'
       preLoaderRoute: typeof CompanyProposalsRouteImport
+      parentRoute: typeof CompanyRoute
+    }
+    '/company/messages': {
+      id: '/company/messages'
+      path: '/messages'
+      fullPath: '/company/messages'
+      preLoaderRoute: typeof CompanyMessagesRouteImport
       parentRoute: typeof CompanyRoute
     }
     '/company/marketplace': {
@@ -1330,6 +1380,13 @@ declare module '@tanstack/react-router' {
       path: '/events'
       fullPath: '/admin/events'
       preLoaderRoute: typeof AdminEventsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/coupons': {
+      id: '/admin/coupons'
+      path: '/coupons'
+      fullPath: '/admin/coupons'
+      preLoaderRoute: typeof AdminCouponsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/companies': {
@@ -1548,6 +1605,7 @@ interface AdminRouteChildren {
   AdminCitiesRoute: typeof AdminCitiesRoute
   AdminCollegesRoute: typeof AdminCollegesRoute
   AdminCompaniesRoute: typeof AdminCompaniesRoute
+  AdminCouponsRoute: typeof AdminCouponsRoute
   AdminEventsRoute: typeof AdminEventsRoute
   AdminGiftCardsRoute: typeof AdminGiftCardsRoute
   AdminIntegrationsRoute: typeof AdminIntegrationsRoute
@@ -1563,6 +1621,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCitiesRoute: AdminCitiesRoute,
   AdminCollegesRoute: AdminCollegesRoute,
   AdminCompaniesRoute: AdminCompaniesRoute,
+  AdminCouponsRoute: AdminCouponsRoute,
   AdminEventsRoute: AdminEventsRoute,
   AdminGiftCardsRoute: AdminGiftCardsRoute,
   AdminIntegrationsRoute: AdminIntegrationsRoute,
@@ -1602,6 +1661,7 @@ interface CompanyRouteChildren {
   CompanyAlertsRoute: typeof CompanyAlertsRoute
   CompanyBrandAssetsRoute: typeof CompanyBrandAssetsRoute
   CompanyMarketplaceRoute: typeof CompanyMarketplaceRoute
+  CompanyMessagesRoute: typeof CompanyMessagesRoute
   CompanyProposalsRoute: typeof CompanyProposalsRoute
   CompanyScanRoute: typeof CompanyScanRoute
   CompanySettingsRoute: typeof CompanySettingsRoute
@@ -1613,6 +1673,7 @@ const CompanyRouteChildren: CompanyRouteChildren = {
   CompanyAlertsRoute: CompanyAlertsRoute,
   CompanyBrandAssetsRoute: CompanyBrandAssetsRoute,
   CompanyMarketplaceRoute: CompanyMarketplaceRoute,
+  CompanyMessagesRoute: CompanyMessagesRoute,
   CompanyProposalsRoute: CompanyProposalsRoute,
   CompanyScanRoute: CompanyScanRoute,
   CompanySettingsRoute: CompanySettingsRoute,
@@ -1665,6 +1726,7 @@ const OrganizerEventsEventIdRouteWithChildren =
 interface OrganizerRouteChildren {
   OrganizerActivityRoute: typeof OrganizerActivityRoute
   OrganizerAlertsRoute: typeof OrganizerAlertsRoute
+  OrganizerMessagesRoute: typeof OrganizerMessagesRoute
   OrganizerNewRoute: typeof OrganizerNewRoute
   OrganizerScanRoute: typeof OrganizerScanRoute
   OrganizerSettingsRoute: typeof OrganizerSettingsRoute
@@ -1679,6 +1741,7 @@ interface OrganizerRouteChildren {
 const OrganizerRouteChildren: OrganizerRouteChildren = {
   OrganizerActivityRoute: OrganizerActivityRoute,
   OrganizerAlertsRoute: OrganizerAlertsRoute,
+  OrganizerMessagesRoute: OrganizerMessagesRoute,
   OrganizerNewRoute: OrganizerNewRoute,
   OrganizerScanRoute: OrganizerScanRoute,
   OrganizerSettingsRoute: OrganizerSettingsRoute,

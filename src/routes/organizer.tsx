@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect, Link, useMatchRoute, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { getAuthSession, canAccessOrganizerPortal } from "@/lib/auth";
-import { Clock, LayoutDashboard, CalendarPlus, CalendarRange, ScanLine, Users, BadgeCheck, Menu, X, LogOut, ChevronLeft, ChevronRight, Settings, BarChart3, IndianRupee, ShoppingBag, Zap, ImageIcon, Bell } from "lucide-react";
+import { Clock, LayoutDashboard, CalendarPlus, CalendarRange, ScanLine, Users, BadgeCheck, Menu, X, LogOut, ChevronLeft, ChevronRight, Settings, BarChart3, IndianRupee, ShoppingBag, Zap, ImageIcon, Bell, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -89,6 +89,7 @@ export const Route = createFileRoute("/organizer")({
 const sidebarLinks = [
   { to: "/organizer", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/organizer/events", label: "Events", icon: CalendarRange },
+  { to: "/organizer/messages", label: "Messages", icon: MessageSquare },
   { to: "/organizer/new", label: "Create Event", icon: CalendarPlus },
   { to: "/organizer/scan", label: "Scan Tickets", icon: ScanLine },
   { to: "/organizer/team", label: "Team", icon: Users },

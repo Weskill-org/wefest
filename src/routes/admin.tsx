@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, Link, redirect } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, LayoutDashboard, CalendarCheck, Users, Megaphone, TrendingUp, Share2, MapPin, Building2, ShieldCheck, ClipboardCheck, Gift } from "lucide-react";
+import { Loader2, LayoutDashboard, CalendarCheck, Users, Megaphone, TrendingUp, Share2, MapPin, Building2, ShieldCheck, ClipboardCheck, Gift, Tag } from "lucide-react";
 import { toast } from "sonner";
 import { getAuthSession } from "@/lib/auth";
 
@@ -31,6 +31,7 @@ const adminLinks = [
   { to: "/admin/cities", icon: MapPin, label: "Cities" },
   { to: "/admin/broadcasts", icon: Megaphone, label: "Broadcasts" },
   { to: "/admin/gift-cards", icon: Gift, label: "Gift Cards" },
+  { to: "/admin/coupons", icon: Tag, label: "Coupons" },
 ] as Array<{ to: any; icon: any; label: string; exact?: boolean }>;
 
 function AdminLayout() {

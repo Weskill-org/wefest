@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 
-type Activity = {
+type RecentActivityData = {
   id: string;
   type: string;
   title: string;
@@ -31,7 +31,7 @@ export function RecentActivity({ collegeId }: { collegeId?: string }) {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<string>("all");
   const [limit, setLimit] = useState(15);
-  const [realtimeActivities, setRealtimeActivities] = useState<Activity[]>([]);
+  const [realtimeActivities, setRealtimeActivities] = useState<RecentActivityData[]>([]);
 
   const { data: initialActivities, isLoading, isFetching } = useQuery({
     queryKey: ["recent-activity", collegeId, activeTab, limit],
@@ -59,7 +59,7 @@ export function RecentActivity({ collegeId }: { collegeId?: string }) {
       const { data, error } = await query;
       
       if (error) throw error;
-      return (data || []) as Activity[];
+      return (data || []) as RecentActivityData[];
     },
   });
 
@@ -75,7 +75,7 @@ export function RecentActivity({ collegeId }: { collegeId?: string }) {
           filter: collegeId ? `college_id=eq.${collegeId}` : undefined
         },
         (payload) => {
-          const newActivity = payload.new as Activity;
+          const newActivity = payload.new as RecentActivityData;
           // Only add to realtime list if it matches current filter
           const matchesFilter = activeTab === "all" || 
             (activeTab === "events" && ["event_created", "event_status_updated"].includes(newActivity.type)) ||

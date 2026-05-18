@@ -200,35 +200,75 @@ Deno.serve(async (req) => {
       result.orderId = orderRow.id;
     } else if (purpose === "subscription_purchase") {
       const planType = notes.planType as string;
+      const couponCode = (notes.couponCode as string) || null;
+      const discountAmount = Number(notes.discountAmount ?? 0);
+      const originalAmount = Number(notes.originalAmount ?? notes.totalInr ?? 0);
+      const couponId = (notes.couponId as string) || null;
       const currentPeriodEnd = new Date();
-      currentPeriodEnd.setFullYear(currentPeriodEnd.getFullYear() + 1); // 1 year subscription
+      currentPeriodEnd.setFullYear(currentPeriodEnd.getFullYear() + 1);
 
-      // Upsert the subscription
+      // Upsert the subscription with coupon details
       const { data: existingSub } = await admin
         .from("subscriptions")
         .select("id")
         .eq("user_id", userId)
         .maybeSingle();
 
+      const subData = {
+        plan_type: planType,
+        status: "active",
+        current_period_end: currentPeriodEnd.toISOString(),
+        coupon_code: couponCode,
+        discount_amount: discountAmount,
+        original_amount: originalAmount,
+      };
+
       if (existingSub) {
-        const { error: subErr } = await admin.from("subscriptions").update({
-          plan_type: planType,
-          status: "active",
-          current_period_end: currentPeriodEnd.toISOString(),
-        }).eq("id", existingSub.id);
+        const { error: subErr } = await admin.from("subscriptions").update(subData).eq("id", existingSub.id);
         if (subErr) throw new Error(`Subscription update failed: ${subErr.message}`);
       } else {
-        const { error: subErr } = await admin.from("subscriptions").insert({
-          user_id: userId,
-          plan_type: planType,
-          status: "active",
-          current_period_end: currentPeriodEnd.toISOString(),
-        });
+        const { error: subErr } = await admin.from("subscriptions").insert({ user_id: userId, ...subData });
         if (subErr) throw new Error(`Subscription creation failed: ${subErr.message}`);
       }
 
+      // Record coupon usage if coupon was applied
+      if (couponId && couponCode) {
+        console.log(`[Verify] Recording coupon usage: ${couponCode} by user ${userId}`);
+        await admin.from("coupon_usages").insert({ coupon_id: couponId, user_id: userId }).catch(() => {});
+        const { data: cd } = await admin.from("discount_coupons").select("used_count").eq("id", couponId).single();
+        if (cd) {
+          await admin.from("discount_coupons").update({ used_count: cd.used_count + 1 }).eq("id", couponId);
+        }
+      }
+
       await admin.from("razorpay_orders").update({ credited_at: new Date().toISOString() }).eq("id", order.id);
+
+      // Record transaction history for billing section
+      console.log(`[Verify] Logging paid subscription transaction for plan ${planType}`);
+      const paidAmountInr = Math.round(order.amount_paise / 100);
+      const { error: txErr } = await admin.from("transactions").insert({
+        user_id: userId,
+        amount: paidAmountInr,
+        currency: "INR",
+        status: "completed",
+        description: `${planType} Plan Subscription Purchase`,
+        metadata: {
+          purpose,
+          planType,
+          couponCode,
+          discountAmount,
+          originalAmount,
+          razorpay_order_id,
+          razorpay_payment_id
+        },
+      });
+      if (txErr) {
+        console.error("[Verify] Failed to insert subscription transaction record:", txErr);
+      }
+
       result.planType = planType;
+      if (couponCode) result.couponCode = couponCode;
+      if (discountAmount > 0) result.discountAmount = discountAmount;
     }
 
     // Mark razorpay order as completed

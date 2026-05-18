@@ -2,6 +2,14 @@ import { createFileRoute } from '@tanstack/react-router'
 import { QRScanner } from "@/components/qr-scanner";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { ScanLine, Loader2, QrCode, CheckCircle2, XCircle } from "lucide-react";
 
 export const Route = createFileRoute("/sponsor/scan")({
   head: () => ({ meta: [{ title: "Booth Scanner — WeFest" }] }),

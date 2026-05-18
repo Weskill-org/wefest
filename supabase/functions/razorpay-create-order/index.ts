@@ -26,6 +26,7 @@ interface Body {
   shippingAddress?: string;
   // subscription_purchase
   planType?: string;
+  couponCode?: string;
 }
 
 function json(body: unknown, status = 200) {
@@ -164,16 +165,129 @@ Deno.serve(async (req) => {
       };
     } else if (purpose === "subscription_purchase") {
       if (!body.planType) return json({ error: "Missing planType" }, 400);
+
+      let planPrice = 0;
       if (body.planType === "Growth") {
-        totalInr = 9999;
+        planPrice = 9999;
       } else {
         return json({ error: "This plan cannot be purchased via Razorpay directly" }, 400);
       }
+
+      // --- Coupon validation ---
+      let couponCode: string | null = null;
+      let discountAmount = 0;
+      let couponId: string | null = null;
+
+      if (body.couponCode && body.couponCode.trim() !== "") {
+        couponCode = body.couponCode.trim();
+        console.log(`[CreateOrder] Validating coupon: ${couponCode}`);
+
+        const { data: couponResult, error: couponErr } = await admin.rpc("validate_coupon", {
+          _code: couponCode,
+          _user_id: userId,
+          _plan_amount: planPrice,
+        });
+
+        if (couponErr) {
+          console.error("[CreateOrder] Coupon validation error:", couponErr);
+          return json({ error: "Failed to validate coupon" }, 500);
+        }
+
+        const result = couponResult as { valid: boolean; discount_amount: number; message: string; coupon_id?: string };
+        if (!result.valid) {
+          return json({ error: result.message, couponError: true }, 400);
+        }
+
+        discountAmount = result.discount_amount;
+        couponId = result.coupon_id ?? null;
+        console.log(`[CreateOrder] Coupon valid! Discount: ${discountAmount}`);
+      }
+
+      totalInr = Math.max(0, planPrice - discountAmount);
+
       notes = {
         purpose,
         planType: body.planType,
-        totalInr
+        originalAmount: planPrice,
+        discountAmount,
+        couponCode,
+        couponId,
+        totalInr,
       };
+
+      // If total is 0 after discount, handle free subscription (no Razorpay needed)
+      if (totalInr <= 0) {
+        console.log("[CreateOrder] Full discount applied, creating free subscription");
+
+        const currentPeriodEnd = new Date();
+        currentPeriodEnd.setFullYear(currentPeriodEnd.getFullYear() + 1);
+
+        const { data: existingSub, error: findSubErr } = await admin
+          .from("subscriptions").select("id").eq("user_id", userId).maybeSingle();
+        if (findSubErr) {
+          console.error("[CreateOrder] Error querying existing subscription:", findSubErr);
+          throw new Error(`Failed to query existing subscription: ${findSubErr.message}`);
+        }
+
+        const subData = {
+          plan_type: body.planType, status: "active",
+          current_period_end: currentPeriodEnd.toISOString(),
+          coupon_code: couponCode, discount_amount: discountAmount, original_amount: planPrice,
+        };
+
+        if (existingSub) {
+          console.log(`[CreateOrder] Updating existing subscription ${existingSub.id} to ${body.planType}`);
+          const { error: updErr } = await admin.from("subscriptions").update(subData).eq("id", existingSub.id);
+          if (updErr) {
+            console.error("[CreateOrder] Error updating subscription:", updErr);
+            throw new Error(`Failed to update subscription: ${updErr.message}`);
+          }
+        } else {
+          console.log(`[CreateOrder] Inserting new subscription for user ${userId} with plan ${body.planType}`);
+          const { error: insErr } = await admin.from("subscriptions").insert({ user_id: userId, ...subData });
+          if (insErr) {
+            console.error("[CreateOrder] Error inserting subscription:", insErr);
+            throw new Error(`Failed to insert subscription: ${insErr.message}`);
+          }
+        }
+
+        // Record coupon usage
+        if (couponId) {
+          console.log(`[CreateOrder] Recording coupon usage for coupon ${couponId} by user ${userId}`);
+          const { error: usageErr } = await admin.from("coupon_usages").insert({ coupon_id: couponId, user_id: userId });
+          if (usageErr) {
+            console.error("[CreateOrder] Error inserting coupon usage:", usageErr);
+            throw new Error(`Failed to record coupon usage: ${usageErr.message}`);
+          }
+
+          const { data: cd, error: getCdErr } = await admin.from("discount_coupons").select("used_count").eq("id", couponId).single();
+          if (getCdErr) {
+            console.error("[CreateOrder] Error getting coupon usage count:", getCdErr);
+            throw new Error(`Failed to fetch coupon usage count: ${getCdErr.message}`);
+          }
+
+          if (cd) {
+            const { error: updCerr } = await admin.from("discount_coupons").update({ used_count: cd.used_count + 1 }).eq("id", couponId);
+            if (updCerr) {
+              console.error("[CreateOrder] Error incrementing coupon count:", updCerr);
+              throw new Error(`Failed to increment coupon count: ${updCerr.message}`);
+            }
+          }
+        }
+
+        console.log(`[CreateOrder] Logging free transaction for plan ${body.planType}`);
+        const { error: txErr } = await admin.from("transactions").insert({
+          user_id: userId, amount: 0, currency: "INR", status: "completed",
+          description: `${body.planType} Plan - 100% discount (${couponCode})`,
+          metadata: { purpose, planType: body.planType, couponCode, discountAmount, originalAmount: planPrice },
+        });
+        if (txErr) {
+          console.error("[CreateOrder] Error logging transaction:", txErr);
+          throw new Error(`Failed to insert transaction log: ${txErr.message}`);
+        }
+
+        return json({ freeSubscription: true, planType: body.planType, couponCode, discountAmount, totalInr: 0 });
+      }
     } else {
       return json({ error: "Invalid purpose" }, 400);
     }
