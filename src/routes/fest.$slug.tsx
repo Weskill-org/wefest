@@ -457,18 +457,41 @@ function FullEventDetail() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Basic header for guests */}
-      <header className="px-6 py-4 flex items-center justify-between border-b border-white/5 bg-background/50 backdrop-blur-xl">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-brand-gradient flex items-center justify-center text-white font-black text-xs">W</div>
-          <span className="font-display font-black tracking-tighter text-lg">WeFest</span>
+      {/* Minimal branded header for guests */}
+      <header className="sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between border-b border-white/5 bg-background/80 backdrop-blur-xl">
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <div className="h-8 w-8 rounded-xl bg-brand-gradient flex items-center justify-center text-white font-black text-xs shadow-glow transition-transform group-hover:scale-105">W</div>
+          <span className="font-display font-black tracking-tighter text-lg">
+            We<span className="text-gradient">Fest</span>
+          </span>
         </Link>
+        <nav className="hidden md:flex items-center gap-1">
+          <Link to="/fest" className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-lg transition-colors">Festivals</Link>
+          <Link to="/events" className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-lg transition-colors">Events</Link>
+        </nav>
         <div className="flex gap-2">
-          <Button variant="ghost" asChild><Link to="/login">Login</Link></Button>
-          <Button className="bg-brand-gradient text-white" asChild><Link to="/signup">Join Now</Link></Button>
+          <Button variant="ghost" size="sm" asChild><Link to="/login">Sign in</Link></Button>
+          <Button size="sm" className="bg-brand-gradient text-primary-foreground hover:opacity-90 font-bold" asChild><Link to="/signup">Join Free</Link></Button>
         </div>
       </header>
-      {PageUI}
+      <div className="flex-1">{PageUI}</div>
+      {/* Minimal footer for guests */}
+      <footer className="border-t border-white/5 bg-black/30 backdrop-blur-xl py-8 px-6">
+        <div className="max-w-[1400px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <Link to="/" className="flex items-center gap-2">
+            <div className="h-7 w-7 rounded-lg bg-brand-gradient flex items-center justify-center text-white font-black text-[10px] shadow-glow">W</div>
+            <span className="font-black tracking-tighter text-sm">We<span className="text-gradient">Fest</span></span>
+          </Link>
+          <p className="text-xs text-muted-foreground/60 font-medium">
+            © {new Date().getFullYear()} WeFest Technologies Pvt Ltd. All rights reserved.
+          </p>
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
+            <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
+            <Link to="/login" className="text-primary font-bold hover:underline">Sign in</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

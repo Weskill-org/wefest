@@ -92,8 +92,10 @@ function RootComponent() {
   const isAdminRoute = pathname.startsWith("/admin");
   const isStudentRoute = routerState.matches.some(m => m.routeId === '/_student');
   const isAuthRoute = pathname === "/login" || pathname === "/signup";
+  // /fest/* routes render their own layout (StudentAppLayout when logged-in, minimal header for guests)
+  const isFestRoute = pathname.startsWith("/fest");
   
-  const hideGlobalLayout = isOrganizerRoute || isCompanyRoute || isAdminRoute || isStudentRoute || isAuthRoute;
+  const hideGlobalLayout = isOrganizerRoute || isCompanyRoute || isAdminRoute || isStudentRoute || isAuthRoute || isFestRoute;
 
   return (
     <QueryClientProvider client={queryClient}>
