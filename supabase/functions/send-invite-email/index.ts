@@ -38,7 +38,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // Build the accept URL - use origin from request or fallback to production
-    const origin = req.headers.get("origin") || "https://wefest.co.in";
+    const origin = req.headers.get("origin") || "https://wefest.weskill.org";
     const acceptUrl = `${origin}/invite/accept?token=${payload.token}`;
 
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
