@@ -48,12 +48,36 @@ function InviteDialog({ collegeId, collegeName, onClose }: { collegeId: string; 
         _message: message.trim() || null,
       } as any);
       if (error) throw error;
-      return data as any;
+      const result = data as any;
+
+      // Send the email via Edge Function (fire and forget)
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        await supabase.functions.invoke("send-invite-email", {
+          body: {
+            invitation_id: result.invitation_id,
+            invitee_email: result.invitee_email,
+            company_name: result.college_name || collegeName,
+            role: role,
+            position: position.trim() || null,
+            message: message.trim() || null,
+            token: result.token,
+            inviter_name: user?.user_metadata?.full_name || collegeName,
+            type: "organizer",
+          },
+        });
+      } catch (emailErr) {
+        console.warn("Email send failed (invite still created):", emailErr);
+      }
+
+      console.log("Organizer Invitation link:", `${window.location.origin}/invite/accept?token=${result.token}`);
+
+      return result;
     },
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["college-invitations"] });
       toast.success(`Invitation sent to ${data?.invitee_name || email}`, {
-        description: `They will join as ${teamRoleLabel(role, position)} after accepting in Alerts.`,
+        description: `An email has been sent. The invite link has also been logged to your console for testing!`,
       });
       onClose();
     },
@@ -72,7 +96,7 @@ function InviteDialog({ collegeId, collegeName, onClose }: { collegeId: string; 
             </div>
             <div>
               <h2 className="text-base font-black tracking-tight">Invite Team Member</h2>
-              <p className="text-[11px] text-muted-foreground mt-0.5">They'll receive an invite & must accept to join</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">They'll receive an email with an invite link</p>
             </div>
           </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors h-7 w-7 flex items-center justify-center rounded-lg hover:bg-white/5">
@@ -94,7 +118,7 @@ function InviteDialog({ collegeId, collegeName, onClose }: { collegeId: string; 
               onKeyDown={(e) => e.key === "Enter" && inviteMutation.mutate()}
               className="h-10 rounded-xl border-border/50 bg-muted/5 text-sm"
             />
-            <p className="text-[10px] text-muted-foreground px-1">Must have a WeFest account registered with this email.</p>
+            <p className="text-[10px] text-muted-foreground px-1">They don't need a WeFest account yet — they can sign up from the invite link.</p>
           </div>
 
           {/* Role */}

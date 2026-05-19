@@ -19,6 +19,7 @@ import { Route as RefundRouteImport } from './routes/refund'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as OrganizerRouteImport } from './routes/organizer'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as InviteRouteImport } from './routes/invite'
 import { Route as FestRouteImport } from './routes/fest'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as CookiePolicyRouteImport } from './routes/cookie-policy'
@@ -48,6 +49,7 @@ import { Route as OrganizerNewRouteImport } from './routes/organizer.new'
 import { Route as OrganizerMessagesRouteImport } from './routes/organizer.messages'
 import { Route as OrganizerAlertsRouteImport } from './routes/organizer.alerts'
 import { Route as OrganizerActivityRouteImport } from './routes/organizer.activity'
+import { Route as InviteAcceptRouteImport } from './routes/invite.accept'
 import { Route as FestSlugRouteImport } from './routes/fest.$slug'
 import { Route as EventsEventIdRouteImport } from './routes/events.$eventId'
 import { Route as CompanyWalletRouteImport } from './routes/company.wallet'
@@ -138,6 +140,11 @@ const OrganizerRoute = OrganizerRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InviteRoute = InviteRouteImport.update({
+  id: '/invite',
+  path: '/invite',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FestRoute = FestRouteImport.update({
@@ -283,6 +290,11 @@ const OrganizerActivityRoute = OrganizerActivityRouteImport.update({
   id: '/activity',
   path: '/activity',
   getParentRoute: () => OrganizerRoute,
+} as any)
+const InviteAcceptRoute = InviteAcceptRouteImport.update({
+  id: '/accept',
+  path: '/accept',
+  getParentRoute: () => InviteRoute,
 } as any)
 const FestSlugRoute = FestSlugRouteImport.update({
   id: '/$slug',
@@ -501,6 +513,7 @@ export interface FileRoutesByFullPath {
   '/cookie-policy': typeof CookiePolicyRoute
   '/events': typeof EventsRouteWithChildren
   '/fest': typeof FestRouteWithChildren
+  '/invite': typeof InviteRouteWithChildren
   '/login': typeof LoginRoute
   '/organizer': typeof OrganizerRouteWithChildren
   '/privacy': typeof PrivacyRoute
@@ -548,6 +561,7 @@ export interface FileRoutesByFullPath {
   '/company/wallet': typeof CompanyWalletRoute
   '/events/$eventId': typeof EventsEventIdRoute
   '/fest/$slug': typeof FestSlugRoute
+  '/invite/accept': typeof InviteAcceptRoute
   '/organizer/activity': typeof OrganizerActivityRoute
   '/organizer/alerts': typeof OrganizerAlertsRoute
   '/organizer/messages': typeof OrganizerMessagesRoute
@@ -576,6 +590,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ambassadors': typeof AmbassadorsRoute
   '/cookie-policy': typeof CookiePolicyRoute
+  '/invite': typeof InviteRouteWithChildren
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/refund': typeof RefundRoute
@@ -622,6 +637,7 @@ export interface FileRoutesByTo {
   '/company/wallet': typeof CompanyWalletRoute
   '/events/$eventId': typeof EventsEventIdRoute
   '/fest/$slug': typeof FestSlugRoute
+  '/invite/accept': typeof InviteAcceptRoute
   '/organizer/activity': typeof OrganizerActivityRoute
   '/organizer/alerts': typeof OrganizerAlertsRoute
   '/organizer/messages': typeof OrganizerMessagesRoute
@@ -658,6 +674,7 @@ export interface FileRoutesById {
   '/cookie-policy': typeof CookiePolicyRoute
   '/events': typeof EventsRouteWithChildren
   '/fest': typeof FestRouteWithChildren
+  '/invite': typeof InviteRouteWithChildren
   '/login': typeof LoginRoute
   '/organizer': typeof OrganizerRouteWithChildren
   '/privacy': typeof PrivacyRoute
@@ -705,6 +722,7 @@ export interface FileRoutesById {
   '/company/wallet': typeof CompanyWalletRoute
   '/events/$eventId': typeof EventsEventIdRoute
   '/fest/$slug': typeof FestSlugRoute
+  '/invite/accept': typeof InviteAcceptRoute
   '/organizer/activity': typeof OrganizerActivityRoute
   '/organizer/alerts': typeof OrganizerAlertsRoute
   '/organizer/messages': typeof OrganizerMessagesRoute
@@ -741,6 +759,7 @@ export interface FileRouteTypes {
     | '/cookie-policy'
     | '/events'
     | '/fest'
+    | '/invite'
     | '/login'
     | '/organizer'
     | '/privacy'
@@ -788,6 +807,7 @@ export interface FileRouteTypes {
     | '/company/wallet'
     | '/events/$eventId'
     | '/fest/$slug'
+    | '/invite/accept'
     | '/organizer/activity'
     | '/organizer/alerts'
     | '/organizer/messages'
@@ -816,6 +836,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ambassadors'
     | '/cookie-policy'
+    | '/invite'
     | '/login'
     | '/privacy'
     | '/refund'
@@ -862,6 +883,7 @@ export interface FileRouteTypes {
     | '/company/wallet'
     | '/events/$eventId'
     | '/fest/$slug'
+    | '/invite/accept'
     | '/organizer/activity'
     | '/organizer/alerts'
     | '/organizer/messages'
@@ -897,6 +919,7 @@ export interface FileRouteTypes {
     | '/cookie-policy'
     | '/events'
     | '/fest'
+    | '/invite'
     | '/login'
     | '/organizer'
     | '/privacy'
@@ -944,6 +967,7 @@ export interface FileRouteTypes {
     | '/company/wallet'
     | '/events/$eventId'
     | '/fest/$slug'
+    | '/invite/accept'
     | '/organizer/activity'
     | '/organizer/alerts'
     | '/organizer/messages'
@@ -980,6 +1004,7 @@ export interface RootRouteChildren {
   CookiePolicyRoute: typeof CookiePolicyRoute
   EventsRoute: typeof EventsRouteWithChildren
   FestRoute: typeof FestRouteWithChildren
+  InviteRoute: typeof InviteRouteWithChildren
   LoginRoute: typeof LoginRoute
   OrganizerRoute: typeof OrganizerRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
@@ -1065,6 +1090,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invite': {
+      id: '/invite'
+      path: '/invite'
+      fullPath: '/invite'
+      preLoaderRoute: typeof InviteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/fest': {
@@ -1269,6 +1301,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/organizer/activity'
       preLoaderRoute: typeof OrganizerActivityRouteImport
       parentRoute: typeof OrganizerRoute
+    }
+    '/invite/accept': {
+      id: '/invite/accept'
+      path: '/accept'
+      fullPath: '/invite/accept'
+      preLoaderRoute: typeof InviteAcceptRouteImport
+      parentRoute: typeof InviteRoute
     }
     '/fest/$slug': {
       id: '/fest/$slug'
@@ -1709,6 +1748,17 @@ const FestRouteChildren: FestRouteChildren = {
 
 const FestRouteWithChildren = FestRoute._addFileChildren(FestRouteChildren)
 
+interface InviteRouteChildren {
+  InviteAcceptRoute: typeof InviteAcceptRoute
+}
+
+const InviteRouteChildren: InviteRouteChildren = {
+  InviteAcceptRoute: InviteAcceptRoute,
+}
+
+const InviteRouteWithChildren =
+  InviteRoute._addFileChildren(InviteRouteChildren)
+
 interface OrganizerEventsEventIdRouteChildren {
   OrganizerEventsEventIdEditRoute: typeof OrganizerEventsEventIdEditRoute
 }
@@ -1768,6 +1818,7 @@ const rootRouteChildren: RootRouteChildren = {
   CookiePolicyRoute: CookiePolicyRoute,
   EventsRoute: EventsRouteWithChildren,
   FestRoute: FestRouteWithChildren,
+  InviteRoute: InviteRouteWithChildren,
   LoginRoute: LoginRoute,
   OrganizerRoute: OrganizerRouteWithChildren,
   PrivacyRoute: PrivacyRoute,

@@ -8,3 +8,15 @@ verify_jwt = false
 
 [functions.razorpay-verify]
 verify_jwt = false
+
+[functions.send-invite-email]
+verify_jwt = false
+
+[auth.email.template.invite]
+subject = "You have been invited to WeFest"
+content_path = "./supabase/templates/invite.html"
+
+[auth.email.template.magic_link]
+subject = "Sign in to WeFest"
+content_path = "./supabase/templates/magic_link.html"
+

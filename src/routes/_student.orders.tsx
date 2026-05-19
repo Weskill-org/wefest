@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_student/orders")({
       if (!user) {
         throw redirect({
           to: '/login',
-          search: { redirect: location.pathname + location.search },
+          search: { redirect: location.pathname + location.searchStr },
 
         });
       }

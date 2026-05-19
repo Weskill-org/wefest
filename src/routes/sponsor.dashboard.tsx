@@ -21,7 +21,7 @@ export const Route = createFileRoute("/sponsor/dashboard")({
     if (!session?.user) {
       throw redirect({
         to: '/login',
-        search: { redirect: location.pathname + location.search },
+        search: { redirect: location.pathname + location.searchStr },
 
       });
     }

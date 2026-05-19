@@ -25,7 +25,7 @@ export const Route = createFileRoute("/organizer")({
     if (!session) {
       throw redirect({
         to: '/login',
-        search: { redirect: location.pathname + location.search },
+        search: { redirect: location.pathname + location.searchStr },
       });
     }
     

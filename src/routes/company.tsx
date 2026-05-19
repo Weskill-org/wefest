@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getAuthSession } from "@/lib/auth";
 import {
   LayoutDashboard, Search, ScanLine, Settings, Menu, X,
-  LogOut, ChevronLeft, ChevronRight, Building2, Briefcase, Handshake, ImageIcon, Bell, MessageSquare
+  LogOut, ChevronLeft, ChevronRight, Building2, Briefcase, Handshake, ImageIcon, Bell, MessageSquare, Users
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/company")({
     if (!session) {
       throw redirect({
         to: '/login',
-        search: { redirect: location.pathname + location.search },
+        search: { redirect: location.pathname + location.searchStr },
 
       });
     }
