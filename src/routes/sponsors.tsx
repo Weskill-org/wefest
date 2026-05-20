@@ -20,7 +20,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/sponsors")({
-  head: () => ({ meta: [{ title: "Sponsor a fest — WeFest" }, { name: "description", content: "Discover and sponsor India's biggest college festivals." }] }),
+  head: () => ({
+    meta: [
+      { title: "Sponsorship Opportunities & Packages | WeFest" },
+      { name: "description", content: "Sponsor India's biggest college festivals. Reach 2M+ Gen-Z students on campus with verified event reach, high ROI sponsorship tiers, and digital activations." },
+      { name: "keywords", content: "college sponsorship, event branding, campus marketing, youth marketing, WeFest sponsors, college festivals marketing" },
+      { property: "og:title", content: "Sponsorship Opportunities & Packages | WeFest" },
+      { property: "og:description", content: "Sponsor India's biggest college festivals. Reach 2M+ Gen-Z students on campus with verified event reach, high ROI sponsorship tiers, and digital activations." },
+      { property: "og:url", content: "https://wefest.weskill.org/sponsors" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Sponsorship Opportunities & Packages | WeFest" },
+      { name: "twitter:description", content: "Sponsor India's biggest college festivals. Reach 2M+ Gen-Z students on campus." },
+    ],
+    links: [
+      { rel: "canonical", href: "https://wefest.weskill.org/sponsors" },
+    ],
+  }),
   component: Sponsors,
 });
 

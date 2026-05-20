@@ -30,11 +30,14 @@ export const Route = createFileRoute("/colleges/")({
       { name: "keywords", content: "college campus network, Indian universities, tech fests colleges, DU colleges fests, IIT college festivals, verified campus network, WeFest colleges" },
       { property: "og:title", content: "Top Colleges & Universities Campus Network | WeFest" },
       { property: "og:description", content: "Explore the premier campus network of India's top colleges. Browse verified educational institutions, tech fests, cultural events, and past archives on WeFest." },
-      { property: "og:url", content: "https://wefest.in/colleges" },
+      { property: "og:url", content: "https://wefest.weskill.org/colleges" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Top Colleges & Universities Campus Network | WeFest" },
       { name: "twitter:description", content: "Explore the premier campus network of India's top colleges on WeFest." },
+    ],
+    links: [
+      { rel: "canonical", href: "https://wefest.weskill.org/colleges" },
     ],
   }),
   component: CollegesIndexPage,
@@ -143,7 +146,7 @@ function CollegesIndexPage() {
       "item": {
         "@type": "EducationalOrganization",
         "name": c.name,
-        "url": `https://wefest.in/colleges/${c.slug}`,
+        "url": `https://wefest.weskill.org/colleges/${c.slug}`,
         "address": {
           "@type": "PostalAddress",
           "addressLocality": c.city || "India",

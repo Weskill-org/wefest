@@ -117,7 +117,7 @@ export function CertificateTemplate({
   certificateId,
   collegeName,
 }: CertificateProps) {
-  const verifyUrl = `https://wefest.in/verify/${certificateId}`;
+  const verifyUrl = `https://wefest.weskill.org/verify/${certificateId}`;
 
   return (
     <div
@@ -569,7 +569,7 @@ export function CertificateTemplate({
                   ✓ SECURE VERIFICATION
                 </div>
                 <div style={{ fontSize: 7.5, color: "#9a7a40", fontFamily: "monospace", marginTop: 2 }}>
-                  wefest.in/verify/{certificateId}
+                  wefest.weskill.org/verify/{certificateId}
                 </div>
               </div>
             </div>

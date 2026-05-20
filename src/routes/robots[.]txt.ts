@@ -9,8 +9,8 @@ User-agent: *
 Allow: /
 
 # Host & Sitemaps
-Host: https://wefest.in
-Sitemap: https://wefest.in/sitemap.xml
+Host: https://wefest.weskill.org
+Sitemap: https://wefest.weskill.org/sitemap.xml
 `;
 
         return new Response(robots, {

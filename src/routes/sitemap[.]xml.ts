@@ -11,7 +11,7 @@ export const Route = createFileRoute("/sitemap.xml")({
         // Fetch dynamic college links
         const { data: colleges } = await supabase.from("colleges").select("slug");
 
-        const baseUrl = "https://wefest.in";
+        const baseUrl = "https://wefest.weskill.org";
 
         // Build the XML payload
         let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;

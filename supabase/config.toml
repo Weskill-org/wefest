@@ -20,3 +20,5 @@ content_path = "./supabase/templates/invite.html"
 subject = "Sign in to WeFest"
 content_path = "./supabase/templates/magic_link.html"
 
+[auth.email]
+enable_confirmations = true

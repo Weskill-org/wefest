@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { GraduationCap, Building2, Briefcase, ArrowLeft, Loader2, Gift } from "lucide-react";
+import { GraduationCap, Building2, Briefcase, ArrowLeft, Loader2, Gift, Eye, EyeOff, Check } from "lucide-react";
 import { REFERRAL_REWARD_COINS } from "@/lib/wallet.functions";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,12 +52,18 @@ function Signup() {
   const [role, setRole] = useState<Role>("student");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [collegeId, setCollegeId] = useState("");
   const referralFromLink = search.ref?.trim().toUpperCase() ?? "";
   const isReferralLocked = referralFromLink.length > 0;
   const [referralCode, setReferralCode] = useState(() => referralFromLink);
   const [loading, setLoading] = useState(false);
+
+  const hasMinLength = password.length >= 8;
+  const hasDigit = /\d/.test(password);
+  const hasSpecialChar = /[^A-Za-z0-9]/.test(password);
+  const isPasswordValid = hasMinLength && hasDigit && hasSpecialChar;
 
   const effectiveReferralCode = isReferralLocked ? referralFromLink : referralCode.trim().toUpperCase();
 
@@ -74,6 +80,10 @@ function Signup() {
     e.preventDefault();
     if (role === "student" && !collegeId) {
       toast.error("Please select your college");
+      return;
+    }
+    if (!isPasswordValid) {
+      toast.error("Password does not meet validation requirements.");
       return;
     }
     setLoading(true);
@@ -265,14 +275,43 @@ function Signup() {
             )}
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Password</Label>
-              <Input 
-                required 
-                type="password" 
-                minLength={6} 
-                value={password} 
-                onChange={(e) => setPassword(e.target.value)} 
-                className="h-11 rounded-xl bg-white/[0.03] border-white/10"
-              />
+              <div className="relative">
+                <Input 
+                  required 
+                  type={showPassword ? "text" : "password"} 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
+                  className="h-11 pr-10 rounded-xl bg-white/[0.03] border-white/10 text-foreground"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-11 w-11 text-muted-foreground hover:text-foreground hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+
+              {/* Password policies */}
+              <div className="mt-2.5 space-y-1.5 text-xs">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Password Requirements</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div className={cn("flex items-center gap-1.5 transition-colors", hasMinLength ? "text-emerald-500 font-medium" : "text-muted-foreground")}>
+                    {hasMinLength ? <Check className="h-3.5 w-3.5 shrink-0" /> : <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40 ml-1.5 mr-1.5" />}
+                    <span>Min 8 characters</span>
+                  </div>
+                  <div className={cn("flex items-center gap-1.5 transition-colors", hasDigit ? "text-emerald-500 font-medium" : "text-muted-foreground")}>
+                    {hasDigit ? <Check className="h-3.5 w-3.5 shrink-0" /> : <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40 ml-1.5 mr-1.5" />}
+                    <span>At least 1 digit</span>
+                  </div>
+                  <div className={cn("flex items-center gap-1.5 transition-colors", hasSpecialChar ? "text-emerald-500 font-medium" : "text-muted-foreground")}>
+                    {hasSpecialChar ? <Check className="h-3.5 w-3.5 shrink-0" /> : <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40 ml-1.5 mr-1.5" />}
+                    <span>1 special character</span>
+                  </div>
+                </div>
+              </div>
             </div>
             <Button 
               type="submit" 

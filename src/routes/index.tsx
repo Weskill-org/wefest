@@ -14,11 +14,14 @@ export const Route = createFileRoute("/")({
       { name: "keywords", content: "WeFest, college festivals, campus fests, tech summits, cultural events, ticketing platform, college sponsors, Indian college fests" },
       { property: "og:title", content: "WeFest — India's Premier College Festival & Event Ticketing Platform" },
       { property: "og:description", content: "Discover, ticket, and sponsor India's biggest college festivals (cultural fests, tech summits, sports meets) on WeFest. The unified, identity-verified campus ecosystem." },
-      { property: "og:url", content: "https://wefest.in" },
+      { property: "og:url", content: "https://wefest.weskill.org" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "WeFest — India's Premier College Festival & Event Ticketing Platform" },
       { name: "twitter:description", content: "Discover, ticket, and sponsor India's biggest college festivals on WeFest." },
+    ],
+    links: [
+      { rel: "canonical", href: "https://wefest.weskill.org" },
     ],
   }),
   beforeLoad: async () => {
@@ -128,10 +131,10 @@ function Home() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "WeFest",
-    "url": "https://wefest.in",
+    "url": "https://wefest.weskill.org",
     "potentialAction": {
       "@type": "SearchAction",
-      "target": "https://wefest.in/events?search={search_term_string}",
+      "target": "https://wefest.weskill.org/events?search={search_term_string}",
       "query-input": "required name=search_term_string"
     }
   };
@@ -140,8 +143,8 @@ function Home() {
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "WeFest",
-    "url": "https://wefest.in",
-    "logo": "https://wefest.in/logo.png",
+    "url": "https://wefest.weskill.org",
+    "logo": "https://wefest.weskill.org/logo.png",
     "sameAs": [
       "https://instagram.com/wefest.in",
       "https://twitter.com/wefest_in",

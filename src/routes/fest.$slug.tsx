@@ -55,6 +55,19 @@ export const Route = createFileRoute("/fest/$slug")({
     meta: [
       { title: loaderData ? `${loaderData.title} — WeFest` : "Event — WeFest" },
       { name: "description", content: loaderData?.description ?? "Festival event on WeFest — India's college festival platform." },
+      { name: "keywords", content: loaderData ? `${loaderData.title}, ${loaderData.college} fests, ${loaderData.category} college competition, WeFest tickets` : "college events, WeFest tickets" },
+      { property: "og:title", content: loaderData ? `${loaderData.title} | WeFest` : "Event — WeFest" },
+      { property: "og:description", content: loaderData?.description ?? "Festival event on WeFest — India's college festival platform." },
+      { property: "og:image", content: loaderData?.cover || "https://wefest.weskill.org/og-image.png" },
+      { property: "og:url", content: loaderData ? `https://wefest.weskill.org/fest/${loaderData.slug}` : "https://wefest.weskill.org/fest" },
+      { property: "og:type", content: "article" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: loaderData ? `${loaderData.title} | WeFest` : "Event — WeFest" },
+      { name: "twitter:description", content: loaderData?.description ?? "Explore this college festival event." },
+      { name: "twitter:image", content: loaderData?.cover || "https://wefest.weskill.org/og-image.png" },
+    ],
+    links: [
+      { rel: "canonical", href: loaderData ? `https://wefest.weskill.org/fest/${loaderData.slug}` : "https://wefest.weskill.org/fest" },
     ],
   }),
   errorComponent: ({ error }) => (
@@ -202,8 +215,44 @@ function FullEventDetail() {
     "Esports Arena",
   ];
 
+  const eventSchema = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    "name": event.title,
+    "description": event.description || "An exciting college festival on WeFest.",
+    "startDate": event.date,
+    "endDate": event.end_date || event.date,
+    "image": event.cover || "https://wefest.weskill.org/og-image.png",
+    "location": {
+      "@type": "Place",
+      "name": event.college || "Campus Venue",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": event.city || "India",
+        "addressCountry": "IN"
+      }
+    },
+    "offers": {
+      "@type": "AggregateOffer",
+      "priceCurrency": "INR",
+      "lowPrice": event.price_from || 0,
+      "highPrice": tiers[tiers.length - 1]?.price || event.price_from || 999,
+      "offerCount": tiers.length,
+      "url": `https://wefest.weskill.org/fest/${event.slug}`
+    },
+    "organizer": {
+      "@type": "Organization",
+      "name": "WeFest",
+      "url": "https://wefest.weskill.org"
+    }
+  };
+
   const PageUI = (
     <div className="animate-in fade-in duration-500 pb-20">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(eventSchema) }}
+      />
       {/* Hero Banner */}
       <div className={`relative h-[340px] md:h-[400px] bg-gradient-to-br ${event.cover}`}>
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />

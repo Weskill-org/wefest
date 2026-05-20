@@ -13,11 +13,14 @@ export const Route = createFileRoute("/blog/$slug")({
         { name: "keywords", content: post ? `${post.title.toLowerCase().split(' ').slice(0, 5).join(', ')}, college festivals, WeFest blog` : "college fests blog, campus trends" },
         { property: "og:title", content: post ? `${post.title} | WeFest Blog` : "Blog Post | WeFest Blog" },
         { property: "og:description", content: post ? post.excerpt : "Read our latest insights on college festivals and campus trends." },
-        { property: "og:url", content: post ? `https://wefest.in/blog/${post.slug}` : "https://wefest.in/blog" },
+        { property: "og:url", content: post ? `https://wefest.weskill.org/blog/${post.slug}` : "https://wefest.weskill.org/blog" },
         { property: "og:type", content: "article" },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: post ? `${post.title} | WeFest Blog` : "Blog Post | WeFest Blog" },
         { name: "twitter:description", content: post ? post.excerpt : "Read our latest insights on college festivals and campus trends." },
+      ],
+      links: [
+        { rel: "canonical", href: post ? `https://wefest.weskill.org/blog/${post.slug}` : "https://wefest.weskill.org/blog" },
       ],
     };
   },
@@ -55,12 +58,12 @@ function BlogPostPage() {
       "name": "WeFest",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://wefest.in/logo.png"
+        "url": "https://wefest.weskill.org/logo.png"
       }
     },
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": `https://wefest.in/blog/${post.slug}`
+      "@id": `https://wefest.weskill.org/blog/${post.slug}`
     }
   };
 
@@ -112,25 +115,6 @@ function BlogPostPage() {
         <div className="whitespace-pre-wrap">
           {post.content}
         </div>
-        
-        <h2 className="text-2xl font-bold text-foreground">The Digital Transformation</h2>
-        <p>
-          College festivals have always been the pinnacle of student life in India. From the high-octane energy of Mood Indigo to the technical brilliance of Shaastra, these events define an entire generation's campus experience. However, the manual processes that once powered these fests are no longer sufficient for the scale of the 21st century.
-        </p>
-        
-        <div className="glass p-8 rounded-3xl border-l-4 border-primary my-12">
-          "The shift from physical ticket counters to identity-verified digital ecosystems isn't just about convenience—it's about building a sustainable and transparent future for student-led initiatives."
-        </div>
-
-        <h2 className="text-2xl font-bold text-foreground">Why Authenticity Matters</h2>
-        <p>
-          One of the biggest challenges facing large-scale events today is the rise of scalping and fake identities. By integrating college email verification directly into the ticketing flow, WeFest ensures that every attendee is a verified student or authorized guest. This creates a safer, more exclusive environment for everyone involved.
-        </p>
-
-        <h2 className="text-2xl font-bold text-foreground">The Future of Sponsorship</h2>
-        <p>
-          Brands are no longer satisfied with just 'logo placement'. They want data-driven insights. They want to know exactly who they are reaching and what the engagement levels look like. This is where digital platforms provide the most value to student organizers.
-        </p>
       </div>
 
       <footer className="mt-16 pt-16 border-t border-border/40">

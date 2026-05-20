@@ -7,6 +7,17 @@ export const Route = createFileRoute("/blog/")({
     meta: [
       { title: "WeFest Blog | The Campus Pulse" },
       { name: "description", content: "Insights, guides, and cultural trends from the Indian college festival circuit. Learn how to plan, host, and sponsor the best fests." },
+      { name: "keywords", content: "college fests blog, campus trends, student leadership, college festival planning, campus marketing, WeFest guides" },
+      { property: "og:title", content: "WeFest Blog | The Campus Pulse" },
+      { property: "og:description", content: "Insights, guides, and cultural trends from the Indian college festival circuit. Learn how to plan, host, and sponsor the best fests." },
+      { property: "og:url", content: "https://wefest.weskill.org/blog" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "WeFest Blog | The Campus Pulse" },
+      { name: "twitter:description", content: "Insights, guides, and cultural trends from the Indian college festival circuit." },
+    ],
+    links: [
+      { rel: "canonical", href: "https://wefest.weskill.org/blog" },
     ],
   }),
   component: BlogListingPage,

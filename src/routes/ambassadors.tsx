@@ -13,8 +13,19 @@ import { Textarea } from "@/components/ui/textarea";
 export const Route = createFileRoute("/ambassadors")({
   head: () => ({
     meta: [
-      { title: "Campus Ambassadors — WeFest" },
-      { name: "description", content: "Become the face of festivals on your campus. Earn perks, rewards and internships." },
+      { title: "Campus Ambassador Program | WeFest" },
+      { name: "description", content: "Become the face of festivals on your campus. Join the WeFest Campus Ambassador Program, earn perks, exclusive rewards, cash incentives, and internships." },
+      { name: "keywords", content: "campus ambassador, college representative, student intern, college festivals, WeFest, campus marketing, college rewards" },
+      { property: "og:title", content: "Campus Ambassador Program | WeFest" },
+      { property: "og:description", content: "Become the face of festivals on your campus. Join the WeFest Campus Ambassador Program, earn perks, exclusive rewards, cash incentives, and internships." },
+      { property: "og:url", content: "https://wefest.weskill.org/ambassadors" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Campus Ambassador Program | WeFest" },
+      { name: "twitter:description", content: "Become the face of festivals on your campus. Earn perks, rewards, and internships." },
+    ],
+    links: [
+      { rel: "canonical", href: "https://wefest.weskill.org/ambassadors" },
     ],
   }),
   component: Ambassadors,

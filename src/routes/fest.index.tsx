@@ -27,9 +27,20 @@ const CATEGORIES = ["All", "Cultural", "Tech", "Sports", "Business", "Arts"] as 
 export const Route = createFileRoute("/fest/")({
   head: () => ({ 
     meta: [
-      { title: "Festivals — WeFest" }, 
-      { name: "description", content: "Discover India's biggest college festivals." }
-    ] 
+      { title: "Discover College Festivals | WeFest" }, 
+      { name: "description", content: "Explore and register for India's biggest college festivals (cultural, tech, sports, business, and arts) across premier campuses on WeFest." },
+      { name: "keywords", content: "college festivals, campus fests, cultural events, tech summits, college sponsors, Indian college fests, WeFest directory" },
+      { property: "og:title", content: "Discover College Festivals | WeFest" },
+      { property: "og:description", content: "Explore and register for India's biggest college festivals (cultural, tech, sports, business, and arts) across premier campuses on WeFest." },
+      { property: "og:url", content: "https://wefest.weskill.org/fest" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Discover College Festivals | WeFest" },
+      { name: "twitter:description", content: "Explore and register for India's biggest college festivals on WeFest." },
+    ],
+    links: [
+      { rel: "canonical", href: "https://wefest.weskill.org/fest" },
+    ],
   }),
   component: PublicFestPage,
 });

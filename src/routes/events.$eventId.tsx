@@ -51,13 +51,16 @@ export const Route = createFileRoute("/events/$eventId")({
       { name: "keywords", content: loaderData ? `${loaderData.title}, ${loaderData.college} fests, ${loaderData.category} college competition, WeFest tickets` : "college events, WeFest tickets" },
       { property: "og:title", content: loaderData ? `${loaderData.title} Registration & Tickets | WeFest` : "Event — WeFest" },
       { property: "og:description", content: loaderData ? `Register for ${loaderData.title} on WeFest. Date: ${new Date(loaderData.date).toLocaleDateString()}. Category: ${loaderData.category}. Location: ${loaderData.college || "India"}.` : "Festival event on WeFest — India's college festival platform." },
-      { property: "og:image", content: loaderData?.image || "https://wefest.in/og-image.png" },
-      { property: "og:url", content: loaderData ? `https://wefest.in/events/${loaderData.id}` : "https://wefest.in/events" },
+      { property: "og:image", content: loaderData?.image || "https://wefest.weskill.org/og-image.png" },
+      { property: "og:url", content: loaderData ? `https://wefest.weskill.org/events/${loaderData.id}` : "https://wefest.weskill.org/events" },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: loaderData ? `${loaderData.title} | WeFest` : "Event — WeFest" },
       { name: "twitter:description", content: loaderData ? `Register for ${loaderData.title} on WeFest.` : "Explore this college festival event." },
-      { name: "twitter:image", content: loaderData?.image || "https://wefest.in/og-image.png" },
+      { name: "twitter:image", content: loaderData?.image || "https://wefest.weskill.org/og-image.png" },
+    ],
+    links: [
+      { rel: "canonical", href: loaderData ? `https://wefest.weskill.org/events/${loaderData.id}` : "https://wefest.weskill.org/events" },
     ],
   }),
   errorComponent: ({ error }) => (
@@ -235,12 +238,12 @@ function PublicEventDetail() {
       "lowPrice": event.price_from || 0,
       "highPrice": tiers[tiers.length - 1]?.price || event.price_from || 999,
       "offerCount": tiers.length,
-      "url": `https://wefest.in/events/${event.id}`
+      "url": `https://wefest.weskill.org/events/${event.id}`
     },
     "organizer": {
       "@type": "Organization",
       "name": "WeFest",
-      "url": "https://wefest.in"
+      "url": "https://wefest.weskill.org"
     }
   };
 

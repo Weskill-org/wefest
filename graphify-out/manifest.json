@@ -8,8 +8,8 @@
     "hash": "a9a4087c724d4ea288991f8330c0f5a5"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\scratch.ts": {
-    "mtime": 1779177537.014515,
-    "hash": "a9ca80e8441b60d664139e8f9b4e41e4"
+    "mtime": 1779178153.6815157,
+    "hash": "135adbb5b05ea2c5dccd32b6614f2cea"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\scratch2.ts": {
     "mtime": 1779109329.3018506,
@@ -48,8 +48,8 @@
     "hash": "28c2f51ce3ce7c6f1f5385148d81106f"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\certificate-template.tsx": {
-    "mtime": 1778916124.2377677,
-    "hash": "d93c2ca8e7d85cf5e8516a76268026d5"
+    "mtime": 1779267347.370507,
+    "hash": "dc4d4b280e2c9fff61d81e923c62872b"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\event-card.tsx": {
     "mtime": 1779088659.1198556,
@@ -360,8 +360,8 @@
     "hash": "48561193204407905b3469a1437ee465"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\lib\\blog-data.ts": {
-    "mtime": 1778247337.6487603,
-    "hash": "97beb3d55a8e66b7894092156f188262"
+    "mtime": 1779269431.0608041,
+    "hash": "3b8f604caf5d0d1cec14eb19ed892192"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\lib\\college-join-requests.ts": {
     "mtime": 1778935684.5929308,
@@ -452,36 +452,36 @@
     "hash": "3c2e0b9e5d3c81e51feb88625c8c48b2"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\ambassadors.tsx": {
-    "mtime": 1778157625.8273716,
-    "hash": "e7ce055dfb509dc556645b209b09d4a7"
+    "mtime": 1779267356.5278997,
+    "hash": "59bb9a45c62c0772c1e2068d090c378e"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\blog.$slug.tsx": {
-    "mtime": 1779084403.321742,
-    "hash": "33155cd6eb088d96bece0fc273ac8f4b"
+    "mtime": 1779268182.9582858,
+    "hash": "337d34d4ca4e3dc6b46fae30f544b8da"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\blog.index.tsx": {
-    "mtime": 1778479529.8534203,
-    "hash": "a2e4c80c187386d63e10e18b0e025a63"
+    "mtime": 1779267364.7084672,
+    "hash": "52855cdc41fc517c704e320bb114a426"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\blog.tsx": {
     "mtime": 1778594793.9021494,
     "hash": "10dbd57d6f3b0fc001392b8767c4c056"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\colleges.$collegeSlug.tsx": {
-    "mtime": 1779084403.3237524,
-    "hash": "52551878e9ec321f8a6b7f00fd9b5b5c"
+    "mtime": 1779267327.8611784,
+    "hash": "bccc633564687529a97eb87c29ccd722"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\colleges.index.tsx": {
-    "mtime": 1779084403.3247526,
-    "hash": "618801b43c219f3857fb8c134ab6d1e9"
+    "mtime": 1779267315.9790256,
+    "hash": "504d8d9ccc385f5bd83187926d944f2b"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\colleges.tsx": {
     "mtime": 1778594800.55359,
     "hash": "92a600958cfea6bac02a6d3ba0cdbc8f"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\company.alerts.tsx": {
-    "mtime": 1779089701.0165548,
-    "hash": "b952253102962a79562221ceddef27b3"
+    "mtime": 1779178595.6854372,
+    "hash": "b0884b205a2ef7c8688f9f52928c996d"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\company.brand-assets.tsx": {
     "mtime": 1778766348.0221293,
@@ -512,8 +512,8 @@
     "hash": "2bcc3d43d283b53322bf3735f04bd1f4"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\company.tsx": {
-    "mtime": 1779177901.1760077,
-    "hash": "f377efa292014629e9f553fc6345478a"
+    "mtime": 1779178595.682925,
+    "hash": "1565f4dad80e7c7349abe315d90deb45"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\company.wallet.tsx": {
     "mtime": 1778684351.758979,
@@ -524,43 +524,43 @@
     "hash": "e911fba1746c31a8869d0f0e269fcfb7"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\events.$eventId.tsx": {
-    "mtime": 1779086024.89709,
-    "hash": "d60753d09ff3d84e3e776e8fd8b6ed84"
+    "mtime": 1779267302.7211814,
+    "hash": "07c67627cceaf0f9dd8277fce0d692ab"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\events.index.tsx": {
-    "mtime": 1779084403.3319156,
-    "hash": "343d3eacb7cf404fcbc1c5b07289fba5"
+    "mtime": 1779267286.619835,
+    "hash": "90945488fb82645ff191530891b1e861"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\events.tsx": {
     "mtime": 1778594472.9014628,
     "hash": "d0068f764be6cf04da9a2590c5ef0f01"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\fest.$slug.tsx": {
-    "mtime": 1779171233.2329803,
-    "hash": "748055f31c3c3514766ab89071cd310d"
+    "mtime": 1779267458.647288,
+    "hash": "b304a5c8e3043e88fbbdf41389a2a293"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\fest.index.tsx": {
-    "mtime": 1779171209.3030431,
-    "hash": "a725faacece5db5f32c55ee3033f77e3"
+    "mtime": 1779267388.513963,
+    "hash": "4df67c10680c37a1e39a76bbf815c9c3"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\fest.tsx": {
     "mtime": 1778943564.3895383,
     "hash": "8f1351088767967390aa564ca2b448fa"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\index.tsx": {
-    "mtime": 1779084403.3329215,
-    "hash": "95f312bf43212ecdf8599f4e45b14c30"
+    "mtime": 1779267273.4186208,
+    "hash": "811d3cca2ccc6964d8117a086a8bdf82"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\invite.accept.tsx": {
-    "mtime": 1779175459.9255624,
-    "hash": "fe92579ff4929e883a34edf428eafe04"
+    "mtime": 1779178261.4599693,
+    "hash": "f81767d0964445b9618c7ccad167aec4"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\invite.tsx": {
     "mtime": 1779174243.8302722,
     "hash": "abb10a7a299b23b9f465916249dee0f1"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\login.tsx": {
-    "mtime": 1778931664.5199082,
+    "mtime": 1779264295.98747,
     "hash": "5cd260def83e4c00d86254a9a4a54fa7"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.activity.tsx": {
@@ -568,16 +568,16 @@
     "hash": "8065ccd5cd983ab2fc14b974bcd45675"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.alerts.tsx": {
-    "mtime": 1779089646.0688305,
-    "hash": "20c023cf26416ccf4e526cee012143c4"
+    "mtime": 1779178595.6812754,
+    "hash": "550bede2327c60f187170d1f12162c22"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.events.$eventId.edit.tsx": {
     "mtime": 1779088337.6067765,
     "hash": "73ae13164459b1ea2e1e853a31c0f722"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.events.$eventId.tsx": {
-    "mtime": 1779086061.7576141,
-    "hash": "c1614496d68c65bdec395c3a45c714a8"
+    "mtime": 1779178595.6807475,
+    "hash": "e03444fd719abdf2b0d34a338f8497ac"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.events.index.tsx": {
     "mtime": 1778942499.2693408,
@@ -600,8 +600,8 @@
     "hash": "ad4e575790b36d98e37f86bfe9c5c83d"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.settings.tsx": {
-    "mtime": 1779177659.8158638,
-    "hash": "64556c3c3f77d1ebc070f1c8dacd0bb3"
+    "mtime": 1779178153.673501,
+    "hash": "9136b99dda17c165c30cbee2ba237221"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.sponsor-assets.tsx": {
     "mtime": 1778766626.2461298,
@@ -612,8 +612,8 @@
     "hash": "b0288cbe04ffa13b4734cf225c22770e"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.tsx": {
-    "mtime": 1779177684.1932504,
-    "hash": "e9b11336a9ef9a7213f763ffed7c27ca"
+    "mtime": 1779178595.6790495,
+    "hash": "e65f6668aae2564dd1e98a6810ac1291"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.wallet.tsx": {
     "mtime": 1778684351.7648585,
@@ -628,20 +628,20 @@
     "hash": "daaffb85be860765cd44c931effd290a"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\robots[.]txt.ts": {
-    "mtime": 1779084403.333926,
-    "hash": "33c69bd25934999982fc9585f15f6746"
+    "mtime": 1779267246.978364,
+    "hash": "8c8a2a89ac12e349082d901fc7b5e953"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\signup.tsx": {
-    "mtime": 1779113520.172301,
-    "hash": "7db035baf0918053e5f87c23b175cd49"
+    "mtime": 1779266113.9782548,
+    "hash": "34395fe4c1f1565cb444425092572cba"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\sitemap[.]xml.ts": {
-    "mtime": 1779084403.3349261,
-    "hash": "7025ce896d89587966dd40913d34a096"
+    "mtime": 1779267233.4423842,
+    "hash": "fd434ff641ad5214874fcd2357090720"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\sponsor.dashboard.tsx": {
-    "mtime": 1778917037.484202,
-    "hash": "91180fa6c35b8a49fd82bbdddb5f3c66"
+    "mtime": 1779178595.6785173,
+    "hash": "95341ae85ad08fc284830372f80ae5c2"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\sponsor.pricing.tsx": {
     "mtime": 1778154913.490633,
@@ -652,8 +652,8 @@
     "hash": "37b373a0a727fba8da13671681386ac8"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\sponsors.tsx": {
-    "mtime": 1778926136.665244,
-    "hash": "0714cc4533eafba6d467576253c42b6a"
+    "mtime": 1779267481.1324544,
+    "hash": "a66b16436d465fe943472545603c71b3"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\talent.tsx": {
     "mtime": 1778232912.1775112,
@@ -668,60 +668,60 @@
     "hash": "777ff4814dd48ca9643a2fbe69d6143e"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\_student.alerts.tsx": {
-    "mtime": 1779097533.5784206,
-    "hash": "52b349ed13efa0bc96568e083bc3bdb9"
+    "mtime": 1779178595.677004,
+    "hash": "acd5d0fd8c04d150fb2951dec585f319"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\_student.certifications.tsx": {
-    "mtime": 1778918217.1667953,
-    "hash": "600e05bf289f2705704d184600020c62"
+    "mtime": 1779178595.6764686,
+    "hash": "6a7b7c1656994318e2f819bedba93c24"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\_student.committees.tsx": {
-    "mtime": 1779097535.0927472,
-    "hash": "1098fa54b0a9f0d875d1d8dab3d33b14"
+    "mtime": 1779178595.6753893,
+    "hash": "5734ddd585d3c19076b444414830f081"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\_student.dashboard.tsx": {
-    "mtime": 1778917030.7306864,
-    "hash": "ccbea547a5211e0329e7cc25809cbff3"
+    "mtime": 1779178595.674198,
+    "hash": "e67d3a95516c10fa43021726e30b117e"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\_student.explore.$eventId.tsx": {
     "mtime": 1778944092.2456617,
     "hash": "afe01e0228607ae29736507bed8dddae"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\_student.memories.tsx": {
-    "mtime": 1778918453.1642067,
-    "hash": "d38b20966d4e75eed3f140efe2214e1c"
+    "mtime": 1779178595.6731265,
+    "hash": "04d37b2b906dbe6de1d974965fed8166"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\_student.orders.tsx": {
-    "mtime": 1778917024.6445363,
-    "hash": "474c2ef89d299226fc6d6dc4e6dc37e6"
+    "mtime": 1779178595.671945,
+    "hash": "0edc3d108b66e4919bd34dfcc5ad4c87"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\_student.referrals.tsx": {
     "mtime": 1778930859.7860363,
     "hash": "2c3b29aa4b414f20bc6058929c4f21de"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\_student.settings.tsx": {
-    "mtime": 1778938517.0409164,
-    "hash": "0e75ff516c8e1266ef9f7739948b20e7"
+    "mtime": 1779178595.6714194,
+    "hash": "5bbe3b85ec2e818a51352f6f74ba4015"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\_student.shop.tsx": {
-    "mtime": 1778917009.8292966,
-    "hash": "5baf079c0072709fa6d94a609aa18958"
+    "mtime": 1779178595.6702635,
+    "hash": "4575af2ea59a49b7f066d8430f8bcc58"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\_student.social.tsx": {
-    "mtime": 1778917004.314977,
-    "hash": "c0f426287d5d7c22b65180740c4a39f0"
+    "mtime": 1779178595.658296,
+    "hash": "f773588a9b7f5614cd22f24685a4fd66"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\_student.tickets.tsx": {
-    "mtime": 1778943272.1525116,
-    "hash": "5ef22ee6ba5b5ffc10549e84aa087151"
+    "mtime": 1779178585.4470186,
+    "hash": "4298b0f06e34af0d289167e68d5de131"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\_student.tsx": {
-    "mtime": 1778944182.5532339,
-    "hash": "489b8a6684ea61c3b2d6595f777c7bff"
+    "mtime": 1779178578.4361587,
+    "hash": "1387989468564c41a2ac49268311d538"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\_student.wallet.tsx": {
-    "mtime": 1778916983.0406096,
-    "hash": "80129183ba69f052d798eb2cb6d24d04"
+    "mtime": 1779178568.8024151,
+    "hash": "17b5692d6cbec4d2177d28f66ea69d5d"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\__root.tsx": {
     "mtime": 1779171174.0399444,
@@ -740,8 +740,8 @@
     "hash": "923bded8e9db32393f748a259a19703d"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\supabase\\functions\\send-invite-email\\index.ts": {
-    "mtime": 1779177242.7808836,
-    "hash": "69efbdf1279fa37078a5efa263b93ddf"
+    "mtime": 1779179856.3624752,
+    "hash": "33d464ff3c25c2535337bd371cfda6a7"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\supabase\\migrations\\20260507071702_fe39b9f3-7f64-4ab8-82b6-f7103e10fc71.sql": {
     "mtime": 1778141327.9830444,
@@ -1007,13 +1007,9 @@
     "mtime": 1779110700.6771865,
     "hash": "ce9f519c500b3102903e03d934cad9fb"
   },
-  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\supabase\\migrations\\20260519120000_company_team_invitations.sql": {
-    "mtime": 1779174568.3361385,
-    "hash": "f934d6b7302c93106f0596e34ee1813f"
-  },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\supabase\\migrations\\20260519130000_invite_unregistered_users.sql": {
-    "mtime": 1779175356.316024,
-    "hash": "663371f113200ee3a8bc0e9dc6f01741"
+    "mtime": 1779178234.0780532,
+    "hash": "7f060a22b37c04ba210b43dfade28b79"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\allfeatures.md": {
     "mtime": 1778219526.5087645,
@@ -1046,6 +1042,10 @@
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\taskforstudents.md": {
     "mtime": 1778507128.5441396,
     "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\our_files\\SEOSKill.md": {
+    "mtime": 1779267848.2244873,
+    "hash": "367507e14e471a1aeaf63562fcceedcf"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\scratch\\logo_base64.txt": {
     "mtime": 1778839915.7922366,
