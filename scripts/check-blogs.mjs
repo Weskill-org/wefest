@@ -10,7 +10,7 @@ const checks = ['## H2:', 'Frequently Asked Questions', 'Conclusion', 'Key Takea
 let incomplete = [];
 
 // Split by blog objects
-const blogBlocks = content.split(/\},\s*\{/);
+const blogBlocks = content.split(/\}\s*,?\s*(?:\/\/[^\r\n]*)?\s*\{/);
 
 blogBlocks.forEach((block, i) => {
   const slugMatch = block.match(/slug:\s*"([^"]+)"/);
