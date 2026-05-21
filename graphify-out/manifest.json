@@ -4,8 +4,8 @@
     "hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\eslint.config.js": {
-    "mtime": 1778138463.7642727,
-    "hash": "a9a4087c724d4ea288991f8330c0f5a5"
+    "mtime": 1779373992.2349381,
+    "hash": "574a41d528028c57966144d0f3f28131"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\scratch.ts": {
     "mtime": 1779178153.6815157,
@@ -158,6 +158,10 @@
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\ad-banner.tsx": {
     "mtime": 1778854417.2433708,
     "hash": "28c2f51ce3ce7c6f1f5385148d81106f"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\BlogContentRenderer.tsx": {
+    "mtime": 1779374076.3140004,
+    "hash": "2a95ae7c0c18a120258b8052c8a60a78"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\certificate-template.tsx": {
     "mtime": 1779274185.549585,
@@ -564,12 +568,12 @@
     "hash": "3c2e0b9e5d3c81e51feb88625c8c48b2"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\ambassadors.tsx": {
-    "mtime": 1779274185.554116,
-    "hash": "02046c1835d629e8a9f67fa0d5caa58b"
+    "mtime": 1779373831.2794027,
+    "hash": "b47a50af84816d85117db66441228801"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\blog.$slug.tsx": {
-    "mtime": 1779274185.5559037,
-    "hash": "337d34d4ca4e3dc6b46fae30f544b8da"
+    "mtime": 1779374076.186083,
+    "hash": "718017f1b061dc5d5b2d028bf0c6e3bc"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\blog.index.tsx": {
     "mtime": 1779274185.5559037,
