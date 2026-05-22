@@ -22,7 +22,10 @@ describe("enrichCurrentUser", () => {
   });
 
   it("should return unmodified member if ctx.currentUserId is missing", () => {
-    const ctx = { currentUserName: "New Name", currentUserEmail: "new@test.com" };
+    const ctx = {
+      currentUserName: "New Name",
+      currentUserEmail: "new@test.com",
+    };
     const result = enrichCurrentUser(baseMember, ctx);
     expect(result).toBe(baseMember);
   });
@@ -52,10 +55,16 @@ describe("enrichCurrentUser", () => {
     });
 
     it("should fallback to member.full_name if context name is empty or missing", () => {
-      const result1 = enrichCurrentUser(baseMember, { ...matchingCtx, currentUserName: "" });
+      const result1 = enrichCurrentUser(baseMember, {
+        ...matchingCtx,
+        currentUserName: "",
+      });
       expect(result1.full_name).toBe("Original Name");
 
-      const result2 = enrichCurrentUser(baseMember, { ...matchingCtx, currentUserName: "   " });
+      const result2 = enrichCurrentUser(baseMember, {
+        ...matchingCtx,
+        currentUserName: "   ",
+      });
       expect(result2.full_name).toBe("Original Name");
 
       const result3 = enrichCurrentUser(baseMember, matchingCtx);
@@ -68,15 +77,24 @@ describe("enrichCurrentUser", () => {
       const result1 = enrichCurrentUser(namelessMember, matchingCtx);
       expect(result1.full_name).toBe("Organizer");
 
-      const result2 = enrichCurrentUser(namelessMember, { ...matchingCtx, currentUserName: "  " });
+      const result2 = enrichCurrentUser(namelessMember, {
+        ...matchingCtx,
+        currentUserName: "  ",
+      });
       expect(result2.full_name).toBe("Organizer");
     });
 
     it("should fallback to member.email if context email is empty or missing", () => {
-      const result1 = enrichCurrentUser(baseMember, { ...matchingCtx, currentUserEmail: "" });
+      const result1 = enrichCurrentUser(baseMember, {
+        ...matchingCtx,
+        currentUserEmail: "",
+      });
       expect(result1.email).toBe("original@test.com");
 
-      const result2 = enrichCurrentUser(baseMember, { ...matchingCtx, currentUserEmail: "   " });
+      const result2 = enrichCurrentUser(baseMember, {
+        ...matchingCtx,
+        currentUserEmail: "   ",
+      });
       expect(result2.email).toBe("original@test.com");
 
       const result3 = enrichCurrentUser(baseMember, matchingCtx);
