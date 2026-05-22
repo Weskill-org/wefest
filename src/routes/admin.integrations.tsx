@@ -59,11 +59,7 @@ function AdminIntegrations() {
 
   const generateKey = useMutation({
     mutationFn: async (collegeId: string) => {
-      const array = new Uint8Array(16);
-      crypto.getRandomValues(array);
-      const randomHex = Array.from(array)
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
+      const randomHex = crypto.randomUUID().replace(/-/g, "");
       const newKey = `wf_${randomHex}`;
       const { error } = await supabase.from("university_api_keys").insert({
         college_id: collegeId,
