@@ -81,7 +81,7 @@ export const payForTicketWithWallet = createServerFn({ method: "POST" })
     }
 
     const coins = inrToCoins(priceInr);
-    const ticketCode = `${event.title.substring(0, 3).toUpperCase()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+    const ticketCode = `${event.title.substring(0, 3).toUpperCase()}-${crypto.randomUUID().replace(/-/g, '').substring(0, 5).toUpperCase()}`;
 
     // Atomic transfer
     const { error: trErr } = await supabaseAdmin.rpc("wallet_transfer", {
