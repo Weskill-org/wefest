@@ -48,7 +48,7 @@ function mapRpcMember(row: Record<string, unknown>): CollegeTeamMember {
   };
 }
 
-function enrichCurrentUser(
+export function enrichCurrentUser(
   member: CollegeTeamMember,
   ctx?: MemberContext
 ): CollegeTeamMember {
