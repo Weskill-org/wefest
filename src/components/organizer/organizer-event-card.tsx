@@ -200,6 +200,7 @@ export function OrganizerEventCard({
                   to={slug ? "/fest/$slug" : "/events/$eventId"}
                   params={slug ? { slug } : { eventId: id }}
                   target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center gap-2 cursor-pointer"
                 >
                   <ExternalLink className="h-4 w-4" />

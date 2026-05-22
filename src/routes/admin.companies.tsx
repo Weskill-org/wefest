@@ -108,7 +108,7 @@ function AdminCompanies() {
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground flex items-center gap-3 flex-wrap">
                   {c.profile?.email && <span>{c.profile.email}</span>}
-                  {c.website_url && <a href={c.website_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline"><Globe className="h-3 w-3" />{c.website_url}</a>}
+                  {c.website_url && <a href={c.website_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline"><Globe className="h-3 w-3" />{c.website_url}</a>}
                   <span>Applied {new Date(c.created_at).toLocaleDateString()}</span>
                 </div>
                 {c.rejection_reason && <div className="mt-2 text-xs text-destructive">Reason: {c.rejection_reason}</div>}
