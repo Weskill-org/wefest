@@ -208,8 +208,8 @@
     "hash": "3906f67ea47d87da621f36c985fd7ce5"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\organizer\\capacity-field.tsx": {
-    "mtime": 1779085902.8221064,
-    "hash": "d9274f4a4391a7d8d38ec95488588b47"
+    "mtime": 1779431620.8771663,
+    "hash": "1b4e845128a56e445d1a7d4f1e1a09ba"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\organizer\\dashboard-stat-tile.tsx": {
     "mtime": 1778221323.146327,
@@ -238,6 +238,10 @@
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\organizer\\recent-activity.tsx": {
     "mtime": 1779114425.204274,
     "hash": "f35fd31e242a5aa97d28ae4ba5889113"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\organizer\\time-picker.tsx": {
+    "mtime": 1779432970.240575,
+    "hash": "635bbbe19db57061fb9a77e49d016896"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\ui\\accordion.tsx": {
     "mtime": 1778138463.7733355,
@@ -491,6 +495,10 @@
     "mtime": 1778940378.6551514,
     "hash": "f61a9cb80d6e405e261617aca12d5067"
   },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\lib\\pass-settings.ts": {
+    "mtime": 1779431862.5445044,
+    "hash": "d972be0ac8cb6472b2706873b62cfe58"
+  },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\lib\\razorpay-checkout.ts": {
     "mtime": 1778684351.7503452,
     "hash": "b3616b8924f8e4daee48a5b2da381c92"
@@ -640,8 +648,8 @@
     "hash": "e911fba1746c31a8869d0f0e269fcfb7"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\events.$eventId.tsx": {
-    "mtime": 1779274185.560998,
-    "hash": "07c67627cceaf0f9dd8277fce0d692ab"
+    "mtime": 1779432178.2449124,
+    "hash": "0a649bbbcf92f67a8769a97840797d5e"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\events.index.tsx": {
     "mtime": 1779274185.5620189,
@@ -652,8 +660,8 @@
     "hash": "d0068f764be6cf04da9a2590c5ef0f01"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\fest.$slug.tsx": {
-    "mtime": 1779274185.5641942,
-    "hash": "b304a5c8e3043e88fbbdf41389a2a293"
+    "mtime": 1779432162.2816432,
+    "hash": "27f2ddae297cb07940436ccb62e9e22a"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\fest.index.tsx": {
     "mtime": 1779274185.5657792,
@@ -688,12 +696,12 @@
     "hash": "550bede2327c60f187170d1f12162c22"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.events.$eventId.edit.tsx": {
-    "mtime": 1779088337.6067765,
-    "hash": "73ae13164459b1ea2e1e853a31c0f722"
+    "mtime": 1779432108.3954418,
+    "hash": "ca3a085643467c6504851c98ec4c0f02"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.events.$eventId.tsx": {
-    "mtime": 1779178595.6807475,
-    "hash": "e03444fd719abdf2b0d34a338f8497ac"
+    "mtime": 1779432000.9069216,
+    "hash": "fed0966c9fbbb8517cfb667a35013416"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.events.index.tsx": {
     "mtime": 1778942499.2693408,
@@ -708,8 +716,8 @@
     "hash": "c70c51b6ec1efe5e6c7ced9231fc2ae8"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.new.tsx": {
-    "mtime": 1779088325.4136455,
-    "hash": "367c0036a2564ad1713ed85bd2d7686f"
+    "mtime": 1779436327.112504,
+    "hash": "b55d8c6e69520366cbf029cecf9cb942"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.scan.tsx": {
     "mtime": 1779092439.3659327,
@@ -728,8 +736,8 @@
     "hash": "b0288cbe04ffa13b4734cf225c22770e"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.tsx": {
-    "mtime": 1779274666.43914,
-    "hash": "e65f6668aae2564dd1e98a6810ac1291"
+    "mtime": 1779432116.917801,
+    "hash": "8903dd52fdeef41d75177bce29d0c40e"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.wallet.tsx": {
     "mtime": 1778684351.7648585,

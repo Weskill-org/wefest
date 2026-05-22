@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { useRegion } from "@/contexts/RegionContext";
 import { ShareEventDialog } from "@/components/events/share-event-dialog";
 import { formatEventCapacity } from "@/lib/event-capacity";
+import { parsePassSettings } from "@/lib/pass-settings";
 
 export const Route = createFileRoute("/events/$eventId")({
   loader: async ({ params }) => {
@@ -47,17 +48,17 @@ export const Route = createFileRoute("/events/$eventId")({
   head: ({ loaderData }) => ({
     meta: [
       { title: loaderData ? `${loaderData.title} Registration & Tickets | WeFest` : "Event — WeFest" },
-      { name: "description", content: loaderData ? `Register for ${loaderData.title} on WeFest. Date: ${new Date(loaderData.date).toLocaleDateString()}. Category: ${loaderData.category}. Location: ${loaderData.college || "India"}. Book slots today!` : "Festival event on WeFest — India's college festival platform." },
-      { name: "keywords", content: loaderData ? `${loaderData.title}, ${loaderData.college} fests, ${loaderData.category} college competition, WeFest tickets` : "college events, WeFest tickets" },
+      { name: "description", content: loaderData ? `Register for ${loaderData.title} on WeFest. Date: ${new Date(loaderData.date).toLocaleDateString()}. Category: ${loaderData.category}. Location: ${loaderData.college_name || "India"}. Book slots today!` : "Festival event on WeFest — India's college festival platform." },
+      { name: "keywords", content: loaderData ? `${loaderData.title}, ${loaderData.college_name} fests, ${loaderData.category} college competition, WeFest tickets` : "college events, WeFest tickets" },
       { property: "og:title", content: loaderData ? `${loaderData.title} Registration & Tickets | WeFest` : "Event — WeFest" },
-      { property: "og:description", content: loaderData ? `Register for ${loaderData.title} on WeFest. Date: ${new Date(loaderData.date).toLocaleDateString()}. Category: ${loaderData.category}. Location: ${loaderData.college || "India"}.` : "Festival event on WeFest — India's college festival platform." },
-      { property: "og:image", content: loaderData?.image || "https://wefest.weskill.org/og-image.png" },
+      { property: "og:description", content: loaderData ? `Register for ${loaderData.title} on WeFest. Date: ${new Date(loaderData.date).toLocaleDateString()}. Category: ${loaderData.category}. Location: ${loaderData.college_name || "India"}.` : "Festival event on WeFest — India's college festival platform." },
+      { property: "og:image", content: loaderData?.cover || "https://wefest.weskill.org/og-image.png" },
       { property: "og:url", content: loaderData ? `https://wefest.weskill.org/events/${loaderData.id}` : "https://wefest.weskill.org/events" },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: loaderData ? `${loaderData.title} | WeFest` : "Event — WeFest" },
       { name: "twitter:description", content: loaderData ? `Register for ${loaderData.title} on WeFest.` : "Explore this college festival event." },
-      { name: "twitter:image", content: loaderData?.image || "https://wefest.weskill.org/og-image.png" },
+      { name: "twitter:image", content: loaderData?.cover || "https://wefest.weskill.org/og-image.png" },
     ],
     links: [
       { rel: "canonical", href: loaderData ? `https://wefest.weskill.org/events/${loaderData.id}` : "https://wefest.weskill.org/events" },
@@ -131,42 +132,34 @@ function PublicEventDetail() {
   const referralCode = studentProfile?.referral_code;
 
   const tiers = useMemo(() => {
-    const settings = (event as any).pass_settings;
-    if (!settings) {
+    const passes = parsePassSettings(event?.pass_settings);
+    if (passes.length === 0) {
       return [
-        { name: "Day Pass", price: 499, perks: ["Single day access", "All open events"] },
-        { name: "Pro Pass", price: 1499, perks: ["All days", "Priority entry", "Pro shows"] },
-        { name: "VIP", price: 3999, perks: ["All access", "Backstage tour", "Merch kit"] },
+        { name: "General Entry", price: event.price_from || 0, perks: ["Standard access"] },
       ];
     }
 
-    const result = [];
-    if (settings.normal?.enabled) {
-      result.push({
-        name: "Normal Pass",
-        price: settings.normal.price,
-        perks: [
-          `${settings.normal.days} Day(s) access`,
-          "All open events",
-          `Single day: ₹${settings.normal.single_day_price}`,
-        ],
+    return passes
+      .filter((p) => p.enabled)
+      .map((pass) => {
+        const perks = [];
+        if (pass.days) {
+          perks.push(`${pass.days} Day(s) access`);
+        }
+        perks.push("All open events");
+        if (Number(pass.single_day_price) > 0) {
+          perks.push(`Single day: ₹${pass.single_day_price}`);
+        }
+        if (Number(pass.multi_day_price) > 0) {
+          perks.push(`Multi-day package: ₹${pass.multi_day_price}`);
+        }
+        
+        return {
+          name: pass.name,
+          price: Number(pass.price) || 0,
+          perks: perks.length > 0 ? perks : ["Standard entry access"],
+        };
       });
-    }
-    if (settings.vip?.enabled) {
-      result.push({
-        name: "VIP Pass",
-        price: settings.vip.price,
-        perks: [
-          "Priority Entry",
-          "Backstage Access",
-          "VIP Lounge",
-          `Multi-day: ₹${settings.vip.multi_day_price}`,
-        ],
-      });
-    }
-    return result.length > 0 ? result : [
-      { name: "General Entry", price: event.price_from || 0, perks: ["Standard access"] },
-    ];
   }, [event]);
 
   const [selected, setSelected] = useState(0);
@@ -225,7 +218,7 @@ function PublicEventDetail() {
     "eventStatus": "https://schema.org/EventScheduled",
     "location": {
       "@type": "Place",
-      "name": event.college || "Campus Arena",
+      "name": event.college_name || "Campus Arena",
       "address": {
         "@type": "PostalAddress",
         "addressLocality": event.city || "India",

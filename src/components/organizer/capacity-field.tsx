@@ -48,7 +48,7 @@ export function CapacityField({
               type="number"
               min={1}
               value={value}
-              onChange={(e) => onValueChange(e.target.value)}
+              onChange={(e) => onValueChange(e.target.value.replace(/^0+(?=\d)/, ""))}
               placeholder="e.g. 500"
               className="h-11 rounded-xl border-border/50 bg-muted/5"
             />

@@ -23,13 +23,17 @@ import {
   Dices,
   Link2,
   Check,
-  AlertCircle
+  AlertCircle,
+  Clock,
+  Trash
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { generateEventSlug, formatSlug } from "@/lib/event-words";
 import { capacityToDb } from "@/lib/event-capacity";
 import { CapacityField } from "@/components/organizer/capacity-field";
+import { serializePassSettings } from "@/lib/pass-settings";
+import { TimePicker } from "@/components/organizer/time-picker";
 
 export const Route = createFileRoute("/organizer/new")({
   head: () => ({ 
@@ -40,6 +44,11 @@ export const Route = createFileRoute("/organizer/new")({
   }),
   component: NewEvent,
 });
+
+const sanitizeNumberInput = (val: string) => {
+  if (!val) return "";
+  return val.replace(/^0+(?=\d)/, "");
+};
 
 const ALL_TAGS = [
   "music", "dance", "tech", "sports", "fashion", "food", "art", "literature",
@@ -117,10 +126,10 @@ function NewEvent() {
     time: "",
     tags: [] as string[],
     team_members: [] as { name: string; role: string }[],
-    pass_settings: {
-      vip: { enabled: false, price: 0, days: 1, single_day_price: 0, multi_day_price: 0 },
-      normal: { enabled: true, price: 0, days: 1, single_day_price: 0, multi_day_price: 0 }
-    }
+    pass_settings: [
+      { id: "normal", name: "Normal Pass", enabled: true, price: "", days: "1", single_day_price: "", multi_day_price: "" },
+      { id: "vip", name: "VIP Pass", enabled: false, price: "", days: "1", single_day_price: "", multi_day_price: "" }
+    ]
   });
 
   // Team member input state
@@ -193,6 +202,8 @@ function NewEvent() {
       const selectedCollege = colleges?.find(c => c.id === form.college_id);
       const eventSlug = formatSlug(slugWord1, slugWord2);
 
+      const finalPassSettings = serializePassSettings(form.pass_settings);
+
       const { error } = await supabase.from("events").insert({
         title: form.title.trim(),
         date: form.date,
@@ -210,7 +221,7 @@ function NewEvent() {
         time: form.time.trim(),
         tags: form.tags,
         team_members: finalMembers,
-        pass_settings: form.pass_settings,
+        pass_settings: finalPassSettings,
         slug: eventSlug,
       });
 
@@ -283,16 +294,37 @@ function NewEvent() {
     }));
   };
   
-  const updatePass = (type: 'vip' | 'normal', field: string, value: any) => {
+  const updatePass = (index: number, field: string, value: any) => {
+    setForm(f => {
+      const updated = [...f.pass_settings];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...f, pass_settings: updated };
+    });
+  };
+
+  const addPassTier = () => {
     setForm(f => ({
       ...f,
-      pass_settings: {
+      pass_settings: [
         ...f.pass_settings,
-        [type]: {
-          ...f.pass_settings[type],
-          [field]: value
+        {
+          id: `pass-${Date.now()}`,
+          name: "",
+          enabled: true,
+          price: "",
+          days: "1",
+          single_day_price: "",
+          multi_day_price: ""
         }
-      }
+      ]
+    }));
+  };
+
+  const removePassTier = (index: number) => {
+    if (form.pass_settings.length <= 1) return;
+    setForm(f => ({
+      ...f,
+      pass_settings: f.pass_settings.filter((_, i) => i !== index)
     }));
   };
 
@@ -373,24 +405,26 @@ function NewEvent() {
             A unique two-word code for your event. Students can find your event by typing these two words. Your public URL will be <span className="font-bold text-foreground">wefest.com/fest/{slugWord1}.{slugWord2}</span>
           </p>
           <div className="flex items-center gap-2">
-            <div className="flex-1 flex items-center gap-0 rounded-xl border border-border/50 bg-muted/5 overflow-hidden focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+            <div className="flex-1 flex items-center gap-0 rounded-xl border border-border/50 bg-muted/10 overflow-hidden focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/30 transition-all opacity-80 cursor-not-allowed">
               <input
                 type="text"
                 value={slugWord1}
+                readOnly
                 onChange={(e) => handleSlugWord1(e.target.value)}
                 placeholder="word1"
-                className="flex-1 h-11 px-4 bg-transparent text-base font-bold text-right outline-none placeholder:text-muted-foreground/40"
+                className="flex-1 h-11 px-4 bg-transparent text-base font-bold text-right outline-none placeholder:text-muted-foreground/40 cursor-not-allowed"
                 maxLength={20}
               />
               <div className="flex items-center justify-center w-8 shrink-0">
-                <span className="text-2xl font-black text-primary animate-pulse">.</span>
+                <span className="text-2xl font-black text-primary">.</span>
               </div>
               <input
                 type="text"
                 value={slugWord2}
+                readOnly
                 onChange={(e) => handleSlugWord2(e.target.value)}
                 placeholder="word2"
-                className="flex-1 h-11 px-4 bg-transparent text-base font-bold outline-none placeholder:text-muted-foreground/40"
+                className="flex-1 h-11 px-4 bg-transparent text-base font-bold outline-none placeholder:text-muted-foreground/40 cursor-not-allowed"
                 maxLength={20}
               />
             </div>
@@ -405,34 +439,42 @@ function NewEvent() {
             </button>
           </div>
           {/* Status indicator */}
-          <div className="flex items-center gap-2 h-5">
-            {slugStatus === "checking" && (
-              <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-medium">
-                <Loader2 className="h-3 w-3 animate-spin" /> Checking availability…
-              </span>
-            )}
-            {slugStatus === "available" && (
-              <span className="flex items-center gap-1.5 text-[11px] text-emerald-500 font-bold">
-                <Check className="h-3 w-3" /> {slugWord1}.{slugWord2} is available!
-              </span>
-            )}
-            {slugStatus === "taken" && (
-              <span className="flex items-center gap-1.5 text-[11px] text-red-500 font-bold">
-                <AlertCircle className="h-3 w-3" /> This code is already taken. Try generating a new one.
-              </span>
-            )}
+          <div className="flex flex-col gap-1.5 mt-1">
+            <div className="flex items-center gap-2 h-5">
+              {slugStatus === "checking" && (
+                <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-medium">
+                  <Loader2 className="h-3 w-3 animate-spin" /> Checking availability…
+                </span>
+              )}
+              {slugStatus === "available" && (
+                <span className="flex items-center gap-1.5 text-[11px] text-emerald-500 font-bold">
+                  <Check className="h-3 w-3" /> {slugWord1}.{slugWord2} is available!
+                </span>
+              )}
+              {slugStatus === "taken" && (
+                <span className="flex items-center gap-1.5 text-[11px] text-red-500 font-bold">
+                  <AlertCircle className="h-3 w-3" /> This code is already taken. Try generating a new one.
+                </span>
+              )}
+            </div>
+            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest flex items-center gap-1.5">
+              <Info className="h-3 w-3" /> Event codes are permanent and cannot be changed after creation.
+            </p>
           </div>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2">
           <Field label="Date" icon={Calendar}>
-            <Input 
-              required 
-              type="date" 
-              value={form.date} 
-              onChange={(e) => set("date", e.target.value)} 
-              className="h-11 rounded-xl border-border/50 bg-muted/5"
-            />
+            <div className="relative">
+              <Input 
+                required 
+                type="date" 
+                value={form.date} 
+                onChange={(e) => set("date", e.target.value)} 
+                className="h-11 rounded-xl border-border/50 bg-muted/5 pr-10 cursor-pointer w-full"
+              />
+              <Calendar className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 pointer-events-none" />
+            </div>
           </Field>
           <Field label="City" icon={MapPin}>
             <Input 
@@ -482,7 +524,7 @@ function NewEvent() {
               min="0"
               step="1"
               value={form.price_from}
-              onChange={(e) => set("price_from", e.target.value)}
+              onChange={(e) => set("price_from", sanitizeNumberInput(e.target.value))}
               placeholder="e.g. 299"
               className="h-11 rounded-xl border-border/50 bg-muted/5"
             />
@@ -506,10 +548,10 @@ function NewEvent() {
               className="h-11 rounded-xl border-border/50 bg-muted/5"
             />
           </Field>
-          <Field label="Time" icon={Calendar}>
-            <Input 
+          <Field label="Time" icon={Clock}>
+            <TimePicker 
               value={form.time} 
-              onChange={(e) => set("time", e.target.value)} 
+              onChange={(v) => set("time", v)} 
               placeholder="e.g. 10:00 AM - 8:00 PM" 
               className="h-11 rounded-xl border-border/50 bg-muted/5"
             />
@@ -667,137 +709,113 @@ function NewEvent() {
             <h3 className="font-display font-bold text-sm">Pass Settings</h3>
           </div>
           <p className="text-xs text-muted-foreground">
-            Configure ticket tiers and pricing. You can offer full-event passes and per-day pricing.
+            Configure ticket tiers and pricing. You can offer custom ticket tiers and per-day pricing.
           </p>
           
           <div className="grid gap-6 md:grid-cols-2">
-            {/* Normal Pass */}
-            <div className={cn(
-              "rounded-2xl border border-border/40 bg-muted/5 p-5 space-y-4 transition-opacity",
-              !form.pass_settings.normal.enabled && "opacity-50"
-            )}>
-              <div className="flex items-center justify-between">
-                <Label className="font-black uppercase tracking-widest text-xs">Normal Pass</Label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={form.pass_settings.normal.enabled}
-                    onChange={(e) => updatePass('normal', 'enabled', e.target.checked)}
-                    className="rounded border-border/50 accent-primary"
-                  />
-                  <span className="text-[10px] font-bold">Enabled</span>
-                </label>
-              </div>
-              <div className={cn("grid gap-3", !form.pass_settings.normal.enabled && "pointer-events-none")}>
-                <div className="grid gap-1.5">
-                  <Label className="text-[10px] font-bold uppercase opacity-60">Full Pass Price (₹)</Label>
-                  <Input 
-                    type="number"
-                    min="0"
-                    disabled={!form.pass_settings.normal.enabled}
-                    value={form.pass_settings.normal.price}
-                    onChange={(e) => updatePass('normal', 'price', parseInt(e.target.value) || 0)}
-                    className="h-9 rounded-lg border-border/30 bg-background"
-                  />
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="grid gap-1.5">
-                    <Label className="text-[10px] font-bold uppercase opacity-60">Days</Label>
-                    <Input 
-                      type="number"
-                      min="1"
-                      value={form.pass_settings.normal.days}
-                      onChange={(e) => updatePass('normal', 'days', parseInt(e.target.value) || 1)}
-                      className="h-9 rounded-lg border-border/30 bg-background"
-                    />
-                  </div>
-                  <div className="grid gap-1.5">
-                    <Label className="text-[10px] font-bold uppercase opacity-60">Single Day (₹)</Label>
-                    <Input 
-                      type="number"
-                      min="0"
-                      value={form.pass_settings.normal.single_day_price}
-                      onChange={(e) => updatePass('normal', 'single_day_price', parseInt(e.target.value) || 0)}
-                      className="h-9 rounded-lg border-border/30 bg-background"
-                    />
-                  </div>
-                  <div className="grid gap-1.5">
-                    <Label className="text-[10px] font-bold uppercase opacity-60">Multi Day (₹)</Label>
-                    <Input 
-                      type="number"
-                      min="0"
-                      value={form.pass_settings.normal.multi_day_price}
-                      onChange={(e) => updatePass('normal', 'multi_day_price', parseInt(e.target.value) || 0)}
-                      className="h-9 rounded-lg border-border/30 bg-background"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+            {form.pass_settings.map((pass, index) => (
+              <div 
+                key={pass.id} 
+                className={cn(
+                  "rounded-2xl border p-5 space-y-4 transition-all relative group",
+                  pass.enabled 
+                    ? pass.id === 'vip' 
+                      ? "border-primary/20 bg-primary/5" 
+                      : "border-border/40 bg-muted/5" 
+                    : "opacity-50 border-border/20 bg-muted/5"
+                )}
+              >
+                {/* Delete button (only show if we have more than 1 pass tier) */}
+                {form.pass_settings.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removePassTier(index)}
+                    className="absolute top-4 right-4 p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                    title="Delete tier"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </button>
+                )}
 
-            {/* VIP Pass */}
-            <div className={cn(
-              "rounded-2xl border border-primary/20 bg-primary/5 p-5 space-y-4 transition-opacity",
-              !form.pass_settings.vip.enabled && "opacity-50"
-            )}>
-              <div className="flex items-center justify-between">
-                <Label className="font-black uppercase tracking-widest text-xs text-primary">VIP Pass</Label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={form.pass_settings.vip.enabled}
-                    onChange={(e) => updatePass('vip', 'enabled', e.target.checked)}
-                    className="rounded border-border/50 accent-primary"
+                <div className="flex items-center justify-between pr-8">
+                  <input
+                    type="text"
+                    value={pass.name}
+                    onChange={(e) => updatePass(index, 'name', e.target.value)}
+                    placeholder="e.g. Silver Pass"
+                    className="bg-transparent font-black uppercase tracking-widest text-xs border-b border-transparent hover:border-border/40 focus:border-primary outline-none py-0.5 text-foreground shrink-0 max-w-[150px]"
                   />
-                  <span className="text-[10px] font-bold text-primary">Enabled</span>
-                </label>
-              </div>
-              <div className={cn("grid gap-3", !form.pass_settings.vip.enabled && "pointer-events-none")}>
-                <div className="grid gap-1.5">
-                  <Label className="text-[10px] font-bold uppercase opacity-60">Full Pass Price (₹)</Label>
-                  <Input 
-                    type="number"
-                    min="0"
-                    disabled={!form.pass_settings.vip.enabled}
-                    value={form.pass_settings.vip.price}
-                    onChange={(e) => updatePass('vip', 'price', parseInt(e.target.value) || 0)}
-                    className="h-9 rounded-lg border-border/30 bg-background"
-                  />
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="grid gap-1.5">
-                    <Label className="text-[10px] font-bold uppercase opacity-60">Days</Label>
-                    <Input 
-                      type="number"
-                      min="1"
-                      value={form.pass_settings.vip.days}
-                      onChange={(e) => updatePass('vip', 'days', parseInt(e.target.value) || 1)}
-                      className="h-9 rounded-lg border-border/30 bg-background"
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input 
+                      type="checkbox" 
+                      checked={pass.enabled}
+                      onChange={(e) => updatePass(index, 'enabled', e.target.checked)}
+                      className="rounded border-border/50 accent-primary"
                     />
-                  </div>
+                    <span className="text-[10px] font-bold">Enabled</span>
+                  </label>
+                </div>
+
+                <div className={cn("grid gap-3", !pass.enabled && "pointer-events-none")}>
                   <div className="grid gap-1.5">
-                    <Label className="text-[10px] font-bold uppercase opacity-60">Single Day (₹)</Label>
+                    <Label className="text-[10px] font-bold uppercase opacity-60">Full Pass Price (₹)</Label>
                     <Input 
                       type="number"
                       min="0"
-                      value={form.pass_settings.vip.single_day_price}
-                      onChange={(e) => updatePass('vip', 'single_day_price', parseInt(e.target.value) || 0)}
+                      disabled={!pass.enabled}
+                      value={pass.price}
+                      onChange={(e) => updatePass(index, 'price', sanitizeNumberInput(e.target.value))}
                       className="h-9 rounded-lg border-border/30 bg-background"
                     />
                   </div>
-                  <div className="grid gap-1.5">
-                    <Label className="text-[10px] font-bold uppercase opacity-60">Multi Day (₹)</Label>
-                    <Input 
-                      type="number"
-                      min="0"
-                      value={form.pass_settings.vip.multi_day_price}
-                      onChange={(e) => updatePass('vip', 'multi_day_price', parseInt(e.target.value) || 0)}
-                      className="h-9 rounded-lg border-border/30 bg-background"
-                    />
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="grid gap-1.5">
+                      <Label className="text-[10px] font-bold uppercase opacity-60">Days</Label>
+                      <Input 
+                        type="number"
+                        min="1"
+                        value={pass.days}
+                        onChange={(e) => updatePass(index, 'days', sanitizeNumberInput(e.target.value))}
+                        className="h-9 rounded-lg border-border/30 bg-background"
+                      />
+                    </div>
+                    <div className="grid gap-1.5">
+                      <Label className="text-[10px] font-bold uppercase opacity-60">Single Day (₹)</Label>
+                      <Input 
+                        type="number"
+                        min="0"
+                        value={pass.single_day_price}
+                        onChange={(e) => updatePass(index, 'single_day_price', sanitizeNumberInput(e.target.value))}
+                        className="h-9 rounded-lg border-border/30 bg-background"
+                      />
+                    </div>
+                    <div className="grid gap-1.5">
+                      <Label className="text-[10px] font-bold uppercase opacity-60">Multi Day (₹)</Label>
+                      <Input 
+                        type="number"
+                        min="0"
+                        value={pass.multi_day_price}
+                        onChange={(e) => updatePass(index, 'multi_day_price', sanitizeNumberInput(e.target.value))}
+                        className="h-9 rounded-lg border-border/30 bg-background"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            ))}
+
+            {/* Add Pass Card */}
+            <button
+              type="button"
+              onClick={addPassTier}
+              className="rounded-2xl border border-dashed border-border/40 hover:border-primary/40 bg-muted/5 hover:bg-primary/5 p-5 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-all group min-h-[180px]"
+            >
+              <div className="h-10 w-10 rounded-full border border-dashed border-border/60 group-hover:border-primary/40 flex items-center justify-center transition-all mb-1">
+                <Plus className="h-5 w-5" />
+              </div>
+              <span className="font-bold text-xs uppercase tracking-wider">Add Pass Tier</span>
+              <span className="text-[10px] text-muted-foreground/60 font-medium">e.g. Gold, Premium, Early Bird</span>
+            </button>
           </div>
         </div>
         

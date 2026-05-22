@@ -9,13 +9,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Loader2, Calendar, MapPin, Type, Info, Sparkles, Pencil,
-  Users, Plus, X, Tag, Ticket, Link2, Dices, Check, AlertCircle, BadgeCheck
+  Users, Plus, X, Tag, Ticket, Link2, Dices, Check, AlertCircle, BadgeCheck, Clock, Trash
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { generateEventSlug, formatSlug, parseSlug } from "@/lib/event-words";
 import { capacityFromDb, capacityToDb } from "@/lib/event-capacity";
 import { CapacityField } from "@/components/organizer/capacity-field";
+import { TimePicker } from "@/components/organizer/time-picker";
+import { parsePassSettings, serializePassSettings } from "@/lib/pass-settings";
 
 export const Route = createFileRoute("/organizer/events/$eventId/edit")({
   loader: async ({ params }) => {
@@ -38,6 +40,11 @@ const ALL_TAGS = [
   "performance", "competition", "tournament", "game", "race", "challenge",
   "film", "hackathon"
 ];
+
+const sanitizeNumberInput = (val: string) => {
+  if (!val) return "";
+  return val.replace(/^0+(?=\d)/, "");
+};
 
 function Field({ label, icon: Icon, children }: { label: string; icon: any; children: React.ReactNode }) {
   return (
@@ -71,6 +78,9 @@ function EditEvent() {
   const initialTags: string[] = Array.isArray(event.tags) ? (event.tags as string[]) : [];
 
   const initialCapacity = capacityFromDb(event.attendees);
+
+  const initialPassSettings = parsePassSettings(event.pass_settings);
+
   const [form, setForm] = useState({
     title: event.title || "",
     date: event.date ? event.date.slice(0, 10) : "",
@@ -85,10 +95,7 @@ function EditEvent() {
     time: (event as any).time || "",
     tags: initialTags,
     team_members: normalizeMembers((event as any).team_members || []),
-    pass_settings: (event as any).pass_settings || {
-      vip: { enabled: false, price: 0, days: 1, single_day_price: 0, multi_day_price: 0 },
-      normal: { enabled: true, price: 0, days: 1, single_day_price: 0, multi_day_price: 0 }
-    }
+    pass_settings: initialPassSettings
   });
 
   // Team member input state
@@ -110,16 +117,37 @@ function EditEvent() {
     }));
   };
 
-  const updatePass = (type: 'vip' | 'normal', field: string, value: any) => {
+  const updatePass = (index: number, field: string, value: any) => {
+    setForm(f => {
+      const updated = [...f.pass_settings];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...f, pass_settings: updated };
+    });
+  };
+
+  const addPassTier = () => {
     setForm(f => ({
       ...f,
-      pass_settings: {
-        ...(f.pass_settings as any),
-        [type]: {
-          ...(f.pass_settings as any)[type],
-          [field]: value
+      pass_settings: [
+        ...f.pass_settings,
+        {
+          id: `pass-${Date.now()}`,
+          name: "",
+          enabled: true,
+          price: "",
+          days: "1",
+          single_day_price: "",
+          multi_day_price: ""
         }
-      }
+      ]
+    }));
+  };
+
+  const removePassTier = (index: number) => {
+    if (form.pass_settings.length <= 1) return;
+    setForm(f => ({
+      ...f,
+      pass_settings: f.pass_settings.filter((_, i) => i !== index)
     }));
   };
 
@@ -142,6 +170,8 @@ function EditEvent() {
 
   const updateMutation = useMutation({
     mutationFn: async (finalMembers: any[]) => {
+      const finalPassSettings = serializePassSettings(form.pass_settings);
+
       const { error } = await supabase
         .from("events")
         .update({
@@ -150,14 +180,14 @@ function EditEvent() {
           city: form.city,
           category: form.category,
           description: form.description,
-          price_from: form.price_from ? parseFloat(form.price_from) : undefined,
+          price_from: form.price_from ? parseFloat(form.price_from) : 0,
           attendees: capacityToDb(form.capacity_unlimited, form.capacity),
           status: form.status,
           venue: form.venue,
           time: form.time,
           tags: form.tags,
           team_members: finalMembers,
-          pass_settings: form.pass_settings
+          pass_settings: finalPassSettings
         })
         .eq("id", eventId);
 
@@ -168,7 +198,7 @@ function EditEvent() {
       queryClient.invalidateQueries({ queryKey: ["my-college-events"] });
       queryClient.invalidateQueries({ queryKey: ["all-college-events"] });
       queryClient.invalidateQueries({ queryKey: ["events"] });
-      navigate({ to: "/organizer/events/$eventId", params: { eventId } });
+      navigate({ to: "/organizer/events/$eventId", params: { eventId }, search: { tab: "analytics" } });
     },
     onError: (err: any) => {
       toast.error(err.message || "Failed to save changes");
@@ -241,13 +271,16 @@ function EditEvent() {
 
         <div className="grid gap-6 sm:grid-cols-2">
           <Field label="Date" icon={Calendar}>
-            <Input
-              required
-              type="date"
-              value={form.date}
-              onChange={(e) => set("date", e.target.value)}
-              className="h-11 rounded-xl border-border/50 bg-muted/5"
-            />
+            <div className="relative">
+              <Input
+                required
+                type="date"
+                value={form.date}
+                onChange={(e) => set("date", e.target.value)}
+                className="h-11 rounded-xl border-border/50 bg-muted/5 pr-10 cursor-pointer w-full"
+              />
+              <Calendar className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 pointer-events-none" />
+            </div>
           </Field>
           <Field label="City" icon={MapPin}>
             <Input
@@ -266,7 +299,7 @@ function EditEvent() {
               type="number"
               min="0"
               value={form.price_from}
-              onChange={(e) => set("price_from", e.target.value)}
+              onChange={(e) => set("price_from", sanitizeNumberInput(e.target.value))}
               placeholder="e.g. 299"
               className="h-11 rounded-xl border-border/50 bg-muted/5"
             />
@@ -320,10 +353,10 @@ function EditEvent() {
               className="h-11 rounded-xl border-border/50 bg-muted/5"
             />
           </Field>
-          <Field label="Time" icon={Calendar}>
-            <Input 
+          <Field label="Time" icon={Clock}>
+            <TimePicker 
               value={form.time} 
-              onChange={(e) => set("time", e.target.value)} 
+              onChange={(v) => set("time", v)} 
               placeholder="e.g. 10:00 AM - 8:00 PM" 
               className="h-11 rounded-xl border-border/50 bg-muted/5"
             />
@@ -480,127 +513,114 @@ function EditEvent() {
             <Ticket className="h-4 w-4 text-primary" />
             <h3 className="font-display font-bold text-sm">Pass Settings</h3>
           </div>
+          <p className="text-xs text-muted-foreground">
+            Configure ticket tiers and pricing. You can offer custom ticket tiers and per-day pricing.
+          </p>
           
           <div className="grid gap-6 md:grid-cols-2">
-            {/* Normal Pass */}
-            <div className="rounded-2xl border border-border/40 bg-muted/5 p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="font-black uppercase tracking-widest text-xs">Normal Pass</Label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={(form.pass_settings as any).normal.enabled}
-                    onChange={(e) => updatePass('normal', 'enabled', e.target.checked)}
-                    className="rounded border-border/50 accent-primary"
-                  />
-                  <span className="text-[10px] font-bold">Enabled</span>
-                </label>
-              </div>
-              <div className="grid gap-3">
-                <div className="grid gap-1.5">
-                  <Label className="text-[10px] font-bold uppercase opacity-60">Full Pass Price (₹)</Label>
-                  <Input 
-                    type="number"
-                    min="0"
-                    value={(form.pass_settings as any).normal.price}
-                    onChange={(e) => updatePass('normal', 'price', parseInt(e.target.value) || 0)}
-                    className="h-9 rounded-lg border-border/30 bg-background"
-                  />
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="grid gap-1.5">
-                    <Label className="text-[10px] font-bold uppercase opacity-60">Days</Label>
-                    <Input 
-                      type="number"
-                      min="1"
-                      value={(form.pass_settings as any).normal.days}
-                      onChange={(e) => updatePass('normal', 'days', parseInt(e.target.value) || 1)}
-                      className="h-9 rounded-lg border-border/30 bg-background"
-                    />
-                  </div>
-                  <div className="grid gap-1.5">
-                    <Label className="text-[10px] font-bold uppercase opacity-60">Single Day (₹)</Label>
-                    <Input 
-                      type="number"
-                      min="0"
-                      value={(form.pass_settings as any).normal.single_day_price}
-                      onChange={(e) => updatePass('normal', 'single_day_price', parseInt(e.target.value) || 0)}
-                      className="h-9 rounded-lg border-border/30 bg-background"
-                    />
-                  </div>
-                  <div className="grid gap-1.5">
-                    <Label className="text-[10px] font-bold uppercase opacity-60">Multi Day (₹)</Label>
-                    <Input 
-                      type="number"
-                      min="0"
-                      value={(form.pass_settings as any).normal.multi_day_price}
-                      onChange={(e) => updatePass('normal', 'multi_day_price', parseInt(e.target.value) || 0)}
-                      className="h-9 rounded-lg border-border/30 bg-background"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+            {form.pass_settings.map((pass, index) => (
+              <div 
+                key={pass.id} 
+                className={cn(
+                  "rounded-2xl border p-5 space-y-4 transition-all relative group",
+                  pass.enabled 
+                    ? pass.id === 'vip' 
+                      ? "border-primary/20 bg-primary/5" 
+                      : "border-border/40 bg-muted/5" 
+                    : "opacity-50 border-border/20 bg-muted/5"
+                )}
+              >
+                {/* Delete button (only show if we have more than 1 pass tier) */}
+                {form.pass_settings.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removePassTier(index)}
+                    className="absolute top-4 right-4 p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                    title="Delete tier"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </button>
+                )}
 
-            {/* VIP Pass */}
-            <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="font-black uppercase tracking-widest text-xs text-primary">VIP Pass</Label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={(form.pass_settings as any).vip.enabled}
-                    onChange={(e) => updatePass('vip', 'enabled', e.target.checked)}
-                    className="rounded border-border/50 accent-primary"
+                <div className="flex items-center justify-between pr-8">
+                  <input
+                    type="text"
+                    value={pass.name}
+                    onChange={(e) => updatePass(index, 'name', e.target.value)}
+                    placeholder="e.g. Silver Pass"
+                    className="bg-transparent font-black uppercase tracking-widest text-xs border-b border-transparent hover:border-border/40 focus:border-primary outline-none py-0.5 text-foreground shrink-0 max-w-[150px]"
                   />
-                  <span className="text-[10px] font-bold text-primary">Enabled</span>
-                </label>
-              </div>
-              <div className="grid gap-3">
-                <div className="grid gap-1.5">
-                  <Label className="text-[10px] font-bold uppercase opacity-60">Full Pass Price (₹)</Label>
-                  <Input 
-                    type="number"
-                    min="0"
-                    value={(form.pass_settings as any).vip.price}
-                    onChange={(e) => updatePass('vip', 'price', parseInt(e.target.value) || 0)}
-                    className="h-9 rounded-lg border-border/30 bg-background"
-                  />
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="grid gap-1.5">
-                    <Label className="text-[10px] font-bold uppercase opacity-60">Days</Label>
-                    <Input 
-                      type="number"
-                      min="1"
-                      value={(form.pass_settings as any).vip.days}
-                      onChange={(e) => updatePass('vip', 'days', parseInt(e.target.value) || 1)}
-                      className="h-9 rounded-lg border-border/30 bg-background"
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input 
+                      type="checkbox" 
+                      checked={pass.enabled}
+                      onChange={(e) => updatePass(index, 'enabled', e.target.checked)}
+                      className="rounded border-border/50 accent-primary"
                     />
-                  </div>
+                    <span className="text-[10px] font-bold">Enabled</span>
+                  </label>
+                </div>
+
+                <div className={cn("grid gap-3", !pass.enabled && "pointer-events-none")}>
                   <div className="grid gap-1.5">
-                    <Label className="text-[10px] font-bold uppercase opacity-60">Single Day (₹)</Label>
+                    <Label className="text-[10px] font-bold uppercase opacity-60">Full Pass Price (₹)</Label>
                     <Input 
                       type="number"
                       min="0"
-                      value={(form.pass_settings as any).vip.single_day_price}
-                      onChange={(e) => updatePass('vip', 'single_day_price', parseInt(e.target.value) || 0)}
+                      disabled={!pass.enabled}
+                      value={pass.price}
+                      onChange={(e) => updatePass(index, 'price', sanitizeNumberInput(e.target.value))}
                       className="h-9 rounded-lg border-border/30 bg-background"
                     />
                   </div>
-                  <div className="grid gap-1.5">
-                    <Label className="text-[10px] font-bold uppercase opacity-60">Multi Day (₹)</Label>
-                    <Input 
-                      type="number"
-                      min="0"
-                      value={(form.pass_settings as any).vip.multi_day_price}
-                      onChange={(e) => updatePass('vip', 'multi_day_price', parseInt(e.target.value) || 0)}
-                      className="h-9 rounded-lg border-border/30 bg-background"
-                    />
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="grid gap-1.5">
+                      <Label className="text-[10px] font-bold uppercase opacity-60">Days</Label>
+                      <Input 
+                        type="number"
+                        min="1"
+                        value={pass.days}
+                        onChange={(e) => updatePass(index, 'days', sanitizeNumberInput(e.target.value))}
+                        className="h-9 rounded-lg border-border/30 bg-background"
+                      />
+                    </div>
+                    <div className="grid gap-1.5">
+                      <Label className="text-[10px] font-bold uppercase opacity-60">Single Day (₹)</Label>
+                      <Input 
+                        type="number"
+                        min="0"
+                        value={pass.single_day_price}
+                        onChange={(e) => updatePass(index, 'single_day_price', sanitizeNumberInput(e.target.value))}
+                        className="h-9 rounded-lg border-border/30 bg-background"
+                      />
+                    </div>
+                    <div className="grid gap-1.5">
+                      <Label className="text-[10px] font-bold uppercase opacity-60">Multi Day (₹)</Label>
+                      <Input 
+                        type="number"
+                        min="0"
+                        value={pass.multi_day_price}
+                        onChange={(e) => updatePass(index, 'multi_day_price', sanitizeNumberInput(e.target.value))}
+                        className="h-9 rounded-lg border-border/30 bg-background"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            ))}
+
+            {/* Add Pass Card */}
+            <button
+              type="button"
+              onClick={addPassTier}
+              className="rounded-2xl border border-dashed border-border/40 hover:border-primary/40 bg-muted/5 hover:bg-primary/5 p-5 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-all group min-h-[180px]"
+            >
+              <div className="h-10 w-10 rounded-full border border-dashed border-border/60 group-hover:border-primary/40 flex items-center justify-center transition-all mb-1">
+                <Plus className="h-5 w-5" />
+              </div>
+              <span className="font-bold text-xs uppercase tracking-wider">Add Pass Tier</span>
+              <span className="text-[10px] text-muted-foreground/60 font-medium">e.g. Gold, Premium, Early Bird</span>
+            </button>
           </div>
         </div>
 
@@ -613,6 +633,7 @@ function EditEvent() {
               navigate({
                 to: "/organizer/events/$eventId",
                 params: { eventId },
+                search: { tab: "analytics" },
               })
             }
           >

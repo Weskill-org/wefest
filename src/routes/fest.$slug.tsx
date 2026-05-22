@@ -23,6 +23,7 @@ import { useRegion } from "@/contexts/RegionContext";
 import { ShareEventDialog } from "@/components/events/share-event-dialog";
 import { StudentAppLayout } from "@/components/layout/StudentAppLayout";
 import { formatEventCapacity } from "@/lib/event-capacity";
+import { parsePassSettings } from "@/lib/pass-settings";
 
 export const Route = createFileRoute("/fest/$slug")({
   loader: async ({ params }) => {
@@ -55,7 +56,7 @@ export const Route = createFileRoute("/fest/$slug")({
     meta: [
       { title: loaderData ? `${loaderData.title} — WeFest` : "Event — WeFest" },
       { name: "description", content: loaderData?.description ?? "Festival event on WeFest — India's college festival platform." },
-      { name: "keywords", content: loaderData ? `${loaderData.title}, ${loaderData.college} fests, ${loaderData.category} college competition, WeFest tickets` : "college events, WeFest tickets" },
+      { name: "keywords", content: loaderData ? `${loaderData.title}, ${loaderData.college_name} fests, ${loaderData.category} college competition, WeFest tickets` : "college events, WeFest tickets" },
       { property: "og:title", content: loaderData ? `${loaderData.title} | WeFest` : "Event — WeFest" },
       { property: "og:description", content: loaderData?.description ?? "Festival event on WeFest — India's college festival platform." },
       { property: "og:image", content: loaderData?.cover || "https://wefest.weskill.org/og-image.png" },
@@ -134,8 +135,8 @@ function FullEventDetail() {
   const referralCode = profile?.referral_code;
 
   const tiers = useMemo(() => {
-    const settings = (event as any).pass_settings;
-    if (!settings) {
+    const passes = parsePassSettings((event as any).pass_settings);
+    if (passes.length === 0) {
       return [
         { name: "Day Pass", price: 499, perks: ["Single day access", "All open events"] },
         { name: "Pro Pass", price: 1499, perks: ["All days", "Priority entry", "Pro shows"] },
@@ -143,33 +144,27 @@ function FullEventDetail() {
       ];
     }
 
-    const result = [];
-    if (settings.normal?.enabled) {
-      result.push({
-        name: "Normal Pass",
-        price: settings.normal.price,
-        perks: [
-          `${settings.normal.days} Day(s) access`,
-          "All open events",
-          `Single day: ₹${settings.normal.single_day_price}`,
-        ],
+    return passes
+      .filter((p) => p.enabled)
+      .map((pass) => {
+        const perks = [];
+        if (pass.days) {
+          perks.push(`${pass.days} Day(s) access`);
+        }
+        perks.push("All open events");
+        if (Number(pass.single_day_price) > 0) {
+          perks.push(`Single day: ₹${pass.single_day_price}`);
+        }
+        if (Number(pass.multi_day_price) > 0) {
+          perks.push(`Multi-day package: ₹${pass.multi_day_price}`);
+        }
+        
+        return {
+          name: pass.name,
+          price: Number(pass.price) || 0,
+          perks: perks.length > 0 ? perks : ["Standard entry access"],
+        };
       });
-    }
-    if (settings.vip?.enabled) {
-      result.push({
-        name: "VIP Pass",
-        price: settings.vip.price,
-        perks: [
-          "Priority Entry",
-          "Backstage Access",
-          "VIP Lounge",
-          `Multi-day: ₹${settings.vip.multi_day_price}`,
-        ],
-      });
-    }
-    return result.length > 0 ? result : [
-      { name: "General Entry", price: event.price_from || 0, perks: ["Standard access"] },
-    ];
   }, [event]);
 
   const [selected, setSelected] = useState(0);
@@ -221,11 +216,11 @@ function FullEventDetail() {
     "name": event.title,
     "description": event.description || "An exciting college festival on WeFest.",
     "startDate": event.date,
-    "endDate": event.end_date || event.date,
+    "endDate": event.date,
     "image": event.cover || "https://wefest.weskill.org/og-image.png",
     "location": {
       "@type": "Place",
-      "name": event.college || "Campus Venue",
+      "name": event.college_name || "Campus Venue",
       "address": {
         "@type": "PostalAddress",
         "addressLocality": event.city || "India",

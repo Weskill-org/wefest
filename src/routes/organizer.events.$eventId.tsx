@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { formatEventCapacity } from "@/lib/event-capacity";
+import { parsePassSettings } from "@/lib/pass-settings";
 
 
 export const Route = createFileRoute("/organizer/events/$eventId")({
@@ -467,15 +468,16 @@ function OrganizerEventDashboard() {
   };
 
   const ticketRevenue = (tickets || []).reduce((acc, ticket) => {
-    const passSettings = event?.pass_settings as any;
-    if (!passSettings) return acc + (event?.price_from || 0);
+    const passes = parsePassSettings(event?.pass_settings);
+    if (passes.length === 0) return acc + (event?.price_from || 0);
     
-    // Check if it matches a specific tier price
-    const tier = ticket.tier?.toLowerCase();
-    if (tier === 'vip' && passSettings.vip?.enabled) {
-      return acc + (passSettings.vip.price || event?.price_from || 0);
-    } else if (tier === 'normal' && passSettings.normal?.enabled) {
-      return acc + (passSettings.normal.price || event?.price_from || 0);
+    const matchedPass = passes.find(p => 
+      p.id === ticket.tier || 
+      p.name.toLowerCase() === ticket.tier?.toLowerCase()
+    );
+
+    if (matchedPass && matchedPass.enabled) {
+      return acc + (Number(matchedPass.price) || event?.price_from || 0);
     }
     
     return acc + (event?.price_from || 0);
@@ -1189,52 +1191,54 @@ function OrganizerEventDashboard() {
             </div>
           </div>
 
-          {/* Pass Configuration — correctly reads JSONB object {vip:{...}, normal:{...}} */}
+          {/* Pass Configuration — dynamically lists all dynamic pass settings */}
           <div className="glass rounded-2xl p-8">
             <h3 className="font-bold text-lg mb-6 flex items-center gap-2"><Ticket className="h-5 w-5 text-primary" /> Pass Configuration</h3>
             {(() => {
-              const ps = (event as any).pass_settings as { vip?: any; normal?: any } | null | undefined;
-              if (!ps) {
+              const passes = parsePassSettings(event?.pass_settings);
+              if (passes.length === 0) {
                 return (
                   <div className="py-8 text-center text-sm text-muted-foreground italic">
                     Using default pricing: ₹{event?.price_from || 0} (Day Pass)
                   </div>
                 );
               }
-              const cards = [
-                { key: 'normal', label: 'Normal Pass', data: ps.normal, color: 'bg-muted/30 border-border/40' },
-                { key: 'vip',    label: 'VIP Pass',    data: ps.vip,    color: 'bg-primary/5 border-primary/20' },
-              ].filter(c => c.data);
-              if (!cards.length) {
-                return (
-                  <div className="py-8 text-center text-sm text-muted-foreground italic">
-                    No passes configured yet.
-                  </div>
-                );
-              }
               return (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  {cards.map(({ key, label, data, color }) => (
-                    <div key={key} className={`p-5 rounded-xl border ${color} space-y-3`}>
+                  {passes.map((pass) => (
+                    <div key={pass.id} className={cn(
+                      "p-5 rounded-xl border space-y-3",
+                      pass.enabled 
+                        ? pass.id === 'vip' 
+                          ? 'bg-primary/5 border-primary/20' 
+                          : 'bg-muted/30 border-border/40'
+                        : 'opacity-50 bg-muted/30 border-border/20'
+                    )}>
                       <div className="flex items-center justify-between">
-                        <div className={`text-xs font-black uppercase tracking-widest ${key === 'vip' ? 'text-primary' : ''}`}>{label}</div>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${data.enabled ? 'bg-emerald-500/10 text-emerald-500' : 'bg-muted text-muted-foreground'}`}>
-                          {data.enabled ? 'Active' : 'Disabled'}
+                        <div className={cn(
+                          "text-xs font-black uppercase tracking-widest",
+                          pass.id === 'vip' ? 'text-primary' : ''
+                        )}>{pass.name}</div>
+                        <span className={cn(
+                          "text-[10px] font-bold px-2 py-0.5 rounded-full",
+                          pass.enabled ? 'bg-emerald-500/10 text-emerald-500' : 'bg-muted text-muted-foreground'
+                        )}>
+                          {pass.enabled ? 'Active' : 'Disabled'}
                         </span>
                       </div>
-                      <div className="text-2xl font-black text-primary">₹{data.price?.toLocaleString() || 0}</div>
+                      <div className="text-2xl font-black text-primary">₹{Number(pass.price)?.toLocaleString() || 0}</div>
                       <div className="space-y-1.5 text-[11px] text-muted-foreground">
                         <div className="flex justify-between">
                           <span>Duration</span>
-                          <span className="font-bold text-foreground">{data.days || 1} day{(data.days || 1) > 1 ? 's' : ''}</span>
+                          <span className="font-bold text-foreground">{pass.days || 1} day{Number(pass.days || 1) > 1 ? 's' : ''}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Single day</span>
-                          <span className="font-bold text-foreground">₹{data.single_day_price?.toLocaleString() || 0}</span>
+                          <span className="font-bold text-foreground">₹{Number(pass.single_day_price)?.toLocaleString() || 0}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Multi day</span>
-                          <span className="font-bold text-foreground">₹{data.multi_day_price?.toLocaleString() || 0}</span>
+                          <span className="font-bold text-foreground">₹{Number(pass.multi_day_price)?.toLocaleString() || 0}</span>
                         </div>
                       </div>
                     </div>

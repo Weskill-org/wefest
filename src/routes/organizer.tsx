@@ -327,6 +327,27 @@ function OrganizerLayout() {
 
   return (
     <div className="min-h-screen bg-background flex">
+      <style dangerouslySetInnerHTML={{ __html: `
+        input[type="date"] {
+          position: relative !important;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+          opacity: 0 !important;
+          cursor: pointer !important;
+          position: absolute !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          width: 100% !important;
+          height: 100% !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+        input, textarea, select {
+          color-scheme: dark !important;
+        }
+      `}} />
       {/* Desktop Sidebar */}
       <aside className={cn(
         "hidden lg:flex flex-col fixed inset-y-0 left-0 z-40 border-r border-border/50 bg-background/80 backdrop-blur-xl transition-all duration-300",
