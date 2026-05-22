@@ -81,9 +81,7 @@ export const payForTicketWithWallet = createServerFn({ method: "POST" })
     }
 
     const coins = inrToCoins(priceInr);
-    const randomArray = new Uint32Array(1);
-    globalThis.crypto.getRandomValues(randomArray);
-    const randomPart = randomArray[0].toString(36).padStart(7, '0').slice(-5).toUpperCase();
+    const randomPart = crypto.randomUUID().split('-')[0].toUpperCase();
     const ticketCode = `${event.title.substring(0, 3).toUpperCase()}-${randomPart}`;
 
     // Atomic transfer
