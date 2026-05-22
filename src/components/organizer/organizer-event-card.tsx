@@ -1,5 +1,16 @@
 import { Link } from "@tanstack/react-router";
-import { Calendar, MapPin, Users, IndianRupee, ExternalLink, Edit3, Share2, Trash2, MoreVertical, Pencil } from "lucide-react";
+import {
+  Calendar,
+  MapPin,
+  Users,
+  IndianRupee,
+  ExternalLink,
+  Edit3,
+  Share2,
+  Trash2,
+  MoreVertical,
+  Pencil,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -66,7 +77,7 @@ export function OrganizerEventCard({
   });
 
   const handleShare = async () => {
-    const url = slug 
+    const url = slug
       ? `${window.location.origin}/fest/${slug}`
       : `${window.location.origin}/events/${id}`;
     try {
@@ -83,11 +94,7 @@ export function OrganizerEventCard({
   };
 
   const handleDelete = () => {
-    if (
-      confirm(
-        `Are you sure you want to delete "${title}"? This action cannot be undone.`
-      )
-    ) {
+    if (confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`)) {
       deleteMutation.mutate();
     }
   };
@@ -100,14 +107,14 @@ export function OrganizerEventCard({
           className={cn(
             "relative h-32 w-full shrink-0 overflow-hidden rounded-2xl md:h-24 md:w-40",
             "bg-gradient-to-br",
-            cover
+            cover,
           )}
         >
           <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px]" />
           <Badge
             className={cn(
               "absolute left-2 top-2 border px-2 py-0.5 text-[9px] font-bold uppercase tracking-tighter backdrop-blur-md",
-              statusColors[status]
+              statusColors[status],
             )}
           >
             {status}
