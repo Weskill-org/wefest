@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { randomBytes } from "node:crypto";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
@@ -81,7 +82,8 @@ export const payForTicketWithWallet = createServerFn({ method: "POST" })
     }
 
     const coins = inrToCoins(priceInr);
-    const ticketCode = `${event.title.substring(0, 3).toUpperCase()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+    const randomPart = randomBytes(4).toString("base64url").substring(0, 5).toUpperCase();
+    const ticketCode = `${event.title.substring(0, 3).toUpperCase()}-${randomPart}`;
 
     // Atomic transfer
     const { error: trErr } = await supabaseAdmin.rpc("wallet_transfer", {
