@@ -7,6 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2, Ticket, Gift } from "lucide-react";
 import { redeemGiftCard } from "@/lib/wallet.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   open: boolean;
@@ -20,7 +21,7 @@ export function RedeemGiftCardDialog({ open, onOpenChange }: Props) {
   const m = useMutation({
     mutationFn: async (giftCode: string) => {
       if (!giftCode.trim()) throw new Error("Please enter a code");
-      const { data: { session } } = await (await import("@/integrations/supabase/client")).supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       return redeemGiftCard({
         data: { code: giftCode.trim() },
         headers: {

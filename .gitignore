@@ -34,3 +34,14 @@ dist-ssr
 graphify-out/manifest.json    # mtime-based, breaks after git clone
 graphify-out/cost.json        # local only
 graphify-out/cache/         # optional: commit for speed, skip to keep repo small
+graphify-out
+
+# Capacitor / Android
+android/app/build/
+android/.gradle/
+android/build/
+android/local.properties
+android/app/src/main/assets/public/
+*.apk
+*.aab
+dist/mobile/

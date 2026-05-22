@@ -11,11 +11,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QRScanner } from "@/components/qr-scanner";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
-export const Route = createFileRoute("/company/scan")({
-  head: () => ({ meta: [{ title: "Booth Scanner — Company Portal — WeFest" }] }),
-  component: CompanyScan,
-});
-
 function CompanyScan() {
   const [code, setCode] = useState("");
   const [selectedEventId, setSelectedEventId] = useState<string>("");
@@ -409,3 +404,8 @@ function CompanyScan() {
     </div>
   );
 }
+
+export const Route = createFileRoute("/company/scan")({
+  head: () => ({ meta: [{ title: "Booth Scanner — Company Portal — WeFest" }] }),
+  component: CompanyScan,
+});

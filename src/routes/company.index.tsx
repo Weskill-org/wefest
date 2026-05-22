@@ -34,16 +34,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-export const Route = createFileRoute("/company/")({
-  head: () => ({ 
-    meta: [
-      { title: "Dashboard | Company Portal | WeFest" },
-      { name: "description", content: "Overview of your sponsorship performance and lead generation." }
-    ] 
-  }),
-  component: CompanyDashboard,
-});
-
 interface BoothVisit {
   id: string;
   created_at: string;
@@ -74,6 +64,53 @@ interface Proposal {
 }
 
 const COLORS = ['#8B5CF6', '#10B981', '#F59E0B', '#3B82F6', '#EF4444', '#EC4899'];
+
+function KpiCard({ icon: Icon, label, value, color, trend, description }: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string;
+  color: string;
+  trend?: string;
+  description?: string;
+}) {
+  return (
+    <TooltipProvider>
+      <UITooltip>
+        <TooltipTrigger asChild>
+          <div className="group glass rounded-[32px] p-8 transition-all hover:border-primary/30 hover:bg-white/[0.04] hover:-translate-y-2 duration-500 relative overflow-hidden">
+            <div className="absolute top-0 right-0 h-24 w-24 bg-white/5 rounded-full -mr-12 -mt-12 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+
+            <div className="flex items-center justify-between mb-6">
+              <div className={cn(
+                "h-12 w-12 rounded-2xl flex items-center justify-center shadow-inner transition-transform group-hover:scale-110",
+                color.replace('text', 'bg').replace('400', '500/10'),
+                "border border-white/5"
+              )}>
+                <Icon className={cn("h-6 w-6", color)} />
+              </div>
+              {trend && (
+                <div className={cn(
+                  "text-[10px] font-black px-3 py-1 rounded-full tracking-widest",
+                  trend.startsWith('+') ? "bg-emerald-500/10 text-emerald-400" : "bg-white/5 text-muted-foreground"
+                )}>
+                  {trend}
+                </div>
+              )}
+            </div>
+            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 mb-1.5">{label}</div>
+            <div className="text-4xl font-black tracking-tighter">{value}</div>
+          </div>
+        </TooltipTrigger>
+        {description && (
+          <TooltipContent side="bottom" className="bg-popover/90 backdrop-blur-2xl border-white/10 text-xs py-3 px-4 rounded-xl shadow-2xl">
+            <div className="font-bold mb-1">{label}</div>
+            <p className="text-muted-foreground text-[10px] leading-relaxed">{description}</p>
+          </TooltipContent>
+        )}
+      </UITooltip>
+    </TooltipProvider>
+  );
+}
 
 function CompanyDashboard() {
   const navigate = useNavigate();
@@ -679,51 +716,12 @@ function CompanyDashboard() {
   );
 }
 
-function KpiCard({ icon: Icon, label, value, color, trend, description }: { 
-  icon: React.ComponentType<{ className?: string }>; 
-  label: string; 
-  value: string; 
-  color: string;
-  trend?: string;
-  description?: string;
-}) {
-  return (
-    <TooltipProvider>
-      <UITooltip>
-        <TooltipTrigger asChild>
-          <div className="group glass rounded-[32px] p-8 transition-all hover:border-primary/30 hover:bg-white/[0.04] hover:-translate-y-2 duration-500 relative overflow-hidden">
-            <div className="absolute top-0 right-0 h-24 w-24 bg-white/5 rounded-full -mr-12 -mt-12 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
-            
-            <div className="flex items-center justify-between mb-6">
-              <div className={cn(
-                "h-12 w-12 rounded-2xl flex items-center justify-center shadow-inner transition-transform group-hover:scale-110", 
-                color.replace('text', 'bg').replace('400', '500/10'),
-                "border border-white/5"
-              )}>
-                <Icon className={cn("h-6 w-6", color)} />
-              </div>
-              {trend && (
-                <div className={cn(
-                  "text-[10px] font-black px-3 py-1 rounded-full tracking-widest",
-                  trend.startsWith('+') ? "bg-emerald-500/10 text-emerald-400" : "bg-white/5 text-muted-foreground"
-                )}>
-                  {trend}
-                </div>
-              )}
-            </div>
-            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 mb-1.5">{label}</div>
-            <div className="text-4xl font-black tracking-tighter">{value}</div>
-          </div>
-        </TooltipTrigger>
-        {description && (
-          <TooltipContent side="bottom" className="bg-popover/90 backdrop-blur-2xl border-white/10 text-xs py-3 px-4 rounded-xl shadow-2xl">
-            <div className="font-bold mb-1">{label}</div>
-            <p className="text-muted-foreground text-[10px] leading-relaxed">{description}</p>
-          </TooltipContent>
-        )}
-      </UITooltip>
-    </TooltipProvider>
-  );
-}
-
-
+export const Route = createFileRoute("/company/")({
+  head: () => ({
+    meta: [
+      { title: "Dashboard | Company Portal | WeFest" },
+      { name: "description", content: "Overview of your sponsorship performance and lead generation." }
+    ]
+  }),
+  component: CompanyDashboard,
+});

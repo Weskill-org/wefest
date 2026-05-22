@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getAllGiftCards, createGiftCard } from "@/lib/wallet.functions";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin/gift-cards")({
   component: AdminGiftCards,
@@ -22,7 +23,7 @@ function AdminGiftCards() {
   const { data: cards, isLoading } = useQuery({
     queryKey: ["admin-gift-cards"],
     queryFn: async () => {
-      const { data: { session } } = await (await import("@/integrations/supabase/client")).supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       return getAllGiftCards({
         headers: {
           Authorization: session?.access_token ? `Bearer ${session.access_token}` : ""
@@ -43,7 +44,7 @@ function AdminGiftCards() {
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      const { data: { session } } = await (await import("@/integrations/supabase/client")).supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       return createGiftCard({
         data: { code: newCode, amountCoins: newAmount },
         headers: {

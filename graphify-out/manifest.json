@@ -1,4 +1,12 @@
 {
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\capacitor.config.ts": {
+    "mtime": 1779448834.1896863,
+    "hash": "343df1c28aa0edc7d580c47ebefc7303"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\check-errors.js": {
+    "mtime": 1779447131.1876843,
+    "hash": "825e5e30fb69ef3757c3ec29adfbf99f"
+  },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\dump.sql": {
     "mtime": 1778832513.1380527,
     "hash": "d41d8cd98f00b204e9800998ecf8427e"
@@ -15,9 +23,273 @@
     "mtime": 1779109329.3018506,
     "hash": "1eafe6ca38d960d7abe42af2cfee5843"
   },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\vite.config.mobile.ts": {
+    "mtime": 1779454156.4935,
+    "hash": "efe2d964deea1cedda235d98ec60cc0b"
+  },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\vite.config.ts": {
     "mtime": 1778824107.711658,
     "hash": "39ccc539970bcc1606daa73e53f68af1"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\build.gradle": {
+    "mtime": 1778618299.0,
+    "hash": "682315a426653617c6a74fc12bef55b6"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\capacitor.settings.gradle": {
+    "mtime": 1779460195.9022708,
+    "hash": "5162fc663790f588f4cf321a15b298e2"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\gradlew": {
+    "mtime": 1778618299.0,
+    "hash": "794669d78aef1dd5c7d889ef618b311a"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\settings.gradle": {
+    "mtime": 1778618299.0,
+    "hash": "f6cd925b3f859e23c3d819fe2459e0e4"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\variables.gradle": {
+    "mtime": 1778618299.0,
+    "hash": "4b3fce8ea2a515a9d2e47e74757172ec"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\build.gradle": {
+    "mtime": 1779460136.7241464,
+    "hash": "e05873e6ff4f6dc371623c434297d892"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\capacitor.build.gradle": {
+    "mtime": 1779460195.9022708,
+    "hash": "3d3c85ad0bf02290720ae0a78367212d"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\androidTest\\java\\com\\getcapacitor\\myapp\\ExampleInstrumentedTest.java": {
+    "mtime": 1778618299.0,
+    "hash": "fbaf7cc870c663eb52dcf218531c439d"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\cordova.js": {
+    "mtime": 1779460195.8932264,
+    "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\cordova_plugins.js": {
+    "mtime": 1779460195.8983343,
+    "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\ambassadors-4Rri5lu8.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "bbff2f129c23806837dba24ea51aae62"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\blog-BCNM3cjw.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "e19532667939f1536e15ef7ec0ffdbc5"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\blog-data-CC_8BZ3Q.js": {
+    "mtime": 1779460187.1864073,
+    "hash": "480cea8d840c3bbe35f31004b002d940"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\blog.index-DSJ6pTgD.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "d6c83c7cf0275fbf0fa1bfb4e859e093"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\blog._slug-BTqN0bF3.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "dd0ec10c2ac3103d2e50f41b3dd3c9f9"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\colleges-B8MFexC5.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "9b7e40a1b5282a1e2b27a4a518512209"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\colleges.index-Cjh4ahaq.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "10b05b1fc12983a4b7211aa39a4f75c9"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\colleges._collegeSlug-DAa7ibrO.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "2bf2cab46c852d3126a460d616572c00"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\cookie-policy-B5Ijmpcg.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "49350537e41090928b371dd57d060a67"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\events-3Dvuq4_3.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "3fdd7bccc808f6db7bd79cd9aa3b43aa"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\events.index-CrOdsy6s.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "6af9eafa30804e22d46e7d212e66e029"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\events._eventId-7L5EOgFN.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "f0afafbaeb6446995fa56b646a8af008"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\events._eventId-CSVzPeME.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "8debc705c9252d00a42c4ebd42a2df87"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\events._eventId-DEqM2zT2.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "308038b54fdec2d8066e01ecf0806064"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\fest-BCNM3cjw.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "a407a739930c5d6b4ad1cee49ee4bada"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\fest.index-DtDNsf0z.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "d55644e9c59bb620906e805882373982"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\fest._slug-D6T48EAR.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "3f310ad287a4387b550c7042a41f72b3"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\fest._slug-Ds7U9UKl.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "db8c411d18165ea631614d36ab4ee834"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\fest._slug-DyKFp39z.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "238776d34b8e9144b1f1a72e8982805e"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\index-CJ-xITDx.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "e552c57790a5728bf2ee4df7b599cf81"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\index-DQTKID5T.js": {
+    "mtime": 1779460187.1631978,
+    "hash": "0e3b644f467a70d9249a50b5c35300dc"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\invite-BCNM3cjw.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "30fc1fd2b681f0a09a4cd4e39be3b4af"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\invite.accept-DMHWB-jX.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "846d477e4803d0ac7a7f57e830ff50bf"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\login-Ccjss7hB.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "4bee0893f701be7a810df3bf3c33231a"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\privacy-DHz6sQBT.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "3b8bcaf67cde481af8429844c7776e28"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\refund-paG14HCN.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "b59414f516a3af74741f7052f4f436ff"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\routes-admin-BNFbjVBg.js": {
+    "mtime": 1779460187.1631978,
+    "hash": "76497ce9d8965ddc0fae79b857135104"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\routes-company-e4pygkSf.js": {
+    "mtime": 1779460187.1631978,
+    "hash": "8af191bd10f64f100b1f65c9fd0dd7bc"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\routes-organizer-DhmNdy0r.js": {
+    "mtime": 1779460187.1631978,
+    "hash": "95e379e1002a0455d445a2104a347519"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\routes-student-D9YdL_nY.js": {
+    "mtime": 1779460187.1631978,
+    "hash": "af9b909f650d303ac66772171ca7bfd5"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\shared-components-D-EQfNJX.js": {
+    "mtime": 1779460187.1631978,
+    "hash": "a9c5663728712b3d0dc88c709dec87e3"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\shared-shims-BmhK_Jfs.js": {
+    "mtime": 1779460187.1631978,
+    "hash": "df57e3243e93abebbc12f9d2b62470ff"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\shared-supabase-BQWDdotU.js": {
+    "mtime": 1779460187.1631978,
+    "hash": "30e263c61a6aecf4df9de9388322d83c"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\shared-ui-CcaIUj_x.js": {
+    "mtime": 1779460187.1631978,
+    "hash": "a22de2a37dc9cfec806f8a612fb2f44a"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\shared-utils-2HCbWQzA.js": {
+    "mtime": 1779460187.1631978,
+    "hash": "49d65e648bf87986280a40691d0899fb"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\signup-DLukDbUk.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "186a01a9bf3fd0daa9937cb195035ac3"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\sponsor.dashboard-CTQ_5sRQ.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "34445c29da1663fd91ba93a4d3ab6435"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\sponsor.pricing-BgE_vqzV.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "31553defe839f104dd1d592d12041630"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\sponsor.scan-DgQr7bXn.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "9cd0b1a93e7d4621e9e2238fabca22ae"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\sponsors-DsNO5cW-.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "4c4297bb1e1ace5a910e1aa5afd1deb5"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\talent-rH4sbWJM.js": {
+    "mtime": 1779460187.1631978,
+    "hash": "4ec50a2d10931db2bc3e7d5585ff2c41"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\terms-CZ1GO53q.js": {
+    "mtime": 1779460187.1631978,
+    "hash": "af958276ade7a97ced65b125da10c6b9"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\vendor-capacitor-BVBQIZU3.js": {
+    "mtime": 1779460187.1631978,
+    "hash": "0baa5645ecb14857c7f5323ba239b18d"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\vendor-charts-aKMGfBtY.js": {
+    "mtime": 1779460187.1631978,
+    "hash": "e429576988b83108ef61e8fc5473cc05"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\vendor-forms-C7jWjZvw.js": {
+    "mtime": 1779460187.1631978,
+    "hash": "6006f500cca87c6e5855c10375b81320"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\vendor-icons-MOeH8XMZ.js": {
+    "mtime": 1779460187.1631978,
+    "hash": "701ab2144ba854d7399fb6795f611c50"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\vendor-libs-B7GbghNn.js": {
+    "mtime": 1779460187.1739373,
+    "hash": "678241b84f63f8151f231b2f963a96d0"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\vendor-query-SyxaAaIa.js": {
+    "mtime": 1779460187.1631978,
+    "hash": "58282122318664dc93d4ecb04a685ea5"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\vendor-radix-BGiSKHWl.js": {
+    "mtime": 1779460187.1631978,
+    "hash": "8de880a8406a7160352f83d0992c09c3"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\vendor-router-C_hyflrL.js": {
+    "mtime": 1779460187.1631978,
+    "hash": "bbe0bfcf77cacca898d45416eae47099"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\assets\\vendor-supabase-CXJlCUwY.js": {
+    "mtime": 1779460187.1631978,
+    "hash": "897e56fb3979b792779e9813c6fa8bc5"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\java\\org\\weskill\\wefest\\MainActivity.java": {
+    "mtime": 1779460136.723094,
+    "hash": "50932f28c4aa33e09a5632758ab98aa5"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\test\\java\\com\\getcapacitor\\myapp\\ExampleUnitTest.java": {
+    "mtime": 1778618299.0,
+    "hash": "e91b4501c14da821682fa5c26a16d616"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\capacitor-cordova-android-plugins\\build.gradle": {
+    "mtime": 1779460195.9032786,
+    "hash": "2af61653d70c95d20802c8b5c433ba90"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\capacitor-cordova-android-plugins\\cordova.variables.gradle": {
+    "mtime": 1779460195.9032786,
+    "hash": "d2372a0ae9aa60abb8d03e7f06bf9194"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\scratch\\check.mjs": {
     "mtime": 1779286962.7436404,
@@ -42,6 +314,10 @@
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\scratch\\check_slug_matches.js": {
     "mtime": 1779286589.1184058,
     "hash": "a20f3067647f5d9d83ad493dc1c56b44"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\scratch\\find_k.js": {
+    "mtime": 1779453734.224051,
+    "hash": "6865809a81cbc4ab01d1899b3a92cbb9"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\scratch\\list_slugs.js": {
     "mtime": 1779286570.6138303,
@@ -139,13 +415,17 @@
     "mtime": 1779282293.1224186,
     "hash": "f543db583eac265b832d3648c09dc1f5"
   },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\main.tsx": {
+    "mtime": 1779447031.0342765,
+    "hash": "0d7a2a6eb3237153f8144304b306d55b"
+  },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\router.tsx": {
     "mtime": 1778147124.5158572,
     "hash": "5622542c835e74c8a5a414b879d4b53b"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routeTree.gen.ts": {
-    "mtime": 1779177906.746846,
-    "hash": "4b8f0279fe347dcd3070526837877b28"
+    "mtime": 1779458564.1020403,
+    "hash": "33c7b2d33943f6a9208e90791b10db17"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\start.ts": {
     "mtime": 1778911485.5079613,
@@ -204,8 +484,8 @@
     "hash": "55d5621aed6abda176929ac2d6369c2b"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\layout\\StudentAppLayout.tsx": {
-    "mtime": 1778943977.02531,
-    "hash": "3906f67ea47d87da621f36c985fd7ce5"
+    "mtime": 1779455158.607523,
+    "hash": "ad4fa18fc703a1982ec82351f83170c3"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\organizer\\capacity-field.tsx": {
     "mtime": 1779431620.8771663,
@@ -428,12 +708,12 @@
     "hash": "6dd894a539d5f97a0615c049be79a355"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\wallet\\payment-dialog.tsx": {
-    "mtime": 1778911526.9216623,
-    "hash": "707c30cd14a3bf086037f2fd3d6de4e0"
+    "mtime": 1779454372.2499056,
+    "hash": "fb76245694271ecdb88e8b190489b77a"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\wallet\\redeem-gift-card-dialog.tsx": {
-    "mtime": 1778761610.4091048,
-    "hash": "3673ac26edc94368d387c9f521113c61"
+    "mtime": 1779454367.3078692,
+    "hash": "3668dfbaf445d0155e2b704e7e2323d8"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\components\\wallet\\wallet-panel.tsx": {
     "mtime": 1778930725.797144,
@@ -483,6 +763,14 @@
     "mtime": 1779287264.5857284,
     "hash": "567f7f26b9c183f1b3d365929fce6089"
   },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\lib\\capacitor-init.ts": {
+    "mtime": 1779455141.4167824,
+    "hash": "eb948c46a83f41d0453b59066815a6d5"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\lib\\capacitor-platform.ts": {
+    "mtime": 1779452385.4136474,
+    "hash": "8be8283b17e826f3b89fc93ee90a3dbc"
+  },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\lib\\college-join-requests.ts": {
     "mtime": 1778935684.5929308,
     "hash": "da0681c050b7efb12a87b993232c5d75"
@@ -506,6 +794,14 @@
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\lib\\referral.ts": {
     "mtime": 1778931661.8518195,
     "hash": "c08d83256d7e38b026b6818213b68c40"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\lib\\server-fn-shim-server.ts": {
+    "mtime": 1779438507.648296,
+    "hash": "cdc05e270b4507017099d58a552c249e"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\lib\\server-fn-shim.ts": {
+    "mtime": 1779454312.4094706,
+    "hash": "89c024aaca4bd528ee73e05883bb2363"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\lib\\team-invitations.ts": {
     "mtime": 1778927627.2031784,
@@ -556,8 +852,8 @@
     "hash": "d5f639c84fcb9a4d1a951455eb1bbf1a"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\admin.gift-cards.tsx": {
-    "mtime": 1778760687.2132885,
-    "hash": "b206c6b58e9159d93cf48e8a28cb84bd"
+    "mtime": 1779454380.7103248,
+    "hash": "2139b3bebe18a17db06be0761d5164b4"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\admin.index.tsx": {
     "mtime": 1778232912.1713662,
@@ -580,12 +876,12 @@
     "hash": "b47a50af84816d85117db66441228801"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\blog.$slug.tsx": {
-    "mtime": 1779374076.186083,
-    "hash": "718017f1b061dc5d5b2d028bf0c6e3bc"
+    "mtime": 1779452981.210409,
+    "hash": "a326549449d7a27a257fc738a8daf2a8"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\blog.index.tsx": {
-    "mtime": 1779274185.5559037,
-    "hash": "396b783610f8c86ad48bfd1d2a608ae0"
+    "mtime": 1779452972.295074,
+    "hash": "b5532b469efc50a71086a786b87b734b"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\blog.tsx": {
     "mtime": 1778594793.9021494,
@@ -604,40 +900,40 @@
     "hash": "92a600958cfea6bac02a6d3ba0cdbc8f"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\company.alerts.tsx": {
-    "mtime": 1779178595.6854372,
-    "hash": "b0884b205a2ef7c8688f9f52928c996d"
+    "mtime": 1779450707.3287406,
+    "hash": "a7a556443482364550e3270287742043"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\company.brand-assets.tsx": {
-    "mtime": 1778766348.0221293,
-    "hash": "d491d41efc5cf67afb3d81721e948492"
+    "mtime": 1779451150.5499938,
+    "hash": "f33eceb83a047f79bac2a0878be1ab9c"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\company.index.tsx": {
-    "mtime": 1779114702.5744495,
-    "hash": "093c9dc86951b1b759f19a532dfe07bd"
+    "mtime": 1779450345.5342104,
+    "hash": "d0e7d8263cbd16e20d7292ab4c88926c"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\company.marketplace.tsx": {
-    "mtime": 1778926136.665244,
-    "hash": "3058c4b6579502d778359a245e0afc53"
+    "mtime": 1779450945.4905999,
+    "hash": "2bff92b5711d4417cfc59d8e6bc63a6f"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\company.messages.tsx": {
-    "mtime": 1779114735.5172539,
-    "hash": "015f3eba2c13f2dfa5674a73c6a4034f"
+    "mtime": 1779450803.8263605,
+    "hash": "a8077e184112a5195b12c7969c8232e9"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\company.proposals.tsx": {
-    "mtime": 1779091837.8768334,
-    "hash": "e94c5371b7fac60a8a55a6ac6c2ed168"
+    "mtime": 1779450869.9728854,
+    "hash": "8f6b1ea34f2ddb9a9db7d799cf28844d"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\company.scan.tsx": {
-    "mtime": 1779115038.3589253,
-    "hash": "3ed9af97e2e73282b1db4c5a01d45fbb"
+    "mtime": 1779450584.8754687,
+    "hash": "c8cb8e1ad753ecf9f74d5eb8ffae4971"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\company.settings.tsx": {
-    "mtime": 1779107863.555431,
-    "hash": "2bcc3d43d283b53322bf3735f04bd1f4"
+    "mtime": 1779451043.4944441,
+    "hash": "695bba41029df7037cd72a1a566dd2cb"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\company.tsx": {
-    "mtime": 1779178595.682925,
-    "hash": "1565f4dad80e7c7349abe315d90deb45"
+    "mtime": 1779455173.8707285,
+    "hash": "7bae1253da370a0abb1b017503993267"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\company.wallet.tsx": {
     "mtime": 1778684351.758979,
@@ -684,8 +980,8 @@
     "hash": "abb10a7a299b23b9f465916249dee0f1"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\login.tsx": {
-    "mtime": 1779264295.98747,
-    "hash": "5cd260def83e4c00d86254a9a4a54fa7"
+    "mtime": 1779459068.8867857,
+    "hash": "827c2ef73d91978cd8281be2a47e724c"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.activity.tsx": {
     "mtime": 1778831466.5749629,
@@ -736,8 +1032,8 @@
     "hash": "b0288cbe04ffa13b4734cf225c22770e"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.tsx": {
-    "mtime": 1779432116.917801,
-    "hash": "8903dd52fdeef41d75177bce29d0c40e"
+    "mtime": 1779455167.8325813,
+    "hash": "dde896a712d7a3817bcd9af7969c22cc"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\organizer.wallet.tsx": {
     "mtime": 1778684351.7648585,
@@ -756,12 +1052,12 @@
     "hash": "8c8a2a89ac12e349082d901fc7b5e953"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\signup.tsx": {
-    "mtime": 1779274185.568376,
-    "hash": "1381b3663edd3a2018aa82be224ffaa8"
+    "mtime": 1779459046.8689659,
+    "hash": "25e53450229bf426ea5d5e2eefa1dc45"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\sitemap[.]xml.ts": {
-    "mtime": 1779274185.5690136,
-    "hash": "fd434ff641ad5214874fcd2357090720"
+    "mtime": 1779452988.1743422,
+    "hash": "24a858e5c8ea7b236db62d40ad7e4f92"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\sponsor.dashboard.tsx": {
     "mtime": 1779178595.6785173,
@@ -848,8 +1144,8 @@
     "hash": "17b5692d6cbec4d2177d28f66ea69d5d"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\src\\routes\\__root.tsx": {
-    "mtime": 1779171174.0399444,
-    "hash": "effbae8ed3318da78bf9c9d934c4b881"
+    "mtime": 1779459910.5560758,
+    "hash": "704a17fd89b2fda4d1e8bdb1f257649a"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\supabase\\functions\\razorpay-create-order\\index.ts": {
     "mtime": 1779107801.2325988,
@@ -1139,6 +1435,10 @@
     "mtime": 1778219526.5087645,
     "hash": "d3f244ce274e05744c434ee3771219ea"
   },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\index.html": {
+    "mtime": 1779447550.5239778,
+    "hash": "f1ac20e03f5fefd52e056dc87b679aca"
+  },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\marketing.md": {
     "mtime": 1778247376.0320604,
     "hash": "128bb12be0689ab32ff3f0f2ac5b06cc"
@@ -1167,6 +1467,10 @@
     "mtime": 1778507128.5441396,
     "hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\index.html": {
+    "mtime": 1779460187.178509,
+    "hash": "2331defc39c499f9d281e1cc27b08794"
+  },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\our_files\\SEOSKill.md": {
     "mtime": 1779267848.2244873,
     "hash": "367507e14e471a1aeaf63562fcceedcf"
@@ -1186,6 +1490,114 @@
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\supabase\\templates\\magic_link.html": {
     "mtime": 1779176636.7847958,
     "hash": "dd982b30883ba0ce16bf84464f9fda1d"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\assets\\public\\logo-gold.png": {
+    "mtime": 1778841443.32956,
+    "hash": "288519e49eede95bb3643d2e2ef69697"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\drawable\\splash.png": {
+    "mtime": 1778618299.0,
+    "hash": "acc976d4a36479233371a53021525c0c"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\drawable-land-hdpi\\splash.png": {
+    "mtime": 1778618299.0,
+    "hash": "f7a80786dd355bd39014e58027aa6e19"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\drawable-land-mdpi\\splash.png": {
+    "mtime": 1778618299.0,
+    "hash": "acc976d4a36479233371a53021525c0c"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\drawable-land-xhdpi\\splash.png": {
+    "mtime": 1778618299.0,
+    "hash": "b8c72969bc1f78aab71a76035360d4af"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\drawable-land-xxhdpi\\splash.png": {
+    "mtime": 1778618299.0,
+    "hash": "f87e988387b07d843905f38b084929fb"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\drawable-land-xxxhdpi\\splash.png": {
+    "mtime": 1778618299.0,
+    "hash": "055a69553b16b0bf5f72094a2e459fc7"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\drawable-port-hdpi\\splash.png": {
+    "mtime": 1778618299.0,
+    "hash": "5eb10d16c81338abe8bbc033d49638a8"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\drawable-port-mdpi\\splash.png": {
+    "mtime": 1778618299.0,
+    "hash": "d855a76a5070c8e6fcfd83a27549bdce"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\drawable-port-xhdpi\\splash.png": {
+    "mtime": 1778618299.0,
+    "hash": "df100b2a36bdb98b711cca58941728de"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\drawable-port-xxhdpi\\splash.png": {
+    "mtime": 1778618299.0,
+    "hash": "2c1b668364e815256f67b71dcdfa4d6e"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\drawable-port-xxxhdpi\\splash.png": {
+    "mtime": 1778618299.0,
+    "hash": "b5b1b22b59abe686c1df0d74a423d034"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\mipmap-hdpi\\ic_launcher.png": {
+    "mtime": 1778618299.0,
+    "hash": "1956941339dd5fe36d5c66601c89a08d"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\mipmap-hdpi\\ic_launcher_foreground.png": {
+    "mtime": 1778618299.0,
+    "hash": "73b1e06d769fa08a9c3b8328cc15fd75"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\mipmap-hdpi\\ic_launcher_round.png": {
+    "mtime": 1778618299.0,
+    "hash": "f43e5674865a00186dd76183cf1f2f8e"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\mipmap-mdpi\\ic_launcher.png": {
+    "mtime": 1778618299.0,
+    "hash": "7ed1b3739b83215d0c4a0b4a7f2dcab4"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\mipmap-mdpi\\ic_launcher_foreground.png": {
+    "mtime": 1778618299.0,
+    "hash": "5b77e8aec8b17eed320a97567c7cb8bf"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\mipmap-mdpi\\ic_launcher_round.png": {
+    "mtime": 1778618299.0,
+    "hash": "a49547a32c7d9b529af607b033811d81"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\mipmap-xhdpi\\ic_launcher.png": {
+    "mtime": 1778618299.0,
+    "hash": "5689511ee4e41a367d0342f37ac48bdf"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\mipmap-xhdpi\\ic_launcher_foreground.png": {
+    "mtime": 1778618299.0,
+    "hash": "15cdded29b9877ac98c5931024c5da5d"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\mipmap-xhdpi\\ic_launcher_round.png": {
+    "mtime": 1778618299.0,
+    "hash": "c890fa4af62a63486d5dea62441ce7ab"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_launcher.png": {
+    "mtime": 1778618299.0,
+    "hash": "a3285eeaedda8201f04e7737b9df8421"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_launcher_foreground.png": {
+    "mtime": 1778618299.0,
+    "hash": "4e9584ecc16d1fc75afb798688ce576f"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_launcher_round.png": {
+    "mtime": 1778618299.0,
+    "hash": "14cde87848553e24d7106f56eb8ceb6f"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\mipmap-xxxhdpi\\ic_launcher.png": {
+    "mtime": 1778618299.0,
+    "hash": "9e029293ab1ae8e3a6a7b7d0b7177e46"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\mipmap-xxxhdpi\\ic_launcher_foreground.png": {
+    "mtime": 1778618299.0,
+    "hash": "ed3696b7c52d9747411a475dbe3fa34a"
+  },
+  "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\android\\app\\src\\main\\res\\mipmap-xxxhdpi\\ic_launcher_round.png": {
+    "mtime": 1778618299.0,
+    "hash": "85addb4159ecd3f76f02fbacd5ec86de"
   },
   "C:\\Users\\sharm\\OneDrive\\Documents\\GitHub\\wefest\\public\\logo-gold.png": {
     "mtime": 1778841443.32956,

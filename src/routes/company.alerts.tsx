@@ -16,53 +16,6 @@ import {
   type AcceptTeamInvitationResult,
 } from "@/lib/team-invitations";
 
-export const Route = createFileRoute("/company/alerts")({
-  head: () => ({
-    meta: [
-      { title: "Alerts — WeFest" },
-      { name: "description", content: "Your WeFest notifications, alerts and important updates." },
-    ],
-  }),
-  beforeLoad: async ({ location }) => {
-    if (typeof window === "undefined") return;
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw redirect({ to: "/login", search: { redirect: location.pathname + location.searchStr } });
-  },
-  component: AlertsPage,
-});
-
-type NotificationType = "all" | "unread" | "event" | "promo" | "system";
-
-const notificationTypeIcon = (type: string) => {
-  switch (type) {
-    case "event": return Ticket;
-    case "promo": return Tag;
-    case "gift": return Gift;
-    case "broadcast": return Megaphone;
-    case "team_invite": return Users;
-    case "team_update": return Crown;
-    case "team_response": return CheckCircle2;
-    case "join_request_accepted": return CheckCircle2;
-    case "join_request_declined": return XCircle;
-    default: return Info;
-  }
-};
-
-const notificationTypeColor = (type: string) => {
-  switch (type) {
-    case "event": return "bg-blue-500/10 text-blue-400";
-    case "promo": return "bg-amber-500/10 text-amber-400";
-    case "gift": return "bg-emerald-500/10 text-emerald-400";
-    case "broadcast": return "bg-purple-500/10 text-purple-400";
-    case "team_invite": return "bg-violet-500/10 text-violet-400";
-    case "team_update": return "bg-yellow-500/10 text-yellow-400";
-    case "team_response": return "bg-emerald-500/10 text-emerald-400";
-    case "join_request_accepted": return "bg-emerald-500/10 text-emerald-400";
-    case "join_request_declined": return "bg-red-500/10 text-red-400";
-    default: return "bg-white/5 text-muted-foreground";
-  }
-};
-
 function AlertsPage() {
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<NotificationType>("all");
@@ -409,3 +362,18 @@ function AlertsPage() {
     </div>
   );
 }
+
+export const Route = createFileRoute("/company/alerts")({
+  head: () => ({
+    meta: [
+      { title: "Alerts — WeFest" },
+      { name: "description", content: "Your WeFest notifications, alerts and important updates." },
+    ],
+  }),
+  beforeLoad: async ({ location }) => {
+    if (typeof window === "undefined") return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw redirect({ to: "/login", search: { redirect: location.pathname + location.searchStr } });
+  },
+  component: AlertsPage,
+});

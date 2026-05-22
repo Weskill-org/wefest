@@ -5,7 +5,7 @@ import { Coins, Loader2, LogIn, Wallet, Plus, Sparkles, ArrowRight } from "lucid
 import { useWallet } from "@/hooks/use-wallet";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { COINS_PER_INR, coinsToInr } from "@/lib/wallet.functions";
+import { COINS_PER_INR, coinsToInr, payForTicketWithWallet, payForProductWithWallet } from "@/lib/wallet.functions";
 import { getSupabaseAuthHeaders } from "@/lib/auth";
 import { WalletTopupDialog } from "./wallet-topup-dialog";
 import { openRazorpayCheckout } from "@/lib/razorpay-checkout";
@@ -116,7 +116,6 @@ export function PaymentDialog({
       const headers = await getSupabaseAuthHeaders();
       if (!headers.Authorization) throw new Error("Please sign in to pay with WeCoins");
 
-      const { payForTicketWithWallet, payForProductWithWallet } = await import("@/lib/wallet.functions");
       if (purchase.kind === "ticket") {
         const res = await payForTicketWithWallet({
           data: { eventId: purchase.eventId, tier: purchase.tier },

@@ -1,8 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Calendar, Clock, ArrowRight } from "lucide-react";
-import { BLOG_POSTS } from "@/lib/blog-data";
 
 export const Route = createFileRoute("/blog/")({
+  loader: async () => {
+    const { BLOG_POSTS } = await import("@/lib/blog-data");
+    return { posts: BLOG_POSTS };
+  },
   head: () => ({
     meta: [
       { title: "WeFest Blog | The Campus Pulse" },
@@ -24,6 +27,7 @@ export const Route = createFileRoute("/blog/")({
 });
 
 function BlogListingPage() {
+  const { posts } = Route.useLoaderData();
   return (
     <div className="container mx-auto px-6 py-24">
       <div className="max-w-2xl mb-16">
@@ -34,7 +38,7 @@ function BlogListingPage() {
       </div>
 
       <div className="grid gap-8 md:grid-cols-2">
-        {BLOG_POSTS.map((post) => (
+        {posts.map((post) => (
           <Link 
             key={post.slug}
             to="/blog/$slug"

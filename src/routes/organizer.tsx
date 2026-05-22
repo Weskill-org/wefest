@@ -156,7 +156,7 @@ function OrganizerLayout() {
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className={cn("flex items-center gap-3 px-5 pt-6 pb-4", collapsed && "justify-center px-3")}>
+      <div className={cn("flex items-center gap-3 px-5 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-4", collapsed && "justify-center px-3")}>
         <div className="h-10 w-10 shrink-0 rounded-xl bg-brand-gradient flex items-center justify-center text-white font-black text-sm shadow-glow">
           {initials}
         </div>
@@ -305,7 +305,7 @@ function OrganizerLayout() {
       </div>
 
       {/* Footer */}
-      <div className={cn("border-t border-border/50 p-4", collapsed && "p-3")}>
+      <div className={cn("border-t border-border/50 px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))]", collapsed && "p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]")}>
         <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
           <Avatar className="h-8 w-8 shrink-0">
             <AvatarFallback className="bg-muted text-xs font-bold">
@@ -380,11 +380,11 @@ function OrganizerLayout() {
 
       {/* Main Content */}
       <main className={cn(
-        "flex-1 min-h-screen transition-all duration-300",
+        "flex-1 min-h-screen transition-all duration-300 flex flex-col",
         collapsed ? "lg:ml-[72px]" : "lg:ml-[260px]"
       )}>
         {/* Mobile Top Bar */}
-        <div className="sticky top-0 z-30 flex items-center gap-3 border-b border-border/50 bg-background/80 backdrop-blur-xl px-4 py-3 lg:hidden">
+        <div className="sticky top-0 z-30 flex items-center gap-3 border-b border-border/50 bg-background/80 backdrop-blur-xl px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] lg:hidden">
           <button
             onClick={() => setMobileOpen(true)}
             className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/40"
@@ -405,8 +405,10 @@ function OrganizerLayout() {
           </div>
         </div>
 
-        {/* @ts-ignore */}
-        <Outlet context={{ user, membership } as any} />
+        <div className="flex-1 overflow-y-auto pb-[calc(1rem+env(safe-area-inset-bottom))]">
+          {/* @ts-ignore */}
+          <Outlet context={{ user, membership } as any} />
+        </div>
       </main>
     </div>
   );
