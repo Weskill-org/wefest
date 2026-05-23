@@ -176,7 +176,7 @@ function FullEventDetail() {
         navigate({ to: "/signup" });
         throw new Error("redirect");
       }
-      const ticketCode = `${event.title.substring(0, 3).toUpperCase()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+      const ticketCode = `${event.title.substring(0, 3).toUpperCase()}-${crypto.randomUUID().split('-')[0].toUpperCase()}`;
       const { error } = await supabase.from("tickets").insert({
         user_id: currentUser.id,
         event_id: event.id,
