@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#1a1025" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+
+    <title>WeFest</title>
+    <meta name="description" content="India's premier college festival & event ecosystem" />
+
+    <!-- Google Fonts — Space Grotesk + Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="icon" href="./favicon.ico" />
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <!-- Global error handler for debugging white screen on device -->
+    <script>
+      function showError(title, message, file) {
+        var root = document.getElementById("root");
+        if (root) {
+          root.innerHTML = '<div style="padding: 20px; color: red; font-family: monospace; word-break: break-all; z-index: 9999; position: relative;">' +
+            '<h3>' + title + '</h3>' +
+            '<p><strong>Message:</strong> ' + message + '</p>' +
+            '<p><strong>File:</strong> ' + (file || 'N/A') + '</p>' +
+            '</div>';
+        }
+      }
+
+      window.addEventListener("error", function(event) {
+        showError("Startup Error", event.message, event.filename + ':' + event.lineno);
+      });
+
+      window.addEventListener("unhandledrejection", function(event) {
+        showError("Promise Rejection", event.reason ? event.reason.toString() : "Unknown reason", "");
+      });
+    </script>
+
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

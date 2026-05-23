@@ -97,7 +97,7 @@ export function StudentAppLayout({ children, user, profile }: StudentAppLayoutPr
 
   const SidebarInner = ({ onNavigate }: { onNavigate?: () => void }) => (
     <div className="flex h-full flex-col">
-      <div className={cn("px-4 pt-5 pb-3", collapsed && "px-2.5")}>
+      <div className={cn("px-4 pb-3 pt-[calc(1.25rem+env(safe-area-inset-top))]", collapsed && "px-2.5")}>
         <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
           <div className="h-9 w-9 shrink-0 rounded-xl bg-brand-gradient flex items-center justify-center text-white font-bold text-xs shadow-lg overflow-hidden">
             {profile?.avatar_url ? (
@@ -138,7 +138,7 @@ export function StudentAppLayout({ children, user, profile }: StudentAppLayoutPr
           {!collapsed && <span>Settings</span>}
         </Link>
       </div>
-      <div className={cn("border-t border-white/5 px-4 py-3", collapsed && "px-2.5")}>
+      <div className={cn("border-t border-white/5 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]", collapsed && "px-2.5 pb-[calc(0.75rem+env(safe-area-inset-bottom))]")}>
         <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
           <div className="h-7 w-7 shrink-0 rounded-lg bg-white/5 flex items-center justify-center">
             <GraduationCap className="h-3.5 w-3.5 text-muted-foreground" />
@@ -187,7 +187,7 @@ export function StudentAppLayout({ children, user, profile }: StudentAppLayoutPr
         "flex-1 min-h-screen transition-all duration-300 flex flex-col",
         collapsed ? "lg:ml-[68px]" : "lg:ml-[240px]"
       )}>
-        <div className="sticky top-0 z-30 flex items-center gap-3 border-b border-white/5 bg-background/90 backdrop-blur-xl px-4 py-2.5 lg:hidden">
+        <div className="sticky top-0 z-30 flex items-center gap-3 border-b border-white/5 bg-background/90 backdrop-blur-xl px-4 pb-2.5 pt-[calc(0.625rem+env(safe-area-inset-top))] lg:hidden">
           <button onClick={() => setMobileOpen(true)} className="h-9 w-9 rounded-lg flex items-center justify-center">
             <Menu className="h-5 w-5" />
           </button>
@@ -205,7 +205,7 @@ export function StudentAppLayout({ children, user, profile }: StudentAppLayoutPr
             </div>
           </div>
         </div>
-        <div className="flex-1 overflow-x-hidden">
+        <div className="flex-1 overflow-y-auto pb-[calc(1rem+env(safe-area-inset-bottom))]">
           {children}
         </div>
       </main>

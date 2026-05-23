@@ -18,22 +18,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
-export const Route = createFileRoute("/company/marketplace")({
-  head: () => ({
-    meta: [
-      { title: "Marketplace — Company Portal — WeFest" },
-      { name: "description", content: "Discover and sponsor India's biggest college festivals." }
-    ]
-  }),
-  component: CompanyMarketplace,
-});
-
 const sponsorshipTiers = [
   { name: "Title", price: 2500000, perks: ["Naming rights", "Stage branding", "Hero placement", "5 keynote slots"] },
   { name: "Platinum", price: 1200000, perks: ["Logo on all assets", "Dedicated booth", "2 keynote slots"] },
   { name: "Gold", price: 600000, perks: ["Logo placement", "Booth", "Social shoutouts"] },
   { name: "Silver", price: 250000, perks: ["Logo placement", "Combined booth"] },
 ];
+
+function KpiMini({ icon: Icon, label, value }: { icon: React.ComponentType<{ className?: string }>; label: string; value: string }) {
+  return (
+    <div className="glass rounded-xl p-3">
+      <Icon className="h-4 w-4 text-primary" />
+      <div className="mt-2 text-lg font-black">{value}</div>
+      <div className="text-[10px] text-muted-foreground font-medium">{label}</div>
+    </div>
+  );
+}
 
 function CompanyMarketplace() {
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
@@ -310,12 +310,12 @@ function CompanyMarketplace() {
   );
 }
 
-function KpiMini({ icon: Icon, label, value }: { icon: React.ComponentType<{ className?: string }>; label: string; value: string }) {
-  return (
-    <div className="glass rounded-xl p-3">
-      <Icon className="h-4 w-4 text-primary" />
-      <div className="mt-2 text-lg font-black">{value}</div>
-      <div className="text-[10px] text-muted-foreground font-medium">{label}</div>
-    </div>
-  );
-}
+export const Route = createFileRoute("/company/marketplace")({
+  head: () => ({
+    meta: [
+      { title: "Marketplace — Company Portal — WeFest" },
+      { name: "description", content: "Discover and sponsor India's biggest college festivals." }
+    ]
+  }),
+  component: CompanyMarketplace,
+});

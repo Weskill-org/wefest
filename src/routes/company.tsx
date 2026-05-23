@@ -12,34 +12,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 
-export const Route = createFileRoute("/company")({
-  head: () => ({
-    meta: [
-      { title: "Company Portal — WeFest" },
-      { name: "description", content: "Manage sponsorships, track ROI, and connect with college festivals." }
-    ]
-  }),
-  beforeLoad: async ({ location }) => {
-    if (typeof window === 'undefined') return;
-
-    const session = await getAuthSession();
-    if (!session) {
-      throw redirect({
-        to: '/login',
-        search: { redirect: location.pathname + location.searchStr },
-
-      });
-    }
-
-    if (session.role !== "company") {
-      throw redirect({ to: '/' });
-    }
-
-    return { user: session.user };
-  },
-  component: CompanyLayout,
-});
-
 const sidebarLinks = [
   { to: "/company", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/company/proposals", label: "Proposals", icon: Handshake },
@@ -54,8 +26,9 @@ const bottomLinks = [
   { to: "/company/settings", label: "Settings", icon: Settings },
 ];
 
+
 function CompanyLayout() {
-  const ctx = Route.useRouteContext() as any;
+  const ctx = (Route as any).useRouteContext();
   const user = ctx?.user;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -138,7 +111,7 @@ function CompanyLayout() {
   const SidebarInner = ({ onNavigate }: { onNavigate?: () => void }) => (
     <div className="flex h-full flex-col">
       {/* Brand Header */}
-      <div className={cn("px-4 pt-5 pb-3", collapsed && "px-2.5")}>
+      <div className={cn("px-4 pb-3 pt-[calc(1.25rem+env(safe-area-inset-top))]", collapsed && "px-2.5")}>
         <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
           <div className="h-10 w-10 shrink-0 rounded-xl bg-brand-gradient flex items-center justify-center text-white font-black text-sm shadow-glow">
             {initials}
@@ -177,7 +150,7 @@ function CompanyLayout() {
       </div>
 
       {/* Footer */}
-      <div className={cn("border-t border-white/5 px-4 py-3", collapsed && "px-2.5")}>
+      <div className={cn("border-t border-white/5 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]", collapsed && "px-2.5 pb-[calc(0.75rem+env(safe-area-inset-bottom))]")}>
         <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
           <div className="h-7 w-7 shrink-0 rounded-lg bg-white/5 flex items-center justify-center">
             <Briefcase className="h-3.5 w-3.5 text-muted-foreground" />
@@ -236,7 +209,7 @@ function CompanyLayout() {
         collapsed ? "lg:ml-[68px]" : "lg:ml-[250px]"
       )}>
         {/* Mobile Top Bar */}
-        <div className="sticky top-0 z-30 flex items-center gap-3 border-b border-white/5 bg-background/90 backdrop-blur-xl px-4 py-2.5 lg:hidden">
+        <div className="sticky top-0 z-30 flex items-center gap-3 border-b border-white/5 bg-background/90 backdrop-blur-xl px-4 pb-2.5 pt-[calc(0.625rem+env(safe-area-inset-top))] lg:hidden">
           <button
             onClick={() => setMobileOpen(true)}
             className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-white/5"
@@ -254,10 +227,39 @@ function CompanyLayout() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-x-hidden">
+        <div className="flex-1 overflow-y-auto pb-[calc(1rem+env(safe-area-inset-bottom))]">
           <Outlet />
         </div>
       </main>
     </div>
   );
 }
+
+
+export const Route = createFileRoute("/company")({
+  head: () => ({
+    meta: [
+      { title: "Company Portal — WeFest" },
+      { name: "description", content: "Manage sponsorships, track ROI, and connect with college festivals." }
+    ]
+  }),
+  beforeLoad: async ({ location }) => {
+    if (typeof window === 'undefined') return;
+
+    const session = await getAuthSession();
+    if (!session) {
+      throw redirect({
+        to: '/login',
+        search: { redirect: location.pathname + location.searchStr },
+
+      });
+    }
+
+    if (session.role !== "company") {
+      throw redirect({ to: '/' });
+    }
+
+    return { user: session.user };
+  },
+  component: CompanyLayout,
+});

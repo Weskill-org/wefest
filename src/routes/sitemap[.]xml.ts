@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { BLOG_POSTS } from "@/lib/blog-data";
 
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
+        const { BLOG_POSTS } = await import("@/lib/blog-data");
         // Fetch dynamic event links
         const { data: events } = await supabase.from("events").select("id");
         // Fetch dynamic college links

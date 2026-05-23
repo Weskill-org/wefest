@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { getAuthSession, getDashboardRedirect } from "@/lib/auth";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getAuthRedirectUrl } from "@/lib/capacitor-platform";
 
 type SignupSearch = {
   redirect?: string;
@@ -87,9 +88,10 @@ function Signup() {
       return;
     }
     setLoading(true);
-    const redirectUrl = search.redirect 
-      ? (search.redirect.startsWith('http') ? search.redirect : `${window.location.origin}${search.redirect}`)
-      : `${window.location.origin}/`;
+    const redirectPath = search.redirect && !search.redirect.startsWith('http')
+      ? search.redirect
+      : "/";
+    const redirectUrl = getAuthRedirectUrl(redirectPath);
     const signupData: Record<string, string> = { full_name: name, role };
     if (role === "student" && collegeId) signupData.college_id = collegeId;
     if (role === "student" && effectiveReferralCode) {
@@ -118,7 +120,10 @@ function Signup() {
       return;
     }
     setLoading(true);
-    const redirectUrl = search.redirect ? `${window.location.origin}${search.redirect}` : `${window.location.origin}/`;
+    const redirectPath = search.redirect && !search.redirect.startsWith('http')
+      ? search.redirect
+      : "/";
+    const redirectUrl = getAuthRedirectUrl(redirectPath);
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
@@ -138,7 +143,7 @@ function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="relative w-full h-[100dvh] flex flex-col lg:flex-row overflow-hidden bg-background">
       {/* Left side — branding panel */}
       <div className="hidden lg:flex lg:w-[45%] bg-brand-gradient relative overflow-hidden items-center justify-center p-12">
         <div className="absolute inset-0 opacity-10">
@@ -171,8 +176,9 @@ function Signup() {
       </div>
 
       {/* Right side — signup form */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-12 bg-background overflow-y-auto">
-        <div className="w-full max-w-md">
+      <div className="flex-1 w-full overflow-y-auto bg-background">
+        <div className="min-h-full w-full flex px-6 py-8 sm:px-12 sm:py-12 pt-[calc(2.5rem+env(safe-area-inset-top))] pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-12">
+          <div className="w-full max-w-md m-auto">
           {/* Mobile back link */}
           <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground text-sm font-medium mb-6 lg:hidden group">
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
@@ -345,5 +351,6 @@ function Signup() {
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 }

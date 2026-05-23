@@ -22,10 +22,67 @@ import { toast } from "sonner";
 import { openRazorpayCheckout } from "@/lib/razorpay-checkout";
 import { format } from "date-fns";
 
-export const Route = createFileRoute("/company/settings")({
-  head: () => ({ meta: [{ title: "Settings — Company Portal — WeFest" }] }),
-  component: CompanySettings,
-});
+function PricingCard({
+  name, price, period, desc, features, featured, active, loading, onUpgrade, extra
+}: {
+  name: string; price: string; period?: string; desc: string;
+  features: string[]; featured?: boolean; active?: boolean; loading?: boolean; onUpgrade: () => void;
+  extra?: React.ReactNode;
+}) {
+  return (
+    <div className={`relative flex flex-col rounded-2xl p-6 transition-all hover:-translate-y-0.5 ${
+      featured
+        ? "bg-brand-gradient text-white shadow-glow border border-white/20"
+        : "glass border-white/5"
+    }`}>
+      {featured && (
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white text-purple-600 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border shadow-md flex items-center gap-1">
+          <Sparkles className="h-2.5 w-2.5 text-purple-500 animate-pulse" /> Popular
+        </div>
+      )}
+      {active && (
+        <div className="absolute top-3 right-3">
+          <Badge variant="secondary" className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/35 text-[9px] font-bold">
+            <Check className="h-2.5 w-2.5 mr-0.5" /> Current
+          </Badge>
+        </div>
+      )}
+
+      <div className="mb-6">
+        <h3 className="text-base font-extrabold tracking-wide">{name}</h3>
+        <div className="mt-2 flex items-baseline gap-0.5">
+          <span className="text-3xl font-black tracking-tight">{price}</span>
+          {period && <span className="text-xs font-bold opacity-80">{period}</span>}
+        </div>
+        <p className={`mt-2 text-xs font-medium ${featured ? "text-slate-200/90" : "text-muted-foreground"}`}>{desc}</p>
+      </div>
+
+      <div className="flex-1 space-y-2.5 mb-6">
+        {features.map((f, i) => (
+          <div key={i} className="flex items-center gap-2 text-xs font-medium">
+            <div className={`h-4 w-4 shrink-0 rounded-full flex items-center justify-center ${featured ? "bg-white/25 border border-white/10" : "bg-primary/10"}`}>
+              <Check className={`h-2.5 w-2.5 ${featured ? "text-white" : "text-primary"}`} />
+            </div>
+            <span className={featured ? "text-slate-100 font-semibold" : "text-foreground/80"}>{f}</span>
+          </div>
+        ))}
+      </div>
+
+      {extra}
+
+      <Button
+        onClick={onUpgrade}
+        size="sm"
+        variant={featured ? "secondary" : "default"}
+        className={`w-full text-xs font-black mt-4 hover:scale-[1.01] transition-transform ${featured ? "bg-white text-purple-600 hover:bg-white/95" : ""}`}
+        disabled={active || loading}
+      >
+        {loading ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : null}
+        {active ? "Current Plan" : price === "Custom" ? "Contact Sales" : "Get Started"}
+      </Button>
+    </div>
+  );
+}
 
 function CompanySettings() {
   const qc = useQueryClient();
@@ -510,64 +567,8 @@ function CompanySettings() {
   );
 }
 
-function PricingCard({
-  name, price, period, desc, features, featured, active, loading, onUpgrade, extra
-}: {
-  name: string; price: string; period?: string; desc: string;
-  features: string[]; featured?: boolean; active?: boolean; loading?: boolean; onUpgrade: () => void;
-  extra?: React.ReactNode;
-}) {
-  return (
-    <div className={`relative flex flex-col rounded-2xl p-6 transition-all hover:-translate-y-0.5 ${
-      featured
-        ? "bg-brand-gradient text-white shadow-glow border border-white/20"
-        : "glass border-white/5"
-    }`}>
-      {featured && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white text-purple-600 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border shadow-md flex items-center gap-1">
-          <Sparkles className="h-2.5 w-2.5 text-purple-500 animate-pulse" /> Popular
-        </div>
-      )}
-      {active && (
-        <div className="absolute top-3 right-3">
-          <Badge variant="secondary" className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/35 text-[9px] font-bold">
-            <Check className="h-2.5 w-2.5 mr-0.5" /> Current
-          </Badge>
-        </div>
-      )}
+export const Route = createFileRoute("/company/settings")({
+  head: () => ({ meta: [{ title: "Settings — Company Portal — WeFest" }] }),
+  component: CompanySettings,
+});
 
-      <div className="mb-6">
-        <h3 className="text-base font-extrabold tracking-wide">{name}</h3>
-        <div className="mt-2 flex items-baseline gap-0.5">
-          <span className="text-3xl font-black tracking-tight">{price}</span>
-          {period && <span className="text-xs font-bold opacity-80">{period}</span>}
-        </div>
-        <p className={`mt-2 text-xs font-medium ${featured ? "text-slate-200/90" : "text-muted-foreground"}`}>{desc}</p>
-      </div>
-
-      <div className="flex-1 space-y-2.5 mb-6">
-        {features.map((f, i) => (
-          <div key={i} className="flex items-center gap-2 text-xs font-medium">
-            <div className={`h-4 w-4 shrink-0 rounded-full flex items-center justify-center ${featured ? "bg-white/25 border border-white/10" : "bg-primary/10"}`}>
-              <Check className={`h-2.5 w-2.5 ${featured ? "text-white" : "text-primary"}`} />
-            </div>
-            <span className={featured ? "text-slate-100 font-semibold" : "text-foreground/80"}>{f}</span>
-          </div>
-        ))}
-      </div>
-
-      {extra}
-
-      <Button
-        onClick={onUpgrade}
-        size="sm"
-        variant={featured ? "secondary" : "default"}
-        className={`w-full text-xs font-black mt-4 hover:scale-[1.01] transition-transform ${featured ? "bg-white text-purple-600 hover:bg-white/95" : ""}`}
-        disabled={active || loading}
-      >
-        {loading ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : null}
-        {active ? "Current Plan" : price === "Custom" ? "Contact Sales" : "Get Started"}
-      </Button>
-    </div>
-  );
-}

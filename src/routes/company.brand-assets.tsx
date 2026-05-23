@@ -15,9 +15,6 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-export const Route = createFileRoute("/company/brand-assets")({
-  component: CompanyBrandAssets,
-});
 
 function CompanyBrandAssets() {
   const qc = useQueryClient();
@@ -435,3 +432,8 @@ function CompanyBrandAssets() {
     </div>
   );
 }
+
+export const Route = createFileRoute("/company/brand-assets")({
+  component: CompanyBrandAssets,
+});
+
