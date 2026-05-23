@@ -232,7 +232,7 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
     // Eligibility: must have role college or company
     const { data: roles } = await supabaseAdmin
       .from("user_roles").select("role").eq("user_id", userId);
-    const allowed = (roles ?? []).some(r => r.role === "college" || r.role === "company");
+    const allowed = (roles ?? []).some((r: any) => r.role === "college" || r.role === "company");
     if (!allowed) throw new Error("Only colleges and companies can request withdrawals.");
 
     const coins = inrToCoins(data.amountInr);
