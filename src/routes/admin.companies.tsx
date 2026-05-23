@@ -26,7 +26,10 @@ function AdminCompanies() {
         .order("created_at", { ascending: false });
       if (error) {
         // fallback without join
-        const { data: d2, error: e2 } = await supabase.from("company_profiles").select("*").order("created_at", { ascending: false });
+        const { data: d2, error: e2 } = await supabase
+          .from("company_profiles")
+          .select("*")
+          .order("created_at", { ascending: false });
         if (e2) throw e2;
         return d2 as any[];
       }
@@ -35,8 +38,18 @@ function AdminCompanies() {
   });
 
   const decide = useMutation({
-    mutationFn: async ({ id, status, reason }: { id: string; status: "approved" | "rejected"; reason?: string }) => {
-      const { data: { user } } = await supabase.auth.getUser();
+    mutationFn: async ({
+      id,
+      status,
+      reason,
+    }: {
+      id: string;
+      status: "approved" | "rejected";
+      reason?: string;
+    }) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       const { error } = await supabase
         .from("company_profiles")
         .update({
@@ -77,7 +90,13 @@ function AdminCompanies() {
         </div>
         <div className="flex gap-2">
           {(["pending", "approved", "rejected", "all"] as const).map((s) => (
-            <Button key={s} size="sm" variant={filter === s ? "default" : "outline"} onClick={() => setFilter(s)} className="capitalize">
+            <Button
+              key={s}
+              size="sm"
+              variant={filter === s ? "default" : "outline"}
+              onClick={() => setFilter(s)}
+              className="capitalize"
+            >
               {s}
             </Button>
           ))}
@@ -86,14 +105,23 @@ function AdminCompanies() {
 
       <div className="mt-6 relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search companies…" className="pl-9 max-w-md" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search companies…"
+          className="pl-9 max-w-md"
+        />
       </div>
 
       <div className="mt-6 grid gap-4">
         {isLoading ? (
-          <div className="flex h-40 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+          <div className="flex h-40 items-center justify-center">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          </div>
         ) : filtered?.length === 0 ? (
-          <div className="glass rounded-2xl p-10 text-center text-muted-foreground">No companies found.</div>
+          <div className="glass rounded-2xl p-10 text-center text-muted-foreground">
+            No companies found.
+          </div>
         ) : (
           filtered?.map((c: any) => (
             <div key={c.id} className="glass rounded-2xl p-5 flex items-start gap-4">
@@ -103,25 +131,59 @@ function AdminCompanies() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <div className="font-semibold">{c.company_name}</div>
-                  <Badge variant={c.status === "approved" ? "default" : c.status === "rejected" ? "destructive" : "secondary"} className="capitalize">{c.status}</Badge>
-                  {c.industry && <span className="text-xs text-muted-foreground">· {c.industry}</span>}
+                  <Badge
+                    variant={
+                      c.status === "approved"
+                        ? "default"
+                        : c.status === "rejected"
+                          ? "destructive"
+                          : "secondary"
+                    }
+                    className="capitalize"
+                  >
+                    {c.status}
+                  </Badge>
+                  {c.industry && (
+                    <span className="text-xs text-muted-foreground">· {c.industry}</span>
+                  )}
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground flex items-center gap-3 flex-wrap">
                   {c.profile?.email && <span>{c.profile.email}</span>}
-                  {c.website_url && <a href={c.website_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline"><Globe className="h-3 w-3" />{c.website_url}</a>}
+                  {c.website_url && (
+                    <a
+                      href={c.website_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-primary hover:underline"
+                    >
+                      <Globe className="h-3 w-3" />
+                      {c.website_url}
+                    </a>
+                  )}
                   <span>Applied {new Date(c.created_at).toLocaleDateString()}</span>
                 </div>
-                {c.rejection_reason && <div className="mt-2 text-xs text-destructive">Reason: {c.rejection_reason}</div>}
+                {c.rejection_reason && (
+                  <div className="mt-2 text-xs text-destructive">Reason: {c.rejection_reason}</div>
+                )}
               </div>
               {c.status === "pending" && (
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={() => decide.mutate({ id: c.id, status: "approved" })} disabled={decide.isPending}>
+                  <Button
+                    size="sm"
+                    onClick={() => decide.mutate({ id: c.id, status: "approved" })}
+                    disabled={decide.isPending}
+                  >
                     <Check className="h-4 w-4 mr-1" /> Approve
                   </Button>
-                  <Button size="sm" variant="destructive" onClick={() => {
-                    const r = window.prompt("Rejection reason?") || "Not eligible";
-                    decide.mutate({ id: c.id, status: "rejected", reason: r });
-                  }} disabled={decide.isPending}>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => {
+                      const r = window.prompt("Rejection reason?") || "Not eligible";
+                      decide.mutate({ id: c.id, status: "rejected", reason: r });
+                    }}
+                    disabled={decide.isPending}
+                  >
                     <X className="h-4 w-4 mr-1" /> Reject
                   </Button>
                 </div>
