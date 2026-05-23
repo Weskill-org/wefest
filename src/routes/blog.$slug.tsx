@@ -1,13 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Calendar, Clock, Share2, Facebook, Twitter, Linkedin } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { BLOG_POSTS } from "@/lib/blog-data";
 import { BlogContentRenderer } from "@/components/BlogContentRenderer";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/blog/$slug")({
-  head: ({ params }) => {
-    const post = BLOG_POSTS.find((p) => p.slug === params.slug);
+  loader: async ({ params }) => {
+    const { BLOG_POSTS } = await import("@/lib/blog-data");
+    const post = BLOG_POSTS.find((p) => p.slug === params.slug) || null;
+    return { post };
+  },
+  head: ({ loaderData }) => {
+    const post = loaderData?.post;
     return {
       meta: [
         { title: post ? `${post.title} | WeFest Blog` : "Blog Post | WeFest Blog" },
@@ -66,8 +70,7 @@ export const Route = createFileRoute("/blog/$slug")({
 });
 
 function BlogPostPage() {
-  const { slug } = Route.useParams();
-  const post = BLOG_POSTS.find((p) => p.slug === slug);
+  const { post } = Route.useLoaderData();
 
   if (!post) {
     return (

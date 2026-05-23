@@ -25,16 +25,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export const Route = createFileRoute("/company/proposals")({
-  head: () => ({
-    meta: [
-      { title: "Sponsorship Proposals | Company Portal | WeFest" },
-      { name: "description", content: "Manage and track your sent sponsorship proposals." }
-    ]
-  }),
-  component: CompanyProposals,
-});
-
 interface Proposal {
   id: string;
   status: string;
@@ -423,3 +413,14 @@ function ProposalList({
     </div>
   );
 }
+
+export const Route = createFileRoute("/company/proposals")({
+  head: () => ({
+    meta: [
+      { title: "Sponsorship Proposals | Company Portal | WeFest" },
+      { name: "description", content: "Manage and track your sent sponsorship proposals." }
+    ]
+  }),
+  component: CompanyProposals,
+});
+

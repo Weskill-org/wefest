@@ -22,28 +22,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-export const Route = createFileRoute("/company/messages")({
-  component: CompanyMessages,
-});
-
-interface DirectMessage {
-  id: string;
-  sender_id: string;
-  receiver_id: string;
-  message: string;
-  is_read: boolean;
-  created_at: string;
-  event_id?: string | null;
-}
-
-interface ChatPartner {
-  id: string;
-  full_name: string;
-  email: string;
-  avatar_url?: string;
-  role?: string;
-}
-
 function CompanyMessages() {
   const queryClient = useQueryClient();
   const searchParams = useSearch({ from: "/company/messages" }) as any;
@@ -382,7 +360,7 @@ function CompanyMessages() {
                             event_id: eventId
                           });
 
-                        setIsSending(false);
+                        setIsSending(true);
                         if (error) {
                           toast.error("Failed to send message: " + error.message);
                         } else {
@@ -569,3 +547,7 @@ function CompanyMessages() {
     </div>
   );
 }
+
+export const Route = createFileRoute("/company/messages")({
+  component: CompanyMessages,
+});
