@@ -50,15 +50,12 @@ function mapRpcMember(row: Record<string, unknown>): CollegeTeamMember {
 
 export function enrichCurrentUser(
   member: CollegeTeamMember,
-  ctx?: MemberContext
+  ctx?: MemberContext,
 ): CollegeTeamMember {
   if (!ctx?.currentUserId || member.user_id !== ctx.currentUserId) return member;
   return {
     ...member,
-    full_name:
-      ctx.currentUserName?.trim() ||
-      member.full_name ||
-      "Organizer",
+    full_name: ctx.currentUserName?.trim() || member.full_name || "Organizer",
     email: ctx.currentUserEmail?.trim() || member.email,
   };
 }
@@ -66,16 +63,15 @@ export function enrichCurrentUser(
 /** Load team members (RPC with RLS-safe fallback). */
 export async function fetchCollegeTeamMembers(
   collegeId: string,
-  ctx?: MemberContext
+  ctx?: MemberContext,
 ): Promise<CollegeTeamMember[]> {
-  const { data: rpcData, error: rpcError } = await supabase.rpc(
-    "get_college_team_members",
-    { _college_id: collegeId } as never
-  );
+  const { data: rpcData, error: rpcError } = await supabase.rpc("get_college_team_members", {
+    _college_id: collegeId,
+  } as never);
 
   if (!rpcError && rpcData?.length) {
     const mapped = (rpcData as Record<string, unknown>[]).map((row) =>
-      enrichCurrentUser(mapRpcMember(row), ctx)
+      enrichCurrentUser(mapRpcMember(row), ctx),
     );
     return enrichUnresolvedMembers(mapped);
   }
@@ -100,7 +96,11 @@ export async function fetchCollegeTeamMembers(
   const studentByUser = new Map((students || []).map((s) => [s.id, s]));
 
   const mapped = members.map((m) => {
-    const row = m as typeof m & { display_name?: string; display_email?: string; position?: string | null };
+    const row = m as typeof m & {
+      display_name?: string;
+      display_email?: string;
+      position?: string | null;
+    };
     const profile = m.user_id ? profileByUser.get(m.user_id) : undefined;
     const student = m.user_id ? studentByUser.get(m.user_id) : undefined;
 
@@ -117,10 +117,7 @@ export async function fetchCollegeTeamMembers(
         profile?.full_name?.trim() ||
         student?.full_name?.trim() ||
         "Team Member",
-      email:
-        row.display_email?.trim() ||
-        profile?.email?.trim() ||
-        "",
+      email: row.display_email?.trim() || profile?.email?.trim() || "",
       avatar_url: student?.avatar_url ?? null,
     };
     return enrichCurrentUser(member, ctx);
@@ -130,9 +127,7 @@ export async function fetchCollegeTeamMembers(
 }
 
 async function enrichUnresolvedMembers(members: CollegeTeamMember[]): Promise<CollegeTeamMember[]> {
-  const stale = members.filter(
-    (m) => m.full_name === "Team Member" || !m.email?.trim()
-  );
+  const stale = members.filter((m) => m.full_name === "Team Member" || !m.email?.trim());
   if (!stale.length) return members;
 
   await Promise.all(
@@ -144,19 +139,18 @@ async function enrichUnresolvedMembers(members: CollegeTeamMember[]): Promise<Co
       if (!d) return;
       if (d.full_name && m.full_name === "Team Member") m.full_name = d.full_name;
       if (d.email && !m.email?.trim()) m.email = d.email;
-    })
+    }),
   );
   return members;
 }
 
 /** Load invitations for a college with invitee display names. */
 export async function fetchCollegeTeamInvitations(
-  collegeId: string
+  collegeId: string,
 ): Promise<CollegeTeamInvitation[]> {
-  const { data: rpcData, error: rpcError } = await supabase.rpc(
-    "get_college_team_invitations",
-    { _college_id: collegeId } as never
-  );
+  const { data: rpcData, error: rpcError } = await supabase.rpc("get_college_team_invitations", {
+    _college_id: collegeId,
+  } as never);
 
   if (!rpcError && rpcData?.length) {
     return (rpcData as Record<string, unknown>[]).map((inv) => ({
@@ -183,7 +177,11 @@ export async function fetchCollegeTeamInvitations(
   if (error) throw error;
   if (!invitations?.length) return [];
 
-  const userIds = [...new Set(invitations.map((i: { invitee_user_id: string }) => i.invitee_user_id).filter(Boolean))] as string[];
+  const userIds = [
+    ...new Set(
+      invitations.map((i: { invitee_user_id: string }) => i.invitee_user_id).filter(Boolean),
+    ),
+  ] as string[];
 
   const [{ data: profiles }, { data: students }] = await Promise.all([
     supabase.from("profiles").select("user_id, full_name, email").in("user_id", userIds),
@@ -217,10 +215,7 @@ export async function fetchCollegeTeamInvitations(
       status: inv.status,
       created_at: inv.created_at,
       responded_at: inv.responded_at,
-      invitee_name:
-        profile?.full_name?.trim() ||
-        student?.full_name?.trim() ||
-        "Invited member",
+      invitee_name: profile?.full_name?.trim() || student?.full_name?.trim() || "Invited member",
       invitee_email: profile?.email?.trim() || "",
     };
   });
@@ -234,7 +229,8 @@ export function teamRoleLabel(role: string, position?: string | null): string {
     ticket_poc: "Ticket POC",
     member: "Member",
   };
-  const roleLabel = labels[role] ?? role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  const roleLabel =
+    labels[role] ?? role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   if (position?.trim()) {
     return `${roleLabel} · ${position.trim()}`;
   }
