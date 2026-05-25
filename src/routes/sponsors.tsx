@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, Users2, Building2, Loader2, Sparkles, CheckCircle2, IndianRupee } from "lucide-react";
+import { TrendingUp, Users2, Building2, Loader2, Sparkles, CheckCircle2, IndianRupee, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { useMemo, useState } from "react";
 import {
@@ -48,11 +48,20 @@ const sponsorshipTiers = [
 ];
 
 function Sponsors() {
+  const navigate = useNavigate();
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [tier, setTier] = useState("Gold");
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState("");
+
+  const { data: currentUser } = useQuery({
+    queryKey: ["current-user"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    },
+  });
 
   const { data: events, isLoading } = useQuery({
     queryKey: ["sponsorship-events"],
@@ -158,7 +167,21 @@ function Sponsors() {
         <Sparkles className="h-5 w-5 text-primary" /> AI Smart Matches
       </h2>
       <div className="mt-4 grid gap-4">
-        {isLoading ? (
+        {!currentUser ? (
+          <div className="glass rounded-3xl p-10 text-center border border-dashed border-border/60">
+            <Lock className="h-10 w-10 text-muted-foreground/35 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-white">Sponsorship Opportunities are locked</h3>
+            <p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto">
+              Sign in with your corporate or college sponsor credentials to match with premium college fests and send proposals.
+            </p>
+            <Button
+              onClick={() => navigate({ to: "/signup", search: { redirect: "/sponsors" } })}
+              className="mt-6 bg-brand-gradient text-primary-foreground font-bold rounded-xl px-8 shadow-glow transition-all hover:scale-105"
+            >
+              Sign Up as Sponsor
+            </Button>
+          </div>
+        ) : isLoading ? (
           [1, 2, 3].map(i => <div key={i} className="h-24 glass rounded-2xl animate-pulse" />)
         ) : (
           scoredEvents?.map((e) => (

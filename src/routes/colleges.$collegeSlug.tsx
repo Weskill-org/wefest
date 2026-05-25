@@ -297,6 +297,22 @@ function CollegeProfilePage() {
                       : "This institution hasn't hosted any events yet."}
                   </p>
                 </div>
+              ) : !currentUser ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center glass rounded-3xl border border-dashed border-border/60 px-4">
+                  <div className="h-16 w-16 rounded-2xl bg-muted/20 flex items-center justify-center mb-4">
+                    <Lock className="h-8 w-8 text-muted-foreground/30" />
+                  </div>
+                  <h3 className="text-lg font-bold text-white">Festivals & Events are locked</h3>
+                  <p className="text-sm text-muted-foreground mt-1.5 max-w-sm">
+                    Sign in with your verified college email to view and register for festivals at {college.name}.
+                  </p>
+                  <Button
+                    onClick={() => navigate({ to: "/signup", search: { redirect: `/colleges/${college.slug}` } })}
+                    className="mt-6 bg-brand-gradient text-white shadow-glow rounded-xl font-bold px-6 py-2.5 transition-all hover:scale-105"
+                  >
+                    Join to Unlock <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2">
                   {displayEvents.map((event: any) => {
@@ -304,9 +320,8 @@ function CollegeProfilePage() {
                     return (
                       <Link
                         key={event.id}
-                        to={currentUser ? "/events/$eventId" : "/signup"}
-                        params={currentUser ? { eventId: event.id } : undefined}
-                        search={!currentUser ? { redirect: `/events/${event.id}` } : undefined}
+                        to="/events/$eventId"
+                        params={{ eventId: event.id }}
                         className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/40 bg-background/60 backdrop-blur-sm transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5"
                       >
                         {/* color bar */}
@@ -345,15 +360,9 @@ function CollegeProfilePage() {
                                 </span>
                               )}
                             </div>
-                            {currentUser ? (
-                              <span className="text-[11px] font-bold text-primary flex items-center gap-1 group-hover:gap-2 transition-all">
-                                View Details <ChevronRight className="h-3.5 w-3.5" />
-                              </span>
-                            ) : (
-                              <span className="text-[11px] font-bold text-muted-foreground flex items-center gap-1">
-                                <Lock className="h-3 w-3" /> Sign up to view
-                              </span>
-                            )}
+                            <span className="text-[11px] font-bold text-primary flex items-center gap-1 group-hover:gap-2 transition-all">
+                              View Details <ChevronRight className="h-3.5 w-3.5" />
+                            </span>
                           </div>
                         </div>
                       </Link>

@@ -8,7 +8,6 @@ import { getAuthSession, getDashboardRedirect } from "@/lib/auth";
 
 // Public marketing navigation — only shown to non-logged-in visitors
 const marketingNav = [
-  { to: "/events", label: "Events" },
   { to: "/colleges", label: "Colleges" },
   { to: "/sponsors", label: "Sponsors" },
   { to: "/blog", label: "Blog" },
@@ -115,7 +114,7 @@ export function SiteFooter() {
           </div>
           
           <FooterCol title="Product" items={[
-            { label: "Events Marketplace", to: "/events" },
+            { label: "Platform Overview", to: "/signup" },
             { label: "College Portal", to: "/colleges" },
             { label: "Campus Ambassadors", to: "/ambassadors" },
             { label: "Talent Discovery", to: "/talent" }

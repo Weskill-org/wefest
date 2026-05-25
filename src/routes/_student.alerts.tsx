@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -151,6 +151,12 @@ function AlertsPage() {
 
   const notifications = data?.notifications || [];
   const unreadCount = notifications.filter((n: any) => !n.is_read).length;
+
+  useEffect(() => {
+    if (data?.notifications && unreadCount > 0 && !markReadMutation.isPending) {
+      markReadMutation.mutate("all");
+    }
+  }, [data?.notifications, unreadCount]);
 
   const filtered = notifications.filter((n: any) => {
     if (filter === "all") return true;
