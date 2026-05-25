@@ -326,7 +326,7 @@ function OrganizerLayout() {
   );
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="h-screen bg-background flex overflow-hidden">
       <style dangerouslySetInnerHTML={{ __html: `
         input[type="date"] {
           position: relative !important;
@@ -380,11 +380,11 @@ function OrganizerLayout() {
 
       {/* Main Content */}
       <main className={cn(
-        "flex-1 min-h-screen transition-all duration-300 flex flex-col",
+        "flex-1 h-full transition-all duration-300 flex flex-col overflow-hidden",
         collapsed ? "lg:ml-[72px]" : "lg:ml-[260px]"
       )}>
         {/* Mobile Top Bar */}
-        <div className="sticky top-0 z-30 flex items-center gap-3 border-b border-border/50 bg-background/80 backdrop-blur-xl px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] lg:hidden">
+        <div className="sticky top-0 z-30 flex items-center gap-3 border-b border-border/50 bg-background/80 backdrop-blur-xl px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] lg:hidden shrink-0">
           <button
             onClick={() => setMobileOpen(true)}
             className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/40"
@@ -405,7 +405,7 @@ function OrganizerLayout() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        <div className="flex-1 overflow-y-auto native-scroll pb-[calc(1rem+env(safe-area-inset-bottom))]">
           {/* @ts-ignore */}
           <Outlet context={{ user, membership } as any} />
         </div>

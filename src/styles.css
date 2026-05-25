@@ -226,11 +226,12 @@ button, [role="button"], nav a {
   user-select: none;
 }
 
-/* Smooth hardware-accelerated scrolling for lists */
+/* Smooth hardware-accelerated scrolling for lists and page content */
 .native-scroll {
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
   will-change: scroll-position;
+  overscroll-behavior: contain;
 }
 
 /* Prevent pull-to-refresh in Capacitor WebView */
