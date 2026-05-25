@@ -68,7 +68,7 @@ export function createServerFn(opts?: { method?: string }): ServerFnBuilder {
       return builder;
     },
     handler(_handlerFn: (...args: any[]) => any) {
-      // Return a callable that proxies to the production server
+      // Return a callable that proxies to the production server or runs locally if possible
       return async (input?: any) => {
         const validated = _validator ? _validator(input) : input;
 
@@ -84,47 +84,57 @@ export function createServerFn(opts?: { method?: string }): ServerFnBuilder {
           throw new Error("Authentication required. Please sign in.");
         }
 
-        const baseUrl = getApiBaseUrl();
-
-        // Since we can't replicate the exact server function routing,
-        // we use the supabase client directly for most operations.
-        // The wallet functions all use supabaseAdmin which requires
-        // the service role key — not available on mobile.
-        //
-        // IMPORTANT: For the mobile app, wallet operations MUST go
-        // through Supabase Edge Functions or the deployed web backend.
-        // We'll call the production backend's server function endpoints.
-
-        // TanStack Start server functions are POST endpoints at /_server
-        // The request body format is the function input data.
-        const headers: Record<string, string> = {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        };
-
-        const url = `${baseUrl}/_server`;
-
+        // Attempt to execute the handler function directly on the client first.
+        // In the SPA/mobile build, many server functions are designed to do Supabase operations
+        // that can run client-side. We pass the client-side supabase client and userId in context.
         try {
-          const response = await fetch(url, {
-            method: _method === "GET" ? "POST" : "POST", // TanStack Start always uses POST for RPC
-            headers,
-            body: JSON.stringify({ data: validated }),
-          });
+          const context = {
+            supabase,
+            userId: session.user.id,
+            claims: session.user.app_metadata || {},
+          };
+          return await _handlerFn({ context, data: validated });
+        } catch (localErr: any) {
+          console.warn("Local execution of server function failed, falling back to server fetch:", localErr);
 
-          if (!response.ok) {
-            const text = await response.text();
-            throw new Error(text || `Server error: ${response.status}`);
+          const baseUrl = getApiBaseUrl();
+          if (!baseUrl) {
+            // If no server base URL is configured (e.g., local web development SPA),
+            // we cannot fall back to a remote server, so we propagate the local error.
+            throw localErr;
           }
 
-          return await response.json();
-        } catch (err: any) {
-          // If the production server isn't reachable, provide a helpful error
-          if (err.name === "TypeError" && err.message.includes("fetch")) {
-            throw new Error(
-              "Cannot reach WeFest servers. Please check your internet connection."
-            );
+          // TanStack Start server functions are POST endpoints at /_server
+          // The request body format is the function input data.
+          const headers: Record<string, string> = {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          };
+
+          const url = `${baseUrl}/_server`;
+
+          try {
+            const response = await fetch(url, {
+              method: _method === "GET" ? "POST" : "POST", // TanStack Start always uses POST for RPC
+              headers,
+              body: JSON.stringify({ data: validated }),
+            });
+
+            if (!response.ok) {
+              const text = await response.text();
+              throw new Error(text || `Server error: ${response.status}`);
+            }
+
+            return await response.json();
+          } catch (err: any) {
+            // If the production server isn't reachable, provide a helpful error
+            if (err.name === "TypeError" && err.message.includes("fetch")) {
+              throw new Error(
+                "Cannot reach WeFest servers. Please check your internet connection."
+              );
+            }
+            throw err;
           }
-          throw err;
         }
       };
     },
