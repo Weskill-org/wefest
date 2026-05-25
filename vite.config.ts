@@ -1,20 +1,41 @@
-// @lovable.dev/vite-tanstack-config already includes the following — do NOT add them manually
-// or the app will break with duplicate plugins:
-//   - tanstackStart, viteReact, tailwindcss, tsConfigPaths, cloudflare (build-only),
-//     componentTagger (dev-only), VITE_* env injection, @ path alias, React/TanStack dedupe,
-//     error logger plugins, and sandbox detection (port/host/strictPort).
-// You can pass additional config via defineConfig({ vite: { ... } }) if needed.
-process.env.NITRO_PRESET = "vercel";
-
-import { defineConfig } from "@lovable.dev/vite-tanstack-config";
-import { nitro } from "nitro/vite";
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import tsconfigPaths from "vite-tsconfig-paths";
+import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
+import path from "path";
 
 export default defineConfig({
-  plugins: [nitro()],
-  tanstackStart: {
-    deploymentTarget: "vercel",
-    server: {
-      preset: "vercel",
+  // Web builds use absolute root paths (unlike Capacitor which requires relative pathing)
+  base: "/",
+
+  plugins: [
+    TanStackRouterVite({
+      autoCodeSplitting: true,
+      routesDirectory: "./src/routes",
+      generatedRouteTree: "./src/routeTree.gen.ts",
+    }),
+    react(),
+    tailwindcss(),
+    tsconfigPaths(),
+  ],
+
+  resolve: {
+    alias: [
+      // Drop-in server function compatibility shims for client-side web SPA execution
+      { find: "@tanstack/react-start/server", replacement: path.resolve(__dirname, "src/lib/server-fn-shim-server.ts") },
+      { find: "@tanstack/react-start", replacement: path.resolve(__dirname, "src/lib/server-fn-shim.ts") },
+      { find: "@", replacement: path.resolve(__dirname, "src") },
+    ],
+  },
+
+  build: {
+    outDir: "dist",
+    emptyOutDir: true,
+    sourcemap: true,
+    chunkSizeWarningLimit: 1500,
+    rollupOptions: {
+      input: path.resolve(__dirname, "index.html"),
     },
   },
 });
