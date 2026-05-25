@@ -172,7 +172,7 @@ function CompanyLayout() {
   );
 
   return (
-    <div className="h-screen bg-background flex overflow-hidden">
+    <div className="min-h-screen bg-background flex">
       {/* Desktop Sidebar */}
       <aside className={cn(
         "hidden lg:flex flex-col fixed inset-y-0 left-0 z-40 border-r border-white/5 bg-background/95 backdrop-blur-2xl transition-all duration-300",
@@ -205,11 +205,11 @@ function CompanyLayout() {
 
       {/* Main Content */}
       <main className={cn(
-        "flex-1 h-full transition-all duration-300 flex flex-col overflow-hidden",
+        "flex-1 min-h-screen transition-all duration-300 flex flex-col",
         collapsed ? "lg:ml-[68px]" : "lg:ml-[250px]"
       )}>
         {/* Mobile Top Bar */}
-        <div className="sticky top-0 z-30 flex items-center gap-3 border-b border-white/5 bg-background/90 backdrop-blur-xl px-4 pb-2.5 pt-[calc(0.625rem+env(safe-area-inset-top))] lg:hidden shrink-0">
+        <div className="sticky top-0 z-30 flex items-center gap-3 border-b border-white/5 bg-background/90 backdrop-blur-xl px-4 pb-2.5 pt-[calc(0.625rem+env(safe-area-inset-top))] lg:hidden">
           <button
             onClick={() => setMobileOpen(true)}
             className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-white/5"
@@ -227,7 +227,7 @@ function CompanyLayout() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto native-scroll pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        <div className="flex-1 overflow-y-auto pb-[calc(1rem+env(safe-area-inset-bottom))]">
           <Outlet />
         </div>
       </main>

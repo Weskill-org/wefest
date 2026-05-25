@@ -77,7 +77,7 @@ function AdminLayout() {
   }
 
   return (
-    <div className="min-h-full container mx-auto px-6 py-8">
+    <div className="container mx-auto px-6 py-8">
       <div className="grid gap-8 md:grid-cols-[240px_1fr]">
         <aside className="glass rounded-2xl p-4 h-fit sticky top-24">
           <div className="mb-6 px-3">

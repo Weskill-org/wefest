@@ -199,14 +199,26 @@ body {
 
 /* Lock html, body, and root to viewport on native mobile to prevent scroll offset & click bugs */
 html.capacitor-app,
-body.capacitor-app,
-body.capacitor-app #root {
+body.capacitor-app {
   height: 100% !important;
   width: 100% !important;
   overflow: hidden !important;
   margin: 0 !important;
   padding: 0 !important;
   overscroll-behavior: none !important;
+  background-color: var(--background) !important;
+}
+
+body.capacitor-app #root {
+  height: 100% !important;
+  width: 100% !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overscroll-behavior-y: none !important;
+  -webkit-overflow-scrolling: touch !important;
+  background-color: var(--background) !important;
 }
 
 /* Disable overscroll bounce for a native-app feel */
@@ -226,12 +238,11 @@ button, [role="button"], nav a {
   user-select: none;
 }
 
-/* Smooth hardware-accelerated scrolling for lists and page content */
+/* Smooth hardware-accelerated scrolling for lists */
 .native-scroll {
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
   will-change: scroll-position;
-  overscroll-behavior: contain;
 }
 
 /* Prevent pull-to-refresh in Capacitor WebView */

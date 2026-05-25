@@ -90,10 +90,10 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <RegionProvider>
-        <div className="flex h-screen flex-col overflow-hidden">
+        <div className="flex min-h-screen flex-col">
           <GlobalBroadcasts />
           {!hideGlobalLayout && <SiteHeader />}
-          <main className="flex-1 overflow-y-auto native-scroll">
+          <main className="flex-1">
             <Outlet />
           </main>
           {!hideGlobalLayout && <SiteFooter />}
