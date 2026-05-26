@@ -33,26 +33,56 @@ export function AnimatedHeadline({ children, className = "", as: Tag = "h1" }: A
     return () => observer.disconnect();
   }, []);
 
-  // Split children text into words, preserving React elements
+  // Split children text into words, preserving React elements and proper spacing
   const processChildren = (children: ReactNode): ReactNode => {
+    let wordIndex = 0;
     if (typeof children === "string") {
-      return children.split(" ").map((word, i) => (
-        <span key={i} className="text-reveal-word" style={{ animationDelay: `${i * 0.08 + 0.2}s` }}>
-          {word}{" "}
-        </span>
-      ));
+      const words = children.split(" ").filter(Boolean);
+      const elements: ReactNode[] = [];
+      words.forEach((word, i) => {
+        elements.push(
+          <span key={i} className="text-reveal-word" style={{ animationDelay: `${wordIndex * 0.08 + 0.2}s` }}>
+            {word}
+          </span>
+        );
+        wordIndex++;
+        if (i < words.length - 1) {
+          elements.push(" ");
+        }
+      });
+      return elements;
     }
     if (Array.isArray(children)) {
-      return children.map((child, i) => {
+      const elements: ReactNode[] = [];
+      children.forEach((child, i) => {
         if (typeof child === "string") {
-          return child.split(" ").map((word, j) => (
-            <span key={`${i}-${j}`} className="text-reveal-word" style={{ animationDelay: `${(i * 3 + j) * 0.08 + 0.2}s` }}>
-              {word}{" "}
-            </span>
-          ));
+          const words = child.split(" ").filter(Boolean);
+          words.forEach((word, j) => {
+            elements.push(
+              <span key={`${i}-${j}`} className="text-reveal-word" style={{ animationDelay: `${wordIndex * 0.08 + 0.2}s` }}>
+                {word}
+              </span>
+            );
+            wordIndex++;
+            elements.push(" ");
+          });
+        } else {
+          elements.push(child);
+          elements.push(" ");
+          const childObj = child as any;
+          if (childObj && typeof childObj === "object" && childObj.props && typeof childObj.props.children === "string") {
+            const innerWords = childObj.props.children.split(" ").filter(Boolean);
+            wordIndex += innerWords.length;
+          } else {
+            wordIndex += 2;
+          }
         }
-        return child;
       });
+      // Trim the trailing space if any
+      if (elements.length > 0 && elements[elements.length - 1] === " ") {
+        elements.pop();
+      }
+      return elements;
     }
     return children;
   };

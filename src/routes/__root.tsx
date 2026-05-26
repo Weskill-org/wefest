@@ -32,22 +32,46 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" },
+      {
+        name: "viewport",
+        content:
+          "width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no",
+      },
       { name: "theme-color", content: "#1a1025" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "format-detection", content: "telephone=no" },
       { title: "WeFest — The digital backbone of college festivals" },
-      { name: "description", content: "Host, manage, sponsor, and ticket college festivals on India's first college-native event ecosystem." },
+      {
+        name: "description",
+        content:
+          "Host, manage, sponsor, and ticket college festivals on India's first college-native event ecosystem.",
+      },
       { property: "og:title", content: "WeFest — The digital backbone of college festivals" },
-      { property: "og:description", content: "Host, manage, sponsor, and ticket college festivals on India's first college-native event ecosystem." },
+      {
+        property: "og:description",
+        content:
+          "Host, manage, sponsor, and ticket college festivals on India's first college-native event ecosystem.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "WeFest — The digital backbone of college festivals" },
-      { name: "twitter:description", content: "Host, manage, sponsor, and ticket college festivals on India's first college-native event ecosystem." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c59fe210-a7d1-4b78-b701-d17ab3e930d5/id-preview-132cb495--272cb781-a3b7-42b3-b429-7a4083e42d44.lovable.app-1778076928123.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c59fe210-a7d1-4b78-b701-d17ab3e930d5/id-preview-132cb495--272cb781-a3b7-42b3-b429-7a4083e42d44.lovable.app-1778076928123.png" },
+      {
+        name: "twitter:description",
+        content:
+          "Host, manage, sponsor, and ticket college festivals on India's first college-native event ecosystem.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c59fe210-a7d1-4b78-b701-d17ab3e930d5/id-preview-132cb495--272cb781-a3b7-42b3-b429-7a4083e42d44.lovable.app-1778076928123.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c59fe210-a7d1-4b78-b701-d17ab3e930d5/id-preview-132cb495--272cb781-a3b7-42b3-b429-7a4083e42d44.lovable.app-1778076928123.png",
+      },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
@@ -75,17 +99,24 @@ function RootComponent() {
   if (isAuthChecking) {
     return <LoadingScreen />;
   }
-  
+
   // Routes that shouldn't show the global header/footer because they have their own layouts
   const isOrganizerRoute = pathname.startsWith("/organizer");
   const isCompanyRoute = pathname.startsWith("/company");
   const isAdminRoute = pathname.startsWith("/admin");
-  const isStudentRoute = routerState.matches.some(m => m.routeId === '/_student');
-  const isAuthRoute = pathname === "/login" || pathname === "/signup";
+  const isStudentRoute = routerState.matches.some((m) => m.routeId === "/_student");
+  const isAuthRoute =
+    pathname === "/login" || pathname === "/signup" || pathname === "/reset-password";
   // /fest/* routes render their own layout (StudentAppLayout when logged-in, minimal header for guests)
   const isFestRoute = pathname.startsWith("/fest");
-  
-  const hideGlobalLayout = isOrganizerRoute || isCompanyRoute || isAdminRoute || isStudentRoute || isAuthRoute || isFestRoute;
+
+  const hideGlobalLayout =
+    isOrganizerRoute ||
+    isCompanyRoute ||
+    isAdminRoute ||
+    isStudentRoute ||
+    isAuthRoute ||
+    isFestRoute;
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -118,7 +149,7 @@ function GlobalBroadcasts() {
           .select("*")
           .eq("active", true)
           .order("created_at", { ascending: false });
-        
+
         if (error) {
           // If table is missing or policy fails, just log and return empty
           console.warn("Broadcast fetch error:", error.message);
@@ -130,16 +161,23 @@ function GlobalBroadcasts() {
         return [];
       }
     },
-    refetchInterval: 60000 // Refetch every minute
+    refetchInterval: 60000, // Refetch every minute
   });
 
   if (!Array.isArray(broadcasts) || broadcasts.length === 0) return null;
 
   return (
     <div className="w-full">
-      {broadcasts.map(b => (
-        <div key={b.id} className={`w-full flex items-center justify-center gap-2 py-2 px-4 text-xs font-semibold text-white ${b.severity === 'emergency' ? 'bg-red-600' : b.severity === 'warning' ? 'bg-amber-600' : 'bg-blue-600'}`}>
-          {b.severity === 'emergency' || b.severity === 'warning' ? <AlertTriangle className="h-3.5 w-3.5" /> : <Info className="h-3.5 w-3.5" />}
+      {broadcasts.map((b) => (
+        <div
+          key={b.id}
+          className={`w-full flex items-center justify-center gap-2 py-2 px-4 text-xs font-semibold text-white ${b.severity === "emergency" ? "bg-red-600" : b.severity === "warning" ? "bg-amber-600" : "bg-blue-600"}`}
+        >
+          {b.severity === "emergency" || b.severity === "warning" ? (
+            <AlertTriangle className="h-3.5 w-3.5" />
+          ) : (
+            <Info className="h-3.5 w-3.5" />
+          )}
           {b.message}
         </div>
       ))}

@@ -19,7 +19,12 @@ import {
   Flame,
   Clock,
   SlidersHorizontal,
+  Tag,
+  X,
+  CalendarRange,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { eventMatchesPreferences, extractUniqueTags } from "@/lib/preferences";
 
 const categories = ["All", "Cultural", "Tech", "Sports", "Business", "Arts"] as const;
 
@@ -54,6 +59,7 @@ function EventsIndexPage() {
   const [selectedCategory, setSelectedCategory] = useState<(typeof categories)[number]>("All");
   const [selectedCity, setSelectedCity] = useState("all");
   const [sortBy, setSortBy] = useState<"date" | "popular" | "price">("date");
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   const { data: currentUser } = useQuery({
     queryKey: ["current-user"],
@@ -76,6 +82,21 @@ function EventsIndexPage() {
     },
   });
 
+  // Fetch student profile for preference matching
+  const { data: studentProfile } = useQuery({
+    queryKey: ["student-profile-prefs", currentUser?.id],
+    enabled: !!currentUser?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("student_profiles")
+        .select("interests")
+        .eq("id", currentUser!.id)
+        .maybeSingle();
+      return data;
+    },
+  });
+  const studentPreferences: string[] = studentProfile?.interests || [];
+
   const mappedEvents = useMemo(() => {
     if (!events) return [];
     return events.map((e) => ({
@@ -92,6 +113,8 @@ function EventsIndexPage() {
       description: e.description,
       organizer: e.organizer,
       slug: e.slug,
+      tags: (e as any).tags || [],
+      recommended: false as boolean | undefined,
     }));
   }, [events]);
 
@@ -103,18 +126,26 @@ function EventsIndexPage() {
     return Array.from(citySet).sort();
   }, [mappedEvents]);
 
+  // Unique tags from all events
+  const allTags = useMemo(() => extractUniqueTags(mappedEvents), [mappedEvents]);
+
   // Filter and sort
   const filtered = useMemo(() => {
     let result = mappedEvents.filter((e) => {
+      const q = searchQuery.toLowerCase();
       const matchesSearch =
         !searchQuery ||
-        e.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        e.college.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        e.city.toLowerCase().includes(searchQuery.toLowerCase());
+        e.title.toLowerCase().includes(q) ||
+        e.college.toLowerCase().includes(q) ||
+        e.city.toLowerCase().includes(q) ||
+        e.organizer?.toLowerCase().includes(q) ||
+        e.description?.toLowerCase().includes(q) ||
+        (e.tags && e.tags.some((t: string) => t.toLowerCase().includes(q)));
       const matchesCategory =
         selectedCategory === "All" || e.category === selectedCategory;
       const matchesCity = selectedCity === "all" || e.city === selectedCity;
-      return matchesSearch && matchesCategory && matchesCity;
+      const matchesTag = !selectedTag || (e.tags && e.tags.some((t: string) => t.toLowerCase() === selectedTag!.toLowerCase()));
+      return matchesSearch && matchesCategory && matchesCity && matchesTag;
     });
 
     // Sort
@@ -129,7 +160,24 @@ function EventsIndexPage() {
     }
 
     return result;
-  }, [mappedEvents, searchQuery, selectedCategory, selectedCity, sortBy]);
+  }, [mappedEvents, searchQuery, selectedCategory, selectedCity, sortBy, selectedTag]);
+
+  // Separate recommended vs all for logged-in students
+  const { recommendedEvents, otherEvents } = useMemo(() => {
+    if (!studentPreferences || studentPreferences.length === 0) {
+      return { recommendedEvents: [], otherEvents: filtered };
+    }
+    const rec: typeof filtered = [];
+    const rest: typeof filtered = [];
+    for (const e of filtered) {
+      if (eventMatchesPreferences(e, studentPreferences)) {
+        rec.push({ ...e, recommended: true });
+      } else {
+        rest.push(e);
+      }
+    }
+    return { recommendedEvents: rec, otherEvents: rest };
+  }, [filtered, studentPreferences]);
 
   // Trending = most attendees among upcoming
   const trending = useMemo(() => {
@@ -242,6 +290,37 @@ function EventsIndexPage() {
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-indigo-500/30 blur-3xl" />
       </div>
 
+      {/* ─── Recommended for You (logged-in students) ─── */}
+      {recommendedEvents.length > 0 && (
+        <section className="mt-12">
+          <div className="flex items-center gap-2.5 mb-6">
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center border border-primary/20 shadow-glow">
+              <Sparkles className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                Recommended for You
+                <span className="text-[10px] font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full uppercase tracking-widest">
+                  {recommendedEvents.length}
+                </span>
+              </h2>
+              <p className="text-[11px] text-muted-foreground">Events matching your interests</p>
+            </div>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {recommendedEvents.map((e, index) => (
+              <div
+                key={`rec-${e.id}`}
+                className="animate-in slide-in-from-bottom-4 fade-in duration-500"
+                style={{ animationDelay: `${index * 80}ms`, animationFillMode: "both" }}
+              >
+                <EventCard event={e as any} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* ─── Trending Section ─── */}
       {trending.length > 0 && (
         <section className="mt-12">
@@ -261,7 +340,7 @@ function EventsIndexPage() {
                 className="animate-in slide-in-from-bottom-4 fade-in duration-500"
                 style={{ animationDelay: `${index * 100}ms`, animationFillMode: "both" }}
               >
-                <EventCard event={e} />
+                <EventCard event={e as any} />
               </div>
             ))}
           </div>
@@ -348,8 +427,40 @@ function EventsIndexPage() {
           ))}
         </div>
 
+        {/* Tag filter pills */}
+        {allTags.length > 0 && (
+          <div className="flex flex-wrap gap-2 items-center">
+            <Tag className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <button
+              onClick={() => setSelectedTag(null)}
+              className={cn(
+                "shrink-0 rounded-full px-3 py-1.5 text-[10px] font-bold transition-all",
+                selectedTag === null
+                  ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                  : "bg-muted/20 text-muted-foreground hover:bg-muted/30"
+              )}
+            >
+              All Tags
+            </button>
+            {allTags.slice(0, 12).map(tag => (
+              <button
+                key={tag}
+                onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+                className={cn(
+                  "shrink-0 rounded-full px-3 py-1.5 text-[10px] font-bold transition-all",
+                  selectedTag === tag
+                    ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                    : "bg-muted/20 text-muted-foreground hover:bg-muted/30"
+                )}
+              >
+                #{tag}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Active filter count */}
-        {(searchQuery || selectedCategory !== "All" || selectedCity !== "all") && (
+        {(searchQuery || selectedCategory !== "All" || selectedCity !== "all" || selectedTag) && (
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium px-3 py-1.5 rounded-lg bg-white/5 border border-white/5">
               <Filter className="h-3 w-3" />
@@ -360,6 +471,7 @@ function EventsIndexPage() {
                 setSearchQuery("");
                 setSelectedCategory("All");
                 setSelectedCity("all");
+                setSelectedTag(null);
               }}
               className="text-xs font-bold text-primary hover:underline"
             >
@@ -370,7 +482,7 @@ function EventsIndexPage() {
       </div>
 
       {/* ─── Event Grid ─── */}
-      {filtered.length === 0 ? (
+      {otherEvents.length === 0 && recommendedEvents.length === 0 ? (
         <div className="mt-16 flex flex-col items-center justify-center py-20 text-center">
           <div className="h-20 w-20 rounded-3xl bg-muted/20 flex items-center justify-center mb-5">
             <Calendar className="h-10 w-10 text-muted-foreground/40" />
@@ -391,13 +503,21 @@ function EventsIndexPage() {
             Reset Filters
           </Button>
         </div>
-      ) : (
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((e) => (
-            <EventCard key={e.id} event={e} />
-          ))}
+      ) : otherEvents.length > 0 ? (
+        <div className="mt-8">
+          {recommendedEvents.length > 0 && otherEvents.length > 0 && (
+            <div className="flex items-center gap-2 mb-6">
+              <CalendarRange className="h-4 w-4 text-muted-foreground" />
+              <h3 className="text-sm font-bold text-muted-foreground">All Events</h3>
+            </div>
+          )}
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {otherEvents.map((e) => (
+              <EventCard key={e.id} event={e as any} />
+            ))}
+          </div>
         </div>
-      )}
+      ) : null}
 
       {/* ─── CTA Footer ─── */}
       {!currentUser && (

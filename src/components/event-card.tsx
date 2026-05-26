@@ -1,7 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Calendar, MapPin, Users, ChevronRight, BadgeCheck } from "lucide-react";
+import { Calendar, MapPin, Users, ChevronRight, BadgeCheck, Sparkles } from "lucide-react";
 import { useRegion } from "@/contexts/RegionContext";
 import { Button } from "./ui/button";
+import { cn } from "@/lib/utils";
 
 export interface Event {
   id: string;
@@ -16,6 +17,9 @@ export interface Event {
   description?: string;
   isVerified?: boolean;
   slug?: string;
+  tags?: string[];
+  organizer?: string;
+  recommended?: boolean;
 }
 
 export function EventCard({ event }: { event: Event }) {
@@ -29,7 +33,12 @@ export function EventCard({ event }: { event: Event }) {
     <Link
       to={event.slug ? "/fest/$slug" : "/events/$eventId"}
       params={event.slug ? { slug: event.slug } : { eventId: event.id }}
-      className="group relative flex flex-col overflow-hidden rounded-3xl border border-border/50 bg-muted/30 backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-primary/40 hover:shadow-[0_20px_50px_rgba(var(--brand-primary-rgb),0.1)]"
+      className={cn(
+        "group relative flex flex-col overflow-hidden rounded-3xl border bg-muted/30 backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(var(--brand-primary-rgb),0.1)]",
+        event.recommended
+          ? "border-primary/30 hover:border-primary/50 ring-1 ring-primary/10"
+          : "border-border/50 hover:border-primary/40",
+      )}
     >
       {/* Glow effect on hover */}
       <div className="absolute -inset-px rounded-3xl bg-brand-gradient opacity-0 transition-opacity duration-500 group-hover:opacity-10" />
@@ -50,6 +59,15 @@ export function EventCard({ event }: { event: Event }) {
             </span>
           )}
         </div>
+
+        {/* Recommended Badge */}
+        {event.recommended && (
+          <div className="absolute right-4 bottom-14 animate-in fade-in slide-in-from-right-2 duration-500">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/90 backdrop-blur-md px-3 py-1 text-[9px] font-black uppercase tracking-widest text-white shadow-glow">
+              <Sparkles className="h-3 w-3" /> For You
+            </span>
+          </div>
+        )}
 
         {/* Price Tag */}
         {event.priceFrom > 0 && (
@@ -79,6 +97,25 @@ export function EventCard({ event }: { event: Event }) {
           <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
             {event.description}
           </p>
+        )}
+
+        {/* Tags */}
+        {event.tags && event.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-3">
+            {event.tags.slice(0, 3).map((tag) => (
+              <span
+                key={tag}
+                className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-white/5 px-2 py-0.5 rounded-md border border-white/5"
+              >
+                #{tag}
+              </span>
+            ))}
+            {event.tags.length > 3 && (
+              <span className="text-[9px] font-bold text-muted-foreground/60 px-1 py-0.5">
+                +{event.tags.length - 3} more
+              </span>
+            )}
+          </div>
         )}
 
         <div className="mt-auto pt-5">
@@ -116,5 +153,3 @@ export function EventCard({ event }: { event: Event }) {
     </Link>
   );
 }
-
-

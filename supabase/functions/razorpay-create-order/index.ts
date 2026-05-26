@@ -169,6 +169,10 @@ Deno.serve(async (req) => {
       let planPrice = 0;
       if (body.planType === "Growth") {
         planPrice = 9999;
+      } else if (body.planType === "premium_monthly") {
+        planPrice = 3000;
+      } else if (body.planType === "premium_yearly") {
+        planPrice = 30000;
       } else {
         return json({ error: "This plan cannot be purchased via Razorpay directly" }, 400);
       }
@@ -220,7 +224,11 @@ Deno.serve(async (req) => {
         console.log("[CreateOrder] Full discount applied, creating free subscription");
 
         const currentPeriodEnd = new Date();
-        currentPeriodEnd.setFullYear(currentPeriodEnd.getFullYear() + 1);
+        if (body.planType === "premium_monthly") {
+          currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1);
+        } else {
+          currentPeriodEnd.setFullYear(currentPeriodEnd.getFullYear() + 1);
+        }
 
         const { data: existingSub, error: findSubErr } = await admin
           .from("subscriptions").select("id").eq("user_id", userId).maybeSingle();

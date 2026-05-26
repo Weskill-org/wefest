@@ -110,7 +110,7 @@ export async function processReferralAfterLogin(user: {
   const result = await processReferralIfPending({
     userId: user.id,
     referralCode: code,
-    alreadyReferred: profile?.referred_by,
+    alreadyReferred: !!profile?.referred_by,
   });
 
   if (result.processed) markReferralProcessed(user.id);

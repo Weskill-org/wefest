@@ -194,7 +194,7 @@ function CollegeProfilePage() {
                 )}
                 <span className="flex items-center gap-1.5 bg-white/5 rounded-full px-3 py-1.5 backdrop-blur-sm border border-white/5">
                   <Trophy className="h-3.5 w-3.5 text-yellow-400" />
-                  <span className="font-bold text-foreground">{college.fests}</span> {college.fests === 1 ? "Festival" : "Festivals"} Hosted
+                  <span className="font-bold text-foreground">{allEvents.length}</span> {allEvents.length === 1 ? "Festival" : "Festivals"} Hosted
                 </span>
               </div>
             </div>
@@ -236,7 +236,7 @@ function CollegeProfilePage() {
                 {college.city ? ` located in ${college.city}` : ""}.
                 Known for its vibrant campus culture and excellence in organizing world-class festivals,
                 it has become a cornerstone of the WeFest college network.
-                {college.fests > 0 && ` With ${college.fests} successful ${college.fests === 1 ? "festival" : "festivals"} under its belt, the institution continues to set benchmarks in student-led events.`}
+                {allEvents.length > 0 && ` With ${allEvents.length} successful ${allEvents.length === 1 ? "festival" : "festivals"} under its belt, the institution continues to set benchmarks in student-led events.`}
               </p>
               {college.domain && (
                 <a
@@ -417,7 +417,7 @@ function CollegeProfilePage() {
               </div>
               <div className="space-y-3">
                 {[
-                  { icon: Trophy, label: "Festivals Hosted", value: college.fests, color: "text-yellow-400", bg: "bg-yellow-500/10" },
+                  { icon: Trophy, label: "Festivals Hosted", value: allEvents.length, color: "text-yellow-400", bg: "bg-yellow-500/10" },
                   { icon: Calendar, label: "Total Events", value: allEvents.length, color: "text-primary", bg: "bg-primary/10" },
                   { icon: Sparkles, label: "Upcoming", value: upcomingEvents.length, color: "text-emerald-400", bg: "bg-emerald-500/10" },
                   { icon: Users, label: "Total Reach", value: totalAttendees.toLocaleString(), color: "text-blue-400", bg: "bg-blue-500/10" },

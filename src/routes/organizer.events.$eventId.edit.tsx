@@ -74,6 +74,44 @@ function EditEvent() {
   const queryClient = useQueryClient();
   const { eventId } = Route.useParams();
 
+  // Limit check data
+  const { data: userData } = useQuery({
+    queryKey: ["current-user"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    }
+  });
+
+  const { data: subscription } = useQuery({
+    queryKey: ["my-subscription", userData?.id],
+    enabled: !!userData?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("subscriptions")
+        .select("*")
+        .eq("user_id", userData!.id)
+        .eq("status", "active")
+        .maybeSingle();
+      if (error && error.code !== "PGRST116") throw error;
+      return data || { plan_type: "free" };
+    },
+  });
+
+  const { data: publishedCount } = useQuery({
+    queryKey: ["my-published-events-count", userData?.id],
+    enabled: !!userData?.id,
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("events")
+        .select("*", { count: "exact", head: true })
+        .eq("organizer_user_id", userData!.id)
+        .eq("status", "published");
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
   // Initialise tags as string[]
   const initialTags: string[] = Array.isArray(event.tags) ? (event.tags as string[]) : [];
 
@@ -208,6 +246,17 @@ function EditEvent() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Limit Check for Publishing
+    if (form.status === "published" && event.status !== "published") {
+      if (subscription?.plan_type === "free" && (publishedCount || 0) >= 3) {
+        toast.error("Free Tier Limit Reached", {
+          description: "You can only have 3 active fests at a time. Please upgrade to Premium."
+        });
+        navigate({ to: "/organizer/settings" });
+        return;
+      }
+    }
+
     // Auto-add pending team member
     let finalMembers = form.team_members;
     if (newMemberName.trim()) {

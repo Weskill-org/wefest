@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { ActivityFeedPopover } from "@/components/activity-feed-popover";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { StudentAppLayout } from "@/components/layout/StudentAppLayout";
+import { PreferenceOnboarding } from "@/components/PreferenceOnboarding";
 
 export const Route = createFileRoute("/_student")({
   beforeLoad: async ({ location }) => {
@@ -95,7 +96,7 @@ export const Route = createFileRoute("/_student")({
           const result = await processReferralIfPending({
             userId: currentUser.id,
             referralCode,
-            alreadyReferred: profile?.referred_by,
+            alreadyReferred: !!profile?.referred_by,
           });
           if (result.processed) {
             markReferralProcessed(currentUser.id);
@@ -146,6 +147,14 @@ function StudentLayout() {
   const profile = ctx?.profile as any;
   const queryClient = useQueryClient();
   const referralAttempted = useRef(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // Show preference onboarding when interests have never been set
+  useEffect(() => {
+    if (profile && profile.interests === null) {
+      setShowOnboarding(true);
+    }
+  }, [profile]);
 
   useEffect(() => {
     if (!user?.id || referralAttempted.current) return;
@@ -159,7 +168,7 @@ function StudentLayout() {
         const result = await processReferralIfPending({
           userId: user.id,
           referralCode: code,
-          alreadyReferred: profile?.referred_by,
+          alreadyReferred: !!profile?.referred_by,
         });
         if (result.processed) {
           markReferralProcessed(user.id);
@@ -180,6 +189,13 @@ function StudentLayout() {
   return (
     <StudentAppLayout user={user} profile={profile}>
       <Outlet />
+      {showOnboarding && user?.id && (
+        <PreferenceOnboarding
+          userId={user.id}
+          onComplete={() => setShowOnboarding(false)}
+        />
+      )}
     </StudentAppLayout>
   );
 }
+

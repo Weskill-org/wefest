@@ -108,9 +108,14 @@ function CollegesIndexPage() {
   }, [realColleges, searchQuery, selectedCity]);
 
   // Stats
-  const totalFests = realColleges?.reduce((acc, c) => acc + (c.fests || 0), 0) || 0;
+  const totalFests = realColleges?.reduce((acc, c) => acc + (c.events?.length || 0), 0) || 0;
   const totalEvents =
-    realColleges?.reduce((acc, c) => acc + (c.events?.length || 0), 0) || 0;
+    realColleges?.reduce((acc, c) => {
+      const upcoming = c.events?.filter(
+        (e: any) => new Date(e.date) >= new Date()
+      ) || [];
+      return acc + upcoming.length;
+    }, 0) || 0;
 
   // Gradient accents for cards
   const gradients = [
@@ -309,7 +314,7 @@ function CollegesIndexPage() {
                   <div className="mt-auto pt-4 flex items-center gap-3">
                     <Badge variant="secondary" className="bg-primary/10 text-primary border-none text-[10px] font-bold gap-1">
                       <Trophy className="h-3 w-3" />
-                      {c.fests} {c.fests === 1 ? "fest" : "fests"}
+                      {c.events?.length || 0} {(c.events?.length || 0) === 1 ? "fest" : "fests"}
                     </Badge>
                     {upcomingEvents.length > 0 && (
                       <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-500 border-none text-[10px] font-bold gap-1">

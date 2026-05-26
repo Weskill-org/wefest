@@ -14,17 +14,24 @@ import {
   Clock,
   ArrowRight,
   Zap,
-  Loader2
+  Loader2,
+  Tag,
+  Flame,
+  Filter,
+  X,
+  Calendar,
 } from "lucide-react";
 import { EmptyState } from "@/components/events/empty-state";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { StudentAppLayout } from "@/components/layout/StudentAppLayout";
+import { eventMatchesPreferences, extractUniqueTags } from "@/lib/preferences";
 
 const CATEGORIES = ["All", "Cultural", "Tech", "Sports", "Business", "Arts"] as const;
+const DATE_PRESETS = ["All Dates", "Today", "This Week", "This Month", "Upcoming"] as const;
 
-export const Route = createFileRoute("/fest/")({
+export const Route = createFileRoute("/fest/")(  {
   head: () => ({ 
     meta: [
       { title: "Discover College Festivals | WeFest" }, 
@@ -48,6 +55,9 @@ export const Route = createFileRoute("/fest/")({
 function PublicFestPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<(typeof CATEGORIES)[number]>("All");
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [selectedCity, setSelectedCity] = useState<string>("all");
+  const [datePreset, setDatePreset] = useState<(typeof DATE_PRESETS)[number]>("All Dates");
   const navigate = useNavigate();
 
   // ── Two-Word Quick Find ──────────────────────────────────────────────
@@ -102,6 +112,7 @@ function PublicFestPage() {
 
   const user = authData?.user;
   const profile = authData?.profile;
+  const studentPreferences: string[] = profile?.interests || [];
 
   // Events (Scoped if logged in, otherwise all public)
   const { data: rawEvents, isLoading } = useQuery({
@@ -123,34 +134,115 @@ function PublicFestPage() {
     },
   });
 
-  const filteredEvents = useMemo(() => {
+  // Extract unique tags and cities from all events
+  const allTags = useMemo(() => {
     if (!rawEvents) return [];
-    return rawEvents
-      .map(e => ({
-        id: e.id,
-        title: e.title,
-        college: e.college_name,
-        collegeId: e.college_id || "",
-        date: e.date,
-        city: e.city,
-        category: e.category as any,
-        cover: e.cover,
-        attendees: e.attendees,
-        priceFrom: e.price_from,
-        description: e.description,
-        slug: e.slug
-      }))
-      .filter((e) => {
-        const matchesSearch = 
-          e.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-          e.description?.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory = activeCategory === "All" || e.category === activeCategory;
-        return matchesSearch && matchesCategory;
-      });
-  }, [rawEvents, searchQuery, activeCategory]);
+    return extractUniqueTags(rawEvents);
+  }, [rawEvents]);
 
-  const collegeName = profile?.colleges?.name || "Premium Institutions";
-  const city = profile?.colleges?.city || "India";
+  const cities = useMemo(() => {
+    if (!rawEvents) return [];
+    const citySet = new Set(rawEvents.map(e => e.city).filter((c): c is string => !!c));
+    return Array.from(citySet).sort();
+  }, [rawEvents]);
+
+  // Date filter helper
+  const passesDateFilter = useCallback((dateStr: string) => {
+    if (datePreset === "All Dates") return true;
+    const eventDate = new Date(dateStr);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    switch (datePreset) {
+      case "Today":
+        return eventDate >= today && eventDate < new Date(today.getTime() + 86400000);
+      case "This Week": {
+        const weekEnd = new Date(today.getTime() + 7 * 86400000);
+        return eventDate >= today && eventDate < weekEnd;
+      }
+      case "This Month": {
+        const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        return eventDate >= today && eventDate <= monthEnd;
+      }
+      case "Upcoming":
+        return eventDate >= today;
+      default:
+        return true;
+    }
+  }, [datePreset]);
+
+  // Map and filter events
+  const allMappedEvents = useMemo(() => {
+    if (!rawEvents) return [];
+    return rawEvents.map(e => ({
+      id: e.id,
+      title: e.title,
+      college: e.college_name,
+      collegeId: e.college_id || "",
+      date: e.date,
+      city: e.city,
+      category: e.category as string,
+      cover: e.cover,
+      attendees: e.attendees,
+      priceFrom: e.price_from,
+      description: e.description,
+      slug: e.slug,
+      tags: (e as any).tags || [],
+      organizer: e.organizer,
+      recommended: false as boolean | undefined,
+    }));
+  }, [rawEvents]);
+
+  const filteredEvents = useMemo(() => {
+    return allMappedEvents.filter((e) => {
+      // Search: matches title, description, college, tags, organizer
+      const q = searchQuery.toLowerCase();
+      const matchesSearch = !q || 
+        e.title.toLowerCase().includes(q) || 
+        e.description?.toLowerCase().includes(q) ||
+        e.college.toLowerCase().includes(q) ||
+        e.city.toLowerCase().includes(q) ||
+        e.organizer?.toLowerCase().includes(q) ||
+        (e.tags && e.tags.some((t: string) => t.toLowerCase().includes(q)));
+
+      const matchesCategory = activeCategory === "All" || e.category === activeCategory;
+      const matchesTag = !selectedTag || (e.tags && e.tags.some((t: string) => t.toLowerCase() === selectedTag!.toLowerCase()));
+      const matchesCity = selectedCity === "all" || e.city === selectedCity;
+      const matchesDate = passesDateFilter(e.date);
+
+      return matchesSearch && matchesCategory && matchesTag && matchesCity && matchesDate;
+    });
+  }, [allMappedEvents, searchQuery, activeCategory, selectedTag, selectedCity, passesDateFilter]);
+
+  // Separate recommended vs all
+  const { recommended, others } = useMemo(() => {
+    if (!studentPreferences || studentPreferences.length === 0) {
+      return { recommended: [], others: filteredEvents };
+    }
+    const rec: typeof filteredEvents = [];
+    const rest: typeof filteredEvents = [];
+    for (const e of filteredEvents) {
+      if (eventMatchesPreferences(e, studentPreferences)) {
+        rec.push({ ...e, recommended: true });
+      } else {
+        rest.push(e);
+      }
+    }
+    return { recommended: rec, others: rest };
+  }, [filteredEvents, studentPreferences]);
+
+  const hasActiveFilters = searchQuery !== "" || activeCategory !== "All" || selectedTag !== null || selectedCity !== "all" || datePreset !== "All Dates";
+
+  const clearAllFilters = () => {
+    setSearchQuery("");
+    setActiveCategory("All");
+    setSelectedTag(null);
+    setSelectedCity("all");
+    setDatePreset("All Dates");
+  };
+
+  const collegeName = (profile?.colleges as any)?.name || "Premium Institutions";
+  const city = (profile?.colleges as any)?.city || "India";
 
   const PageContent = (
     <div className="min-h-screen pb-20 animate-in fade-in duration-700">
@@ -180,6 +272,12 @@ function PublicFestPage() {
                   <MapPin className="h-4 w-4 text-primary" />
                   <span className="text-xs font-bold">{city}</span>
                 </div>
+                {studentPreferences.length > 0 && (
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-primary/5 border border-primary/10 backdrop-blur-md">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <span className="text-xs font-bold text-primary">{studentPreferences.length} interests active</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -196,6 +294,12 @@ function PublicFestPage() {
                   </div>
                 </div>
                 <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                {recommended.length > 0 && (
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground font-medium">For You</span>
+                    <span className="text-primary font-black">{recommended.length}</span>
+                  </div>
+                )}
                 <Button variant="ghost" className="w-full text-[10px] font-black uppercase tracking-widest hover:bg-primary/5 hover:text-primary transition-all">
                   Browse Categories <ArrowRight className="ml-2 h-3 w-3" />
                 </Button>
@@ -255,51 +359,203 @@ function PublicFestPage() {
       {/* Search & Filters */}
       <section className="px-6 sm:px-8 py-6 sticky top-0 z-30 transition-all duration-300">
         <div className="max-w-[1400px] mx-auto">
-          <div className="bg-black/40 backdrop-blur-2xl rounded-[2rem] p-3 border border-white/5 shadow-2xl flex flex-col md:flex-row items-center gap-3">
-            <div className="relative flex-1 group w-full">
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search for festivals, competitions, or guest stars..."
-                className="h-14 pl-12 rounded-[1.5rem] bg-black/20 border-white/10 text-sm focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all placeholder:text-muted-foreground font-medium"
-              />
+          <div className="bg-black/40 backdrop-blur-2xl rounded-[2rem] p-3 border border-white/5 shadow-2xl flex flex-col gap-3">
+            {/* Search bar + Category pills */}
+            <div className="flex flex-col md:flex-row items-center gap-3">
+              <div className="relative flex-1 group w-full">
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search events by name, tags, college, city, or keywords like AI, hackathon, dance..."
+                  className="h-14 pl-12 rounded-[1.5rem] bg-black/20 border-white/10 text-sm focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all placeholder:text-muted-foreground font-medium"
+                />
+              </div>
+              <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide px-2 w-full md:w-auto">
+                {CATEGORIES.map(category => (
+                  <button
+                    key={category}
+                    onClick={() => setActiveCategory(category)}
+                    className={cn(
+                      "h-11 px-5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all duration-300 relative group",
+                      activeCategory === category
+                        ? "bg-white text-black shadow-lg"
+                        : "text-muted-foreground hover:text-foreground hover:bg-white/5 border border-transparent"
+                    )}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide px-2 w-full md:w-auto">
-              {CATEGORIES.map(category => (
+
+            {/* Date presets + City filter + Tags */}
+            <div className="flex flex-wrap items-center gap-2 px-2">
+              {/* Date presets */}
+              <div className="flex items-center gap-1">
+                <Calendar className="h-3.5 w-3.5 text-muted-foreground mr-1" />
+                {DATE_PRESETS.map(preset => (
+                  <button
+                    key={preset}
+                    onClick={() => setDatePreset(preset)}
+                    className={cn(
+                      "px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all whitespace-nowrap",
+                      datePreset === preset
+                        ? "bg-primary/10 text-primary border border-primary/20"
+                        : "text-muted-foreground/70 hover:text-foreground hover:bg-white/5"
+                    )}
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
+
+              <div className="h-5 w-px bg-white/10 mx-1" />
+
+              {/* City filter */}
+              {cities.length > 0 && (
+                <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+                  <MapPin className="h-3.5 w-3.5 text-muted-foreground mr-1 shrink-0" />
+                  <button
+                    onClick={() => setSelectedCity("all")}
+                    className={cn(
+                      "px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all whitespace-nowrap",
+                      selectedCity === "all"
+                        ? "bg-primary/10 text-primary border border-primary/20"
+                        : "text-muted-foreground/70 hover:text-foreground hover:bg-white/5"
+                    )}
+                  >
+                    All Cities
+                  </button>
+                  {cities.map(c => (
+                    <button
+                      key={c}
+                      onClick={() => setSelectedCity(c)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all whitespace-nowrap",
+                        selectedCity === c
+                          ? "bg-primary/10 text-primary border border-primary/20"
+                          : "text-muted-foreground/70 hover:text-foreground hover:bg-white/5"
+                      )}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Tag pills */}
+            {allTags.length > 0 && (
+              <div className="flex items-center gap-2 px-2 overflow-x-auto scrollbar-hide pb-1">
+                <Tag className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                 <button
-                  key={category}
-                  onClick={() => setActiveCategory(category)}
+                  onClick={() => setSelectedTag(null)}
                   className={cn(
-                    "h-11 px-5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all duration-300 relative group",
-                    activeCategory === category
-                      ? "bg-white text-black shadow-lg"
-                      : "text-muted-foreground hover:text-foreground hover:bg-white/5 border border-transparent"
+                    "px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all whitespace-nowrap shrink-0",
+                    selectedTag === null
+                      ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                      : "text-muted-foreground/70 hover:text-foreground hover:bg-white/5"
                   )}
                 >
-                  {category}
+                  All Tags
                 </button>
-              ))}
-            </div>
+                {allTags.slice(0, 15).map(tag => (
+                  <button
+                    key={tag}
+                    onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+                    className={cn(
+                      "px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all whitespace-nowrap shrink-0",
+                      selectedTag === tag
+                        ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                        : "text-muted-foreground/70 hover:text-foreground hover:bg-white/5"
+                    )}
+                  >
+                    #{tag}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Active filter summary */}
+            {hasActiveFilters && (
+              <div className="flex items-center gap-3 px-3 pb-1">
+                <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-medium px-2 py-1 rounded-lg bg-white/5 border border-white/5">
+                  <Filter className="h-3 w-3" />
+                  <span>{filteredEvents.length} {filteredEvents.length === 1 ? "result" : "results"}</span>
+                </div>
+                <button
+                  onClick={clearAllFilters}
+                  className="text-[10px] font-bold text-primary hover:underline flex items-center gap-1"
+                >
+                  <X className="h-3 w-3" /> Clear all
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </section>
 
-      {/* Grid */}
+      {/* ─── Recommended For You ─── */}
+      {recommended.length > 0 && (
+        <section className="px-6 sm:px-8 pt-6 pb-2 max-w-[1400px] mx-auto">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center text-primary shadow-glow border border-primary/20">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-xl font-black tracking-tight flex items-center gap-2">
+                Recommended for You
+                <span className="text-[10px] font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full uppercase tracking-widest">
+                  {recommended.length}
+                </span>
+              </h2>
+              <p className="text-[11px] text-muted-foreground font-medium">Based on your selected interests</p>
+            </div>
+          </div>
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {recommended.map((event, index) => (
+              <div
+                key={`rec-${event.id}`}
+                className="animate-in slide-in-from-bottom-4 fade-in duration-500"
+                style={{ animationDelay: `${index * 80}ms`, animationFillMode: "both" }}
+              >
+                <EventCard event={event as any} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ─── All Events Grid ─── */}
       <section className="px-6 sm:px-8 py-12 max-w-[1400px] mx-auto">
+        {recommended.length > 0 && others.length > 0 && (
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-10 w-10 rounded-2xl bg-white/5 flex items-center justify-center text-muted-foreground border border-white/5">
+              <CalendarRange className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-xl font-black tracking-tight">All Events</h2>
+              <p className="text-[11px] text-muted-foreground font-medium">
+                Browse all available events
+              </p>
+            </div>
+          </div>
+        )}
+
         {isLoading ? (
            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
              {[1,2,3,4,5,6].map(i => <div key={i} className="h-64 rounded-3xl bg-white/5 animate-pulse" />)}
            </div>
-        ) : filteredEvents.length > 0 ? (
+        ) : others.length > 0 ? (
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredEvents.map((event) => (
+            {others.map((event) => (
               <EventCard key={event.id} event={event as any} />
             ))}
           </div>
-        ) : (
-          <EmptyState onReset={() => { setSearchQuery(""); setActiveCategory("All"); }} hasSearch={searchQuery !== "" || activeCategory !== "All"} />
-        )}
+        ) : recommended.length === 0 ? (
+          <EmptyState onReset={clearAllFilters} hasSearch={hasActiveFilters} />
+        ) : null}
       </section>
     </div>
   );

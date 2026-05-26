@@ -21,8 +21,15 @@ import {
   Camera,
   Eye,
   EyeOff,
-  ShieldCheck
+  ShieldCheck,
+  Sparkles,
+  Check,
+  Code2,
+  Palette,
+  Trophy
 } from "lucide-react";
+import { PREFERENCE_CATEGORIES } from "@/lib/preferences";
+import { cn } from "@/lib/utils";
 import { 
   Dialog, 
   DialogContent, 
@@ -54,6 +61,30 @@ export const Route = createFileRoute("/_student/settings")({
   },
   component: StudentSettings,
 });
+
+const CATEGORY_COLORS: Record<string, { bg: string; border: string; text: string }> = {
+  technical: {
+    bg: "bg-blue-500/10",
+    border: "border-blue-500/20",
+    text: "text-blue-400",
+  },
+  cultural: {
+    bg: "bg-purple-500/10",
+    border: "border-purple-500/20",
+    text: "text-purple-400",
+  },
+  sports: {
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-500/20",
+    text: "text-emerald-400",
+  },
+};
+
+const CATEGORY_ICONS: Record<string, React.ElementType> = {
+  technical: Code2,
+  cultural: Palette,
+  sports: Trophy,
+};
 
 function StudentSettings() {
   const queryClient = useQueryClient();
@@ -113,6 +144,7 @@ function StudentSettings() {
   const [bio, setBio] = useState("");
   const [collegeId, setCollegeId] = useState<string>("none");
   const [isPublic, setIsPublic] = useState(true);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [isDirty, setIsDirty] = useState(false);
 
   // Password Change State
@@ -142,6 +174,7 @@ function StudentSettings() {
       setBio(profile.bio || "");
       setCollegeId(profile.college_id || user?.user_metadata?.college_id || "none");
       setIsPublic(profile.is_public ?? true);
+      setSelectedInterests(profile.interests || []);
     }
   }, [profile, user]);
 
@@ -156,6 +189,7 @@ function StudentSettings() {
           bio,
           college_id: collegeId === "none" ? null : collegeId,
           is_public: isPublic,
+          interests: selectedInterests,
         })
         .eq("id", user.id);
         
@@ -323,6 +357,66 @@ function StudentSettings() {
                   checked={isPublic} 
                   onCheckedChange={(v) => { setIsPublic(v); setIsDirty(true); }} 
                 />
+              </div>
+
+              {/* Interests & Preferences Section */}
+              <div className="space-y-4 pt-4 border-t border-border/20">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm font-bold">Interests & Preferences</Label>
+                    <p className="text-xs text-muted-foreground">Select your interests to personalize your events discovery.</p>
+                  </div>
+                  {selectedInterests.length > 0 && (
+                    <span className="text-[10px] font-black text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full uppercase tracking-widest">
+                      {selectedInterests.length} Selected
+                    </span>
+                  )}
+                </div>
+
+                <div className="space-y-5 mt-2">
+                  {PREFERENCE_CATEGORIES.map((cat) => {
+                    const Icon = CATEGORY_ICONS[cat.id] || Sparkles;
+                    const colors = CATEGORY_COLORS[cat.id] || CATEGORY_COLORS.technical;
+                    
+                    return (
+                      <div key={cat.id} className="space-y-2">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                          <Icon className="h-3.5 w-3.5" />
+                          <span>{cat.label}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {cat.interests.map((interest) => {
+                            const isSelected = selectedInterests.includes(interest);
+                            return (
+                              <button
+                                key={interest}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedInterests((prev) => {
+                                    const next = isSelected
+                                      ? prev.filter((i) => i !== interest)
+                                      : [...prev, interest];
+                                    return next;
+                                  });
+                                  setIsDirty(true);
+                                }}
+                                className={cn(
+                                  "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 border",
+                                  isSelected
+                                    ? `${colors.bg} ${colors.border} ${colors.text} ring-1 ring-white/5`
+                                    : "bg-white/[0.02] border-white/5 text-muted-foreground hover:bg-white/5 hover:text-foreground"
+                                )}
+                              >
+                                {isSelected && <Check className="h-3 w-3 shrink-0" />}
+                                {interest}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="flex items-center justify-between pt-6 border-t border-border/20">

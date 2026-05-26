@@ -152,10 +152,13 @@ function CommitteesPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("student_profiles")
-        .select("id, college_id, colleges(id, name, city, slug, fests, status)")
+        .select("id, college_id, colleges(id, name, city, slug, status, events(id))")
         .eq("id", user!.id)
         .maybeSingle();
       if (error) throw error;
+      if (data && data.colleges) {
+        (data.colleges as any).fests = (data.colleges as any).events?.length || 0;
+      }
       return data;
     },
   });
@@ -168,12 +171,16 @@ function CommitteesPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("colleges")
-        .select("id, name, city, slug, fests, status")
+        .select("id, name, city, slug, status, events(id)")
         .eq("id", collegeId!)
         .eq("status", "approved")
         .maybeSingle();
       if (error) throw error;
-      return data as CollegeRow | null;
+      if (!data) return null;
+      return {
+        ...data,
+        fests: (data.events as any[])?.length || 0
+      } as CollegeRow;
     },
   });
 

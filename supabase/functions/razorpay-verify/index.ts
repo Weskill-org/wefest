@@ -205,7 +205,11 @@ Deno.serve(async (req) => {
       const originalAmount = Number(notes.originalAmount ?? notes.totalInr ?? 0);
       const couponId = (notes.couponId as string) || null;
       const currentPeriodEnd = new Date();
-      currentPeriodEnd.setFullYear(currentPeriodEnd.getFullYear() + 1);
+      if (planType === "premium_monthly") {
+        currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1);
+      } else {
+        currentPeriodEnd.setFullYear(currentPeriodEnd.getFullYear() + 1);
+      }
 
       // Upsert the subscription with coupon details
       const { data: existingSub } = await admin

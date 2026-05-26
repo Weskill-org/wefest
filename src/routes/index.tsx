@@ -96,9 +96,21 @@ function Home() {
   const { data: colleges, isLoading: loadingColleges } = useQuery({
     queryKey: ["featured-colleges"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("colleges").select("*").limit(4).order("fests", { ascending: false });
+      const { data, error } = await supabase
+        .from("colleges")
+        .select("*, events(id)")
+        .eq("status", "approved");
       if (error) throw error;
-      return data;
+      
+      const sorted = (data || [])
+        .map(c => ({
+          ...c,
+          fests: c.events?.length || 0
+        }))
+        .sort((a, b) => b.fests - a.fests)
+        .slice(0, 4);
+
+      return sorted;
     }
   });
 
@@ -305,6 +317,7 @@ function Home() {
             description="Get featured on the homepage, email newsletters and college community feeds across India. Verified reach for maximum ROI."
             ctaText="Learn more"
             type="premium"
+            to="/sponsors"
           />
         </ScrollReveal>
       </section>

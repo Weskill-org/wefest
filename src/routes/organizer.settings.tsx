@@ -22,7 +22,18 @@ import {
   Save,
   Eye,
   EyeOff,
+  Crown,
+  CreditCard,
+  Zap,
 } from "lucide-react";
+import { loadRazorpayScript } from "@/lib/razorpay-checkout";
+
+// Add Razorpay type to window
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 export const Route = createFileRoute("/organizer/settings")({
   head: () => ({
@@ -116,6 +127,37 @@ function OrganizerSettings() {
     },
   });
 
+  // Fetch subscription
+  const { data: subscription, isLoading: loadingSubscription } = useQuery({
+    queryKey: ["my-subscription", userData?.id],
+    enabled: !!userData?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("subscriptions")
+        .select("*")
+        .eq("user_id", userData!.id)
+        .eq("status", "active")
+        .maybeSingle();
+      if (error && error.code !== "PGRST116") throw error;
+      return data || { plan_type: "free" };
+    },
+  });
+
+  // Fetch published events count
+  const { data: publishedCount } = useQuery({
+    queryKey: ["my-published-events-count", userData?.id],
+    enabled: !!userData?.id,
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("events")
+        .select("*", { count: "exact", head: true })
+        .eq("organizer_user_id", userData!.id)
+        .eq("status", "published");
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
   // College details form state
   const [collegeName, setCollegeName] = useState("");
   const [collegeCity, setCollegeCity] = useState("");
@@ -182,6 +224,86 @@ function OrganizerSettings() {
     },
     onError: (e: any) => toast.error(e.message),
   });
+
+  // Handle Razorpay Upgrade
+  const [isUpgrading, setIsUpgrading] = useState(false);
+  const handleUpgrade = async (planType: "premium_monthly" | "premium_yearly") => {
+    try {
+      setIsUpgrading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/razorpay-create-order`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            purpose: "subscription_purchase",
+            planType,
+          }),
+        }
+      );
+      const orderData = await res.json();
+      if (!res.ok) throw new Error(orderData.error || "Failed to create order");
+
+      if (orderData.freeSubscription) {
+        toast.success("Subscription upgraded successfully!");
+        queryClient.invalidateQueries({ queryKey: ["my-subscription"] });
+        return;
+      }
+
+      const options = {
+        key: orderData.keyId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        order_id: orderData.orderId,
+        name: "WeFest Premium",
+        description: `Upgrade to ${planType === "premium_yearly" ? "Yearly" : "Monthly"} Plan`,
+        theme: { color: "#6366f1" },
+        handler: async function (response: any) {
+          try {
+            const verifyRes = await fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/razorpay-verify`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${session.access_token}`,
+                },
+                body: JSON.stringify({
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                }),
+              }
+            );
+            const verifyData = await verifyRes.json();
+            if (!verifyRes.ok) throw new Error(verifyData.error || "Verification failed");
+
+            toast.success("Subscription upgraded successfully!");
+            queryClient.invalidateQueries({ queryKey: ["my-subscription"] });
+          } catch (err: any) {
+            toast.error(err.message || "Payment verification failed");
+          }
+        },
+      };
+
+      await loadRazorpayScript();
+      const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", function (response: any) {
+        toast.error(response.error.description || "Payment failed");
+      });
+      rzp.open();
+    } catch (err: any) {
+      toast.error(err.message || "Something went wrong");
+    } finally {
+      setIsUpgrading(false);
+    }
+  };
 
   if (loadingUser || loadingCollege) {
     return (
@@ -482,6 +604,97 @@ function OrganizerSettings() {
               Update Password
             </Button>
           </form>
+        </section>
+
+        {/* ──────────── Membership & Billing ──────────── */}
+        <section className="rounded-2xl border border-border/50 bg-muted/5 p-6">
+          <div className="flex items-center gap-2.5 mb-5">
+            <div className="h-9 w-9 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+              <Crown className="h-[18px] w-[18px]" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold">Membership & Billing</h3>
+              <p className="text-[10px] text-muted-foreground">Manage your subscription plan and publishing limits.</p>
+            </div>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Current Plan */}
+            <div className="rounded-xl border border-border/40 bg-background/50 p-5 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Current Plan</div>
+                  <Badge variant="outline" className={subscription?.plan_type !== "free" ? "bg-indigo-500/10 text-indigo-500 border-indigo-500/20" : ""}>
+                    {subscription?.plan_type === "free" ? "Free Tier" : "Premium"}
+                  </Badge>
+                </div>
+                <div className="flex items-end gap-2 mb-2">
+                  <span className="text-3xl font-black">
+                    {subscription?.plan_type === "free" ? "₹0" : (subscription?.plan_type === "premium_yearly" ? "₹30k" : "₹3k")}
+                  </span>
+                  <span className="text-sm text-muted-foreground mb-1">
+                    /{subscription?.plan_type === "free" ? "forever" : (subscription?.plan_type === "premium_yearly" ? "year" : "month")}
+                  </span>
+                </div>
+                
+                {subscription?.current_period_end && (
+                  <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
+                    <CreditCard className="h-3.5 w-3.5" />
+                    Renews/Expires on {new Date(subscription.current_period_end).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
+                  </p>
+                )}
+
+                <div className="mt-5 space-y-2.5">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Published Fests</span>
+                    <span className="font-bold">{publishedCount || 0} / {subscription?.plan_type === "free" ? "3" : "Unlimited"}</span>
+                  </div>
+                  {subscription?.plan_type === "free" && (
+                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-indigo-500 rounded-full" 
+                        style={{ width: `${Math.min(((publishedCount || 0) / 3) * 100, 100)}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Upgrade Options */}
+            <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <Zap className="h-4 w-4 text-indigo-500 fill-indigo-500" />
+                <span className="font-bold text-sm">Upgrade to Premium</span>
+              </div>
+              <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
+                Unlock unlimited fest publications. If your premium subscription expires, your published fests will be paused until you renew.
+              </p>
+              
+              <div className="space-y-3">
+                <Button 
+                  onClick={() => handleUpgrade("premium_monthly")}
+                  disabled={isUpgrading}
+                  className="w-full bg-background hover:bg-muted text-foreground border border-border/50 font-bold h-10"
+                >
+                  {isUpgrading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Monthly Plan — ₹3,000/mo
+                </Button>
+                
+                <Button 
+                  onClick={() => handleUpgrade("premium_yearly")}
+                  disabled={isUpgrading}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-glow font-bold h-10 relative overflow-hidden"
+                >
+                  {isUpgrading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Yearly Plan — ₹30,000/yr
+                  <div className="absolute top-0 right-0 bg-amber-500 text-[9px] uppercase tracking-widest font-black px-2 py-0.5 rounded-bl-lg">
+                    Save ₹6k
+                  </div>
+                </Button>
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* ──────────── Account Info ──────────── */}
