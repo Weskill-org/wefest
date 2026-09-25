@@ -8,6 +8,13 @@ export const Route = createFileRoute("/robots.txt")({
 User-agent: *
 Allow: /
 
+# Private dashboard routes — authenticated only, not for crawlers
+Disallow: /organizer/
+Disallow: /company/
+Disallow: /admin/
+Disallow: /_student/
+Disallow: /invite/
+
 # Host & Sitemaps
 Host: https://wefest.weskill.org
 Sitemap: https://wefest.weskill.org/sitemap.xml
@@ -23,3 +30,4 @@ Sitemap: https://wefest.weskill.org/sitemap.xml
     },
   },
 });
+

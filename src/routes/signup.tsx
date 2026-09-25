@@ -25,7 +25,13 @@ export const Route = createFileRoute("/signup")({
       ref: typeof search.ref === "string" ? search.ref : undefined,
     };
   },
-  head: () => ({ meta: [{ title: "Sign up — WeFest" }, { name: "description", content: "Create your WeFest account as a Student, College, or Company." }] }),
+  head: () => ({
+    meta: [
+      { title: "Sign up — WeFest" },
+      { name: "description", content: "Create your WeFest account as a Student, College, or Company." },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   beforeLoad: async ({ search }) => {
     if (typeof window === 'undefined') return;
     const session = await getAuthSession();

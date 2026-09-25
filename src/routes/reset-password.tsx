@@ -14,6 +14,7 @@ export const Route = createFileRoute("/reset-password")({
     meta: [
       { title: "Reset Password — WeFest" },
       { name: "description", content: "Create a new password for your WeFest account." },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
 });

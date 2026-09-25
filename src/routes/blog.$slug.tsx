@@ -12,6 +12,67 @@ export const Route = createFileRoute("/blog/$slug")({
   },
   head: ({ loaderData }) => {
     const post = loaderData?.post;
+    const BASE = "https://wefest.weskill.org";
+    const ogImage = `${BASE}/logo-gold.png`;
+    const canonicalUrl = post ? `${BASE}/blog/${post.slug}` : `${BASE}/blog`;
+
+    const blogSchema = post
+      ? {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          headline: post.title,
+          description: post.excerpt,
+          url: canonicalUrl,
+          datePublished: post.date,
+          articleSection: post.category ?? "College Festivals",
+          image: ogImage,
+          author: {
+            "@type": "Person",
+            name: post.author || "WeFest Editorial Team",
+          },
+          publisher: {
+            "@type": "Organization",
+            name: "WeFest",
+            url: BASE,
+            logo: {
+              "@type": "ImageObject",
+              url: ogImage,
+            },
+          },
+          mainEntityOfPage: {
+            "@type": "WebPage",
+            "@id": canonicalUrl,
+          },
+        }
+      : null;
+
+    const breadcrumbSchema = post
+      ? {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Home",
+              item: BASE,
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Blog",
+              item: `${BASE}/blog`,
+            },
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: post.title,
+              item: canonicalUrl,
+            },
+          ],
+        }
+      : null;
+
     return {
       meta: [
         { title: post ? `${post.title} | WeFest Blog` : "Blog Post | WeFest Blog" },
@@ -27,6 +88,7 @@ export const Route = createFileRoute("/blog/$slug")({
             ? `${post.title.toLowerCase().split(" ").slice(0, 5).join(", ")}, college festivals, WeFest blog`
             : "college fests blog, campus trends",
         },
+        // Open Graph
         {
           property: "og:title",
           content: post ? `${post.title} | WeFest Blog` : "Blog Post | WeFest Blog",
@@ -37,14 +99,20 @@ export const Route = createFileRoute("/blog/$slug")({
             ? post.excerpt
             : "Read our latest insights on college festivals and campus trends.",
         },
-        {
-          property: "og:url",
-          content: post
-            ? `https://wefest.weskill.org/blog/${post.slug}`
-            : "https://wefest.weskill.org/blog",
-        },
+        { property: "og:url", content: canonicalUrl },
         { property: "og:type", content: "article" },
+        { property: "og:image", content: ogImage },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { property: "og:site_name", content: "WeFest" },
+        ...(post ? [
+          { property: "article:published_time", content: post.date },
+          { property: "article:author", content: post.author || "WeFest Editorial Team" },
+          { property: "article:section", content: post.category ?? "Culture" },
+        ] : []),
+        // Twitter Card
         { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:site", content: "@wefestapp" },
         {
           name: "twitter:title",
           content: post ? `${post.title} | WeFest Blog` : "Blog Post | WeFest Blog",
@@ -55,14 +123,31 @@ export const Route = createFileRoute("/blog/$slug")({
             ? post.excerpt
             : "Read our latest insights on college festivals and campus trends.",
         },
+        { name: "twitter:image", content: ogImage },
       ],
       links: [
         {
           rel: "canonical",
-          href: post
-            ? `https://wefest.weskill.org/blog/${post.slug}`
-            : "https://wefest.weskill.org/blog",
+          href: canonicalUrl,
         },
+      ],
+      scripts: [
+        ...(blogSchema
+          ? [
+              {
+                type: "application/ld+json",
+                children: JSON.stringify(blogSchema),
+              },
+            ]
+          : []),
+        ...(breadcrumbSchema
+          ? [
+              {
+                type: "application/ld+json",
+                children: JSON.stringify(breadcrumbSchema),
+              },
+            ]
+          : []),
       ],
     };
   },

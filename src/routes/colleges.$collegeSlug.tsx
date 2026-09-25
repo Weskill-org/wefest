@@ -22,23 +22,83 @@ export const Route = createFileRoute("/colleges/$collegeSlug")({
     if (error || !college) throw notFound();
     return college;
   },
-  head: ({ loaderData }) => ({
-    meta: [
-      { title: loaderData ? `${loaderData.name} Festivals, Events & Campus Life | WeFest` : "College Profile — WeFest" },
-      { name: "description", content: loaderData ? `Explore ${loaderData.name}'s upcoming college festivals, cultural fests, tech summits, and past event history on WeFest. Book tickets instantly!` : "Explore this college's festivals, events, and campus life on WeFest." },
-      { name: "keywords", content: loaderData ? `${loaderData.name} fests, ${loaderData.name} events, ${loaderData.city} college fests, WeFest college` : "college profile, college fests, WeFest" },
-      { property: "og:title", content: loaderData ? `${loaderData.name} Festivals, Events & Campus Life | WeFest` : "College Profile — WeFest" },
-      { property: "og:description", content: loaderData ? `Explore ${loaderData.name}'s upcoming college festivals, cultural fests, tech summits, and past event history on WeFest.` : "Explore this college's festivals, events, and campus life on WeFest." },
-      { property: "og:url", content: loaderData ? `https://wefest.weskill.org/colleges/${loaderData.slug}` : "https://wefest.weskill.org/colleges" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: loaderData ? `${loaderData.name} Festivals, Events & Campus Life | WeFest` : "College Profile — WeFest" },
-      { name: "twitter:description", content: loaderData ? `Explore ${loaderData.name}'s upcoming college festivals and events on WeFest.` : "Explore this college's festivals, events, and campus life on WeFest." },
-    ],
-    links: [
-      { rel: "canonical", href: loaderData ? `https://wefest.weskill.org/colleges/${loaderData.slug}` : "https://wefest.weskill.org/colleges" },
-    ],
-  }),
+  head: ({ loaderData }) => {
+    const college = loaderData;
+    const BASE = "https://wefest.weskill.org";
+    const canonicalUrl = college ? `${BASE}/colleges/${college.slug}` : `${BASE}/colleges`;
+    const ogImage = (college as any)?.logo || `${BASE}/logo-gold.png`;
+
+    const collegeSchema = college
+      ? {
+          "@context": "https://schema.org",
+          "@type": "EducationalOrganization",
+          name: college.name,
+          url: canonicalUrl,
+          logo: ogImage,
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: college.city || "India",
+            addressCountry: "IN",
+          },
+          ...(college.domain ? { sameAs: [`https://${college.domain}`] } : {}),
+        }
+      : null;
+
+    const breadcrumbSchema = college
+      ? {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Home",
+              item: BASE,
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Colleges",
+              item: `${BASE}/colleges`,
+            },
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: college.name,
+              item: canonicalUrl,
+            },
+          ],
+        }
+      : null;
+
+    return {
+      meta: [
+        { title: college ? `${college.name} Festivals, Events & Campus Life | WeFest` : "College Profile — WeFest" },
+        { name: "description", content: college ? `Explore ${college.name}'s upcoming college festivals, cultural fests, tech summits, and past event history on WeFest. Book tickets instantly!` : "Explore this college's festivals, events, and campus life on WeFest." },
+        { name: "keywords", content: college ? `${college.name} fests, ${college.name} events, ${college.city} college fests, WeFest college` : "college profile, college fests, WeFest" },
+        { property: "og:title", content: college ? `${college.name} Festivals, Events & Campus Life | WeFest` : "College Profile — WeFest" },
+        { property: "og:description", content: college ? `Explore ${college.name}'s upcoming college festivals, cultural fests, tech summits, and past event history on WeFest.` : "Explore this college's festivals, events, and campus life on WeFest." },
+        { property: "og:url", content: canonicalUrl },
+        { property: "og:type", content: "website" },
+        { property: "og:image", content: ogImage },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { property: "og:site_name", content: "WeFest" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:site", content: "@wefestapp" },
+        { name: "twitter:title", content: college ? `${college.name} Festivals, Events & Campus Life | WeFest` : "College Profile — WeFest" },
+        { name: "twitter:description", content: college ? `Explore ${college.name}'s upcoming college festivals and events on WeFest.` : "Explore this college's festivals, events, and campus life on WeFest." },
+        { name: "twitter:image", content: ogImage },
+      ],
+      links: [
+        { rel: "canonical", href: canonicalUrl },
+      ],
+      scripts: [
+        ...(collegeSchema ? [{ type: "application/ld+json", children: JSON.stringify(collegeSchema) }] : []),
+        ...(breadcrumbSchema ? [{ type: "application/ld+json", children: JSON.stringify(breadcrumbSchema) }] : []),
+      ],
+    };
+  },
   component: CollegeProfilePage,
 });
 
@@ -122,26 +182,8 @@ function CollegeProfilePage() {
   const displayEvents = activeTab === "upcoming" ? upcomingEvents : pastEvents;
   const totalAttendees = allEvents.reduce((a: number, e: any) => a + (e.attendees || 0), 0);
 
-  const collegeSchema = {
-    "@context": "https://schema.org",
-    "@type": "EducationalOrganization",
-    "name": college.name,
-    "url": `https://wefest.weskill.org/colleges/${college.slug}`,
-    "logo": college.logo || undefined,
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": college.city || "India",
-      "addressCountry": "IN"
-    },
-    "sameAs": college.domain ? [`https://${college.domain}`] : undefined
-  };
-
   return (
     <div className="min-h-screen">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(collegeSchema) }}
-      />
       {/* ═══════ HERO ═══════ */}
       <div className="relative overflow-hidden">
         {/* background gradient */}

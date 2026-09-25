@@ -28,6 +28,7 @@ export const Route = createFileRoute("/login")({
         name: "description",
         content: "Sign in to WeFest with email and password or a magic link.",
       },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   beforeLoad: async ({ search }) => {

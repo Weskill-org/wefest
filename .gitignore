@@ -46,3 +46,8 @@ android/app/src/main/assets/public/
 *.apk
 *.aab
 dist/mobile/
+
+# BeyondSEO SEO skill – runtime artefacts only (skill source stays tracked)
+.agents/skills/beyondseo/.venv/
+client-runs/
+beyondseo-backups/

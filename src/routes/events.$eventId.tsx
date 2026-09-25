@@ -45,25 +45,59 @@ export const Route = createFileRoute("/events/$eventId")({
 
     return event;
   },
-  head: ({ loaderData }) => ({
-    meta: [
-      { title: loaderData ? `${loaderData.title} Registration & Tickets | WeFest` : "Event — WeFest" },
-      { name: "description", content: loaderData ? `Register for ${loaderData.title} on WeFest. Date: ${new Date(loaderData.date).toLocaleDateString()}. Category: ${loaderData.category}. Location: ${loaderData.college_name || "India"}. Book slots today!` : "Festival event on WeFest — India's college festival platform." },
-      { name: "keywords", content: loaderData ? `${loaderData.title}, ${loaderData.college_name} fests, ${loaderData.category} college competition, WeFest tickets` : "college events, WeFest tickets" },
-      { property: "og:title", content: loaderData ? `${loaderData.title} Registration & Tickets | WeFest` : "Event — WeFest" },
-      { property: "og:description", content: loaderData ? `Register for ${loaderData.title} on WeFest. Date: ${new Date(loaderData.date).toLocaleDateString()}. Category: ${loaderData.category}. Location: ${loaderData.college_name || "India"}.` : "Festival event on WeFest — India's college festival platform." },
-      { property: "og:image", content: loaderData?.cover || "https://wefest.weskill.org/og-image.png" },
-      { property: "og:url", content: loaderData ? `https://wefest.weskill.org/events/${loaderData.id}` : "https://wefest.weskill.org/events" },
-      { property: "og:type", content: "article" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: loaderData ? `${loaderData.title} | WeFest` : "Event — WeFest" },
-      { name: "twitter:description", content: loaderData ? `Register for ${loaderData.title} on WeFest.` : "Explore this college festival event." },
-      { name: "twitter:image", content: loaderData?.cover || "https://wefest.weskill.org/og-image.png" },
-    ],
-    links: [
-      { rel: "canonical", href: loaderData ? `https://wefest.weskill.org/events/${loaderData.id}` : "https://wefest.weskill.org/events" },
-    ],
-  }),
+  head: ({ loaderData }) => {
+    const BASE = "https://wefest.weskill.org";
+    const OG_FALLBACK =
+      "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c59fe210-a7d1-4b78-b701-d17ab3e930d5/id-preview-132cb495--272cb781-a3b7-42b3-b429-7a4083e42d44.lovable.app-1778076928123.png";
+
+    // If event has a slug, this page will redirect — mark as noindex to avoid
+    // duplicate content, and set canonical to the slug-based URL.
+    if (!loaderData || loaderData.slug) {
+      const canonicalUrl = loaderData?.slug
+        ? `${BASE}/fest/${loaderData.slug}`
+        : `${BASE}/events`;
+      return {
+        meta: [
+          { name: "robots", content: "noindex, follow" },
+          { title: loaderData ? `${loaderData.title} — WeFest` : "Event — WeFest" },
+          { property: "og:url", content: canonicalUrl },
+        ],
+        links: [{ rel: "canonical", href: canonicalUrl }],
+      };
+    }
+
+    // Fallback: event without a slug (legacy / direct ID access)
+    const e = loaderData;
+    const eventDate = e.date ? new Date(e.date) : null;
+    const dateStr = eventDate
+      ? eventDate.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })
+      : null;
+    const locationPart = e.venue ? `at ${e.venue}` : e.college_name ? `at ${e.college_name}` : "on campus";
+    const datePart = dateStr ? ` on ${dateStr}` : "";
+    const description = `Register for ${e.title}${datePart} ${locationPart}. ${e.category ?? "College"} festival on WeFest — India's campus event ecosystem.`;
+    const title = `${e.title} Registration & Tickets | WeFest`;
+    const canonicalUrl = `${BASE}/events/${e.id}`;
+    const ogImage = e.cover || OG_FALLBACK;
+
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { name: "keywords", content: `${e.title}, ${e.college_name ?? ""} fests, ${e.category ?? ""} college competition, WeFest tickets` },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:image", content: ogImage },
+        { property: "og:url", content: canonicalUrl },
+        { property: "og:type", content: "event" },
+        { property: "og:site_name", content: "WeFest" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: ogImage },
+      ],
+      links: [{ rel: "canonical", href: canonicalUrl }],
+    };
+  },
   errorComponent: ({ error }) => (
     <div className="container mx-auto px-6 py-20 text-center">
       <h1 className="text-2xl font-bold">Something went wrong</h1>

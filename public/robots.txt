@@ -1,0 +1,17 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Private & dashboard routes — authenticated only, not for crawlers
+Disallow: /organizer/
+Disallow: /company/
+Disallow: /admin/
+Disallow: /_student/
+Disallow: /invite/
+Disallow: /login
+Disallow: /signup
+Disallow: /reset-password
+
+# Host & Sitemaps
+Host: https://wefest.weskill.org
+Sitemap: https://wefest.weskill.org/sitemap.xml

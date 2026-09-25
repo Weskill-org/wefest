@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "beyondseo": {
+      "source": "beyondtahir/beyondseo",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "08582823abda3fd83b994bbed5a81788b9e68e2484e2e7a7837907cc0938e140"
+    }
+  }
+}

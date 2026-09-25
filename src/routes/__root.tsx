@@ -74,6 +74,51 @@ export const Route = createRootRoute({
       },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
+    scripts: [
+      {
+        // Organization schema — tells Google/AI engines about WeFest as an entity
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "WeFest",
+          alternateName: "WeFest India",
+          url: "https://wefest.weskill.org",
+          logo: "https://wefest.weskill.org/favicon.ico",
+          description:
+            "India's first college-native event ecosystem — discover, ticket, host and sponsor college festivals.",
+          foundingDate: "2024",
+          areaServed: { "@type": "Country", name: "India" },
+          sameAs: [
+            "https://www.instagram.com/wefest.in",
+            "https://twitter.com/wefestapp",
+          ],
+          contactPoint: {
+            "@type": "ContactPoint",
+            contactType: "customer service",
+            availableLanguage: ["English", "Hindi"],
+          },
+        }),
+      },
+      {
+        // WebSite schema with SearchAction — enables Google Sitelinks Searchbox
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "WeFest",
+          url: "https://wefest.weskill.org",
+          potentialAction: {
+            "@type": "SearchAction",
+            target: {
+              "@type": "EntryPoint",
+              urlTemplate: "https://wefest.weskill.org/events?q={search_term_string}",
+            },
+            "query-input": "required name=search_term_string",
+          },
+        }),
+      },
+    ],
   }),
   component: RootComponent,
   notFoundComponent: NotFoundComponent,

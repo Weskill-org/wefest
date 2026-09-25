@@ -52,25 +52,157 @@ export const Route = createFileRoute("/fest/$slug")({
       throw err;
     }
   },
-  head: ({ loaderData }) => ({
-    meta: [
-      { title: loaderData ? `${loaderData.title} — WeFest` : "Event — WeFest" },
-      { name: "description", content: loaderData?.description ?? "Festival event on WeFest — India's college festival platform." },
-      { name: "keywords", content: loaderData ? `${loaderData.title}, ${loaderData.college_name} fests, ${loaderData.category} college competition, WeFest tickets` : "college events, WeFest tickets" },
-      { property: "og:title", content: loaderData ? `${loaderData.title} | WeFest` : "Event — WeFest" },
-      { property: "og:description", content: loaderData?.description ?? "Festival event on WeFest — India's college festival platform." },
-      { property: "og:image", content: loaderData?.cover || "https://wefest.weskill.org/og-image.png" },
-      { property: "og:url", content: loaderData ? `https://wefest.weskill.org/fest/${loaderData.slug}` : "https://wefest.weskill.org/fest" },
-      { property: "og:type", content: "article" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: loaderData ? `${loaderData.title} | WeFest` : "Event — WeFest" },
-      { name: "twitter:description", content: loaderData?.description ?? "Explore this college festival event." },
-      { name: "twitter:image", content: loaderData?.cover || "https://wefest.weskill.org/og-image.png" },
-    ],
-    links: [
-      { rel: "canonical", href: loaderData ? `https://wefest.weskill.org/fest/${loaderData.slug}` : "https://wefest.weskill.org/fest" },
-    ],
-  }),
+  head: ({ loaderData }) => {
+    const BASE = "https://wefest.weskill.org";
+    const OG_FALLBACK =
+      "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c59fe210-a7d1-4b78-b701-d17ab3e930d5/id-preview-132cb495--272cb781-a3b7-42b3-b429-7a4083e42d44.lovable.app-1778076928123.png";
+
+    if (!loaderData) {
+      return {
+        meta: [
+          { title: "College Festival — WeFest" },
+          { name: "description", content: "Discover and register for college festivals on WeFest — India's campus event ecosystem." },
+          { property: "og:title", content: "College Festival — WeFest" },
+          { property: "og:description", content: "Discover and register for college festivals on WeFest — India's campus event ecosystem." },
+          { property: "og:image", content: OG_FALLBACK },
+          { property: "og:type", content: "event" },
+          { name: "twitter:card", content: "summary_large_image" },
+        ],
+        links: [{ rel: "canonical", href: `${BASE}/fest` }],
+      };
+    }
+
+    const e = loaderData;
+    const eventDate = e.date ? new Date(e.date) : null;
+    const endDate = (e as any).end_date ? new Date((e as any).end_date) : null;
+    const year = eventDate ? eventDate.getFullYear() : new Date().getFullYear();
+    const dateStr = eventDate
+      ? eventDate.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })
+      : null;
+
+    // Rich, intent-driven title: "Mood Indigo 2025 | IIT Bombay Cultural Fest — WeFest"
+    const collegePart = e.college_name ? ` | ${e.college_name}` : "";
+    const categoryPart = e.category ? ` ${e.category} Fest` : " Fest";
+    const title = `${e.title} ${year}${collegePart}${categoryPart} — WeFest`;
+
+    // Description answers: what, where, when, how to register
+    const locationPart = e.venue ? `at ${e.venue}` : e.college_name ? `at ${e.college_name}` : "on campus";
+    const datePart = dateStr ? ` on ${dateStr}` : "";
+    const tagsPart = Array.isArray(e.tags) && e.tags.length ? ` Highlights: ${e.tags.slice(0, 4).join(", ")}.` : "";
+    const description =
+      e.description
+        ? `${e.description.slice(0, 140).trim()}… Register for ${e.title}${datePart} ${locationPart} on WeFest.`
+        : `Register for ${e.title}${datePart} ${locationPart}. ${e.category ?? "College"} festival ticketing on WeFest — India's campus event ecosystem.${tagsPart}`;
+
+    const canonicalUrl = `${BASE}/fest/${e.slug}`;
+    const ogImage = e.cover || OG_FALLBACK;
+
+    // JSON-LD Event schema — enables Google rich event cards in search results
+    const eventSchema: Record<string, unknown> = {
+      "@context": "https://schema.org",
+      "@type": "Event",
+      name: e.title,
+      description: e.description ?? description,
+      url: canonicalUrl,
+      image: ogImage,
+      eventStatus: "https://schema.org/EventScheduled",
+      eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+      ...(eventDate && { startDate: eventDate.toISOString() }),
+      ...(endDate && { endDate: endDate.toISOString() }),
+      location: {
+        "@type": "Place",
+        name: e.venue ?? e.college_name ?? "India",
+        address: {
+          "@type": "PostalAddress",
+          addressCountry: "IN",
+          ...(e.city && { addressLocality: e.city }),
+        },
+      },
+      organizer: {
+        "@type": "Organization",
+        name: e.college_name ?? "WeFest Partner College",
+        url: BASE,
+      },
+      offers: {
+        "@type": "Offer",
+        url: canonicalUrl,
+        priceCurrency: "INR",
+        price: (e as any).price ?? "0",
+        availability: "https://schema.org/InStock",
+      },
+    };
+
+    const breadcrumbSchema = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: BASE,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Fests",
+          item: `${BASE}/fest`,
+        },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: e.title,
+          item: canonicalUrl,
+        },
+      ],
+    };
+
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        {
+          name: "keywords",
+          content: [
+            e.title,
+            e.college_name && `${e.college_name} fest`,
+            e.category && `${e.category} college competition`,
+            e.city && `${e.city} college events`,
+            "WeFest tickets",
+            "college festival registration",
+          ]
+            .filter(Boolean)
+            .join(", "),
+        },
+        // Open Graph
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:image", content: ogImage },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { property: "og:url", content: canonicalUrl },
+        { property: "og:type", content: "event" },
+        { property: "og:site_name", content: "WeFest" },
+        // Twitter Card
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:site", content: "@wefestapp" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: ogImage },
+      ],
+      links: [{ rel: "canonical", href: canonicalUrl }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(eventSchema),
+        },
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(breadcrumbSchema),
+        },
+      ],
+    };
+  },
   errorComponent: ({ error }) => (
     <div className="container mx-auto px-6 py-20 text-center">
       <h1 className="text-2xl font-bold">Something went wrong</h1>
